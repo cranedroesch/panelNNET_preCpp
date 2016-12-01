@@ -1,0 +1,5 @@
+S3method(plot,panelNNET)
+S3method(predict,panelNNET)
+S3method(vcov,panelNNET)
+S3method(summary,panelNNET)
+

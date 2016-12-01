@@ -1,0 +1,12 @@
+Package: panelNNET
+Type: Package
+Title: Semiparametric panel data models using neural networks
+Version: 1.0
+Date: 2016-11-25
+Author: Andrew Crane-Droesch
+Maintainer: Andrew Crane-Droesch <andrew.crane-droesch@ers.usda.gov>
+Description: Fits fixed-effects models for panel data, in which some terms may enter linearly and others may enter non-parametrically.  The nonparametric terms are represented by feed-forward neural networks, with arbitrarily-many hidden layers and hidden units per layer.
+License: GPL-3
+Depends: lfe, foreach, MASS
+NeedsCompilation: no
+Packaged: 2016-11-25 22:58:18 UTC; andrew
