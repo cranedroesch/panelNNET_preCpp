@@ -1,5 +1,5 @@
 {
-  "name": "Panelnnet",
+  "name": "panelNNET",
   "tagline": "Semiparametric panel data models using neural networks",
   "body": "panelNNET is an R package for semiparametric panel data models, with the nonparametric part of the model represented by a feed-forward neural network.  It is suitable for building predictive models from longitudinal datasets, for high-dimensional regression adjustment, and for estimation of heterogeneous causal effects.  Approximate causal inference on parametric terms via linear taylor expansion of the neural network is implemented.  \r\n\r\nThis software is under active development.  Collaboration is welcome.  Watch for a working paper soon.\r\n\r\nEmail andrew.crane-droesch@ers.usda.gov for more information.",
   "note": "Don't delete this file! It's used internally to help with page regeneration."
