@@ -27,7 +27,7 @@ function(obj, folds = NULL, nfolds = 10, seed = 1, parallel = TRUE){
     tr <- obj$time_var %ni% folds$year[folds$foldid == i]
     te <- tr == FALSE
     #get the fe's
-    m <- felm(y[tr]~X[tr,]|obj$fe_var[tr])
+    m <- felm(obj$y[tr]~X[tr,]|obj$fe_var[tr])
     fe <- merge(obj$fe, getfe(m), by.x = 'fe_var', by.y = 'idx')[te,'effect']
     #get the coefs
     Xdm <- demeanlist(X[tr,], list(obj$fe_var[tr]))
