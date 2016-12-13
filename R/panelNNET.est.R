@@ -1,5 +1,5 @@
 panelNNET.est <-
-function(y, X, hidden_units, fe_var, seed = 1, maxit = 1000, lam = 0, time_var = NULL, param = NULL, parapen = rep(0, ncol(param)), parlist = NULL, verbose = FALSE, save_each_iter = FALSE, path = NULL, tag = "", gravity = 1.01, convtol = 1e-8, bias_hlayers = TRUE, RMSprop = FALSE, start.LR = .01, activation = 'tanh', inference = TRUE, doscale = TRUE){
+function(y, X, hidden_units, fe_var, maxit = 1000, lam = 0, time_var = NULL, param = NULL, parapen = rep(0, ncol(param)), parlist = NULL, verbose = FALSE, save_each_iter = FALSE, path = NULL, tag = "", gravity = 1.01, convtol = 1e-8, bias_hlayers = TRUE, RMSprop = FALSE, start.LR = .01, activation = 'tanh', inference = TRUE, doscale = TRUE){
 #X <- X[,1:5]
 #hidden_units = c(2,2)
 #fe_var = id
@@ -45,7 +45,6 @@ function(y, X, hidden_units, fe_var, seed = 1, maxit = 1000, lam = 0, time_var =
       print('picked up where left off!')
     }
   }
-  set.seed(seed)
   nlayers <- length(hidden_units)
   #get starting weights, either randomly or from a specified parlist
   if (is.null(parlist)){#random starting weights

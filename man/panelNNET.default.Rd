@@ -16,7 +16,7 @@ Semi-parametric fixed-effects models for panel data, using neural networks
 Function fits fixed effects models in which some variables entering linearly and others entering non-parametrically.  Nonparametric component of the model represented by a feed-forward neural network.  
 }
 \usage{
-panelNNET.default(y, X, hidden_units, fe_var, seed = 1
+panelNNET.default(y, X, hidden_units, fe_var
   , maxit = 1000, lam = 0, time_var = NULL, param = NULL
   , parapen = rep(0, ncol(param)), parlist = NULL, verbose = FALSE
   , save_each_iter = FALSE, path = NULL, tag = "", gravity = 1.01
@@ -36,9 +36,6 @@ Numeric vector of hidden units within hidden layers.  First entry is the lowest 
 }
   \item{fe_var}{
 A factor indicating the cross-sectional unit.  At present only one cross-sectional unit is supported.
-}
-  \item{seed}{
-A random seed
 }
   \item{maxit}{
 Maximum number of iterations
