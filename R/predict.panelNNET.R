@@ -14,8 +14,8 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL){
     }
     #Scale the new data by the scaling rules in the training data
     if (obj$doscale == TRUE){
-      D <- sweep(sweep(newX, 2, STATS = attr(obj$X, "scaled:center"), FUN = '+'), 2, STATS = attr(obj$X, "scaled:scale"), FUN = '*')
-      P <- sweep(sweep(new.param, 2, STATS = attr(obj$param, "scaled:center"), FUN = '+'), 2, STATS = attr(obj$param, "scaled:scale"), FUN = '*')
+      D <- sweep(sweep(newX, 2, STATS = attr(obj$X, "scaled:scale"), FUN = '*'), 2, STATS = attr(obj$X, "scaled:center"), FUN = '+')
+      P <- sweep(sweep(new.param, 2, STATS = attr(obj$param, "scaled:scale"), FUN = '*'), 2, STATS = attr(obj$param, "scaled:center"), FUN = '+')
     }
     for (i in 1:length(obj$hidden_units)){
       if (obj$used_bias == TRUE){D <- cbind(1,D)}
