@@ -1,8 +1,11 @@
 vcov.panelNNET <-
 function(obj, option, J = NULL, numeric = TRUE){
   e <- obj$y - obj$yhat
-  if (is.null(J) & grepl('Jacobian', option)){  J <- Jacobian.panelNNET(obj, numeric = TRUE)
-    } else {J <- obj$hidden_layers[[length(obj$hidden_layers)]]}
+  if (is.null(J) & grepl('Jacobian', option)){
+    J <- Jacobian.panelNNET(obj, numeric = TRUE)
+  } else {
+    J <- obj$hidden_layers[[length(obj$hidden_layers)]]
+  }
   D <- rep(obj$lam, ncol(J))
   if (is.null(obj$fe_var)){
     pp <- c(1, obj$parapen) #parapen
@@ -45,7 +48,7 @@ function(obj, option, J = NULL, numeric = TRUE){
       Ji <- J[obj$fe_var == unique(obj$fe_var)[i],]
       t(Ji) %*% ei %*% t(ei) %*% Ji
     }
-    vcov <- G/(G-1)*(length(e) - 1)/(length(e) - ncol(X)) * bread %*% meat %*% bread
+    vcov <- G/(G-1)*(length(e) - 1)/(length(e) - ncol(J)) * bread %*% meat %*% bread
   }
   return(list(vc = vcov, J = J))
 }

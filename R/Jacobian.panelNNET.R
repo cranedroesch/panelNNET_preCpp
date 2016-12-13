@@ -35,6 +35,11 @@ function(obj, numeric = TRUE){
       return(yhat)
     }
     J <- jacobian(Jfun, pvec, obj = obj)
+    J <- J[,c(#re-order jacobian so that parametric terms are on the front, followed by top layer.
+        which(grepl('param', names(pvec)))
+      , which(grepl('beta', names(pvec)) & !grepl('param', names(pvec)))
+      , which(!grepl('beta', names(pvec)))#no particular order to lower-level parameters
+     )]
     return(J)
   } else {#analytical...
     #Start parameter data frame
