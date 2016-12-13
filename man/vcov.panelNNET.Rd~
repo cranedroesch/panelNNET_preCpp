@@ -8,7 +8,7 @@ Approximate variance-covariance matrix of a panelNNET object
 Calculates the approximate variance covariance of either the linear taylor expansion or the OLS approximation of the panelNNET object.  For each of these, calculates the covariance matrix assuming homoskedasticity, the "sandwich" estimator, or the "cluster-sandwich" estimator.
 }
 \usage{
-vcov.panelNNET(obj, option, J = NULL, numeric = TRUE)
+vcov.panelNNET(obj, option, J = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -20,9 +20,6 @@ Which sort of covariance matrix you want.  Options are "Jacobian_homoskedastic",
 }
   \item{J}{
 A supplied Jacobian matrix
-}
-  \item{numeric}{
-Whether the Jacobian should be computed through numerical approximation.  Defaults to TRUE.
 }
 }
 \details{
