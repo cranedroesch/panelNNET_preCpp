@@ -1,9 +1,8 @@
 cv.panelNNET <-
-function(obj, folds = NULL, nfolds = 10, seed = 1, parallel = TRUE){
+function(obj, folds = NULL, nfolds = 10, parallel = TRUE){
 #obj <- pnn
 #folds = NULL
 #nfolds = 10
-#seed = 1
 #parallel = TRUE
   if (is.null(folds)){
     utv <- sort(unique(obj$time_var))
