@@ -7,7 +7,8 @@ function(x, ...){
   dparm <- parm <- x$parlist$beta_param
   if (x$doscale == TRUE){dparm <- dparm/attr(x$param, "scaled:scale")}
   labs <- c('LTE, homoskedastic vcv', 'LTE, sandwich vcv', 'LTE, cluster vcv', 'OLS/ridge, homoskedastic vcv', 'OLS/ridge, sandwich vcv', 'OLS/ridge, cluster vcv')
-  infstrings <- "\nParametric Estimates:\n"
+  infstrings <- "\nParametric Estimates:\n"  
+  if (is.null(colnames(x$param))){colnames(x$param) <- paste0('V', 1:ncol(x$param))}
   for (i in 1:length(labs)){
     s <- summary_table_element(x$vcs[[i]], parm)
     infstrings <- paste0(infstrings, "-----------------------------------------------------------\n")
@@ -49,3 +50,5 @@ function(x, ...){
     , "*******************************************\n"
   )))
 }
+
+
