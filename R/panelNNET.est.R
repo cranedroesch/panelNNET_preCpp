@@ -252,7 +252,7 @@ function(y, X, hidden_units, fe_var, seed = 1, maxit = 1000, lam = 0, time_var =
   output <- list(yhat = yhat, parlist = parlist, hidden_layers = hlayers
     , fe = fe_output, converged = conv, mse = mse, lam = lam, time_var = time_var
     , X = X, y = y, param = param, fe_var = fe_var, hidden_units = hidden_units, maxit = maxit
-    , used_bias = bias_hlayers, final_improvement = D, msevec = msevec, RMSprop = RMSprop, convtol = convtol, call = match.call()
+    , used_bias = bias_hlayers, final_improvement = D, msevec = msevec, RMSprop = RMSprop, convtol = convtol
     , grads = grads, activation = activation, parapen = parapen, doscale = doscale
   )
   if(inference == TRUE){

@@ -11,6 +11,7 @@ function(y, X, hidden_units, fe_var, seed = 1
     , path, tag, gravity, convtol, bias_hlayers, RMSprop
     , start_LR, activation, inference, doscale, ...
   )
+  out$call = match.call()
   class(out) <- 'panelNNET'
   out
 }
