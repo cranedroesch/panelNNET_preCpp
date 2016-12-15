@@ -1,5 +1,10 @@
 predict.panelNNET <-
-function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, Jacobian = FALSE){
+function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, se.fit = FALSE){
+#obj <- m
+#fe.newX = id[e]
+#newX = Z[e,]
+#new.param = cbind(time[e], time[e]^2)
+#se.fit = TRUE
   if (obj$activation == 'tanh'){
     sigma <- tanh
   }
@@ -43,17 +48,42 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, Jacobian = FALSE){
         nd <- merge(nd, tm, by.x = 'fe.newX', by.y = 'fe_var', all.x = TRUE, sort = FALSE)
         nd <- nd[order(nd$id),]
         yhat <- nd$fe + nd$xpart
-       }
-     return(yhat)
-    }
-    if (Jacobian == TRUE){
-      J <- jacobian(predfun, pvec, obj = obj, newX = newX, fe.newX = fe.newX, new.param = new.param)
-      return(J)
-    } else {
-      yhat <- predfun(pvec = pvec, obj = obj, newX = newX, fe.newX = fe.newX, new.param = new.param)
+      }
       return(yhat)
     }
+    if (se.fit == FALSE){
+      yhat <- predfun(pvec = pvec, obj = obj, newX = newX, fe.newX = fe.newX, new.param = new.param)
+      return(yhat)
+    } else {
+      if (is.null(obj$vcs)){
+        stop("No vcov matrices in object.  Can't calculate se's")
+      }
+      J <- jacobian(predfun, pvec, obj = obj, newX = newX, fe.newX = fe.newX, new.param = new.param)
+      J <- J[,c(#re-order jacobian so that parametric terms are on the front, followed by top layer.
+          which(grepl('param', names(pvec)))
+        , which(grepl('beta', names(pvec)) & !grepl('param', names(pvec)))
+        , which(!grepl('beta', names(pvec)))#no particular order to lower-level parameters
+      )]
+      ni <- c()
+      semat <- foreach(i = 1:length(obj$vcs), .combine = cbind, .errorhandling = 'remove') %do% {
+        if (grepl('OLS', names(obj$vcs)[i])){
+          X <- J[, 1:sum(grepl('beta', names(pvec)))]#the Jacobian is ordered so that the top layer is first...
+          se <- sqrt(diag(X %*% obj$vcs[[i]]$vc %*% t(X)))
+        } else {
+          se <- sqrt(diag(J %*% obj$vcs[[i]]$vc %*% t(J)))
+        }
+        ni[i] <- names(obj$vcs)[i]
+        return(se)
+      }
+      colnames(semat) <- ni
+    }
+    yhat <- predfun(pvec = pvec, obj = obj, newX = newX, fe.newX = fe.newX, new.param = new.param)
+    return(cbind(yhat, semat))
   }
 }
+
+
+
+pr <- predict.panelNNET(m, newX = Z[e,], fe.newX = id[e], new.param = cbind(time[e], time[e]^2), se.fit = TRUE)
 
 
