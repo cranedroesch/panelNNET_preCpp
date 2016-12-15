@@ -26,9 +26,11 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL){
       yhat <- D %*% c(obj$parlist$beta_param, obj$parlist$beta)
     } else {
       xpart <- D %*% c(obj$parlist$beta_param, obj$parlist$beta)
-      tm <- obj$fe
-      tm$fe <- round(tm$fe, 10) #fixes a small bug where nearly identical values are considered different.
-      tm <- tm[!duplicated(tm),]
+      tm <- foreach(i = 1:length(unique(obj$fe$fe_var)), .combine = rbind) %do% {
+        #Because of numerical error, fixed effects within units can sometimes be slightly different.  This averages them.
+        c(unique(obj$fe$fe_var)[i], mean(obj$fe$fe[obj$fe$fe_var == unique(obj$fe$fe_var)[i]]))
+      }
+      colnames(tm) <- c('fe_var','fe')
       nd <- data.frame(fe.newX, xpart, id = 1:length(fe.newX))       
       nd <- merge(nd, tm, by.x = 'fe.newX', by.y = 'fe_var', all.x = TRUE, sort = FALSE)
       nd <- nd[order(nd$id),]
