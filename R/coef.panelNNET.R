@@ -3,7 +3,7 @@ coef.panelNNET <- function(obj, rescale = TRUE){
   if (rescale == TRUE & obj$doscale == TRUE){
     parm <- parm/attr(obj$param, "scaled:scale")
   }
-  if (!is.null(m$vcs)){
+  if (!is.null(obj$vcs)){
     se <- lapply(obj$vcs, function(x){
       se <- sqrt(diag(x$vc))[1:length(parm)]
       if (rescale == TRUE & obj$doscale == TRUE){
@@ -13,7 +13,7 @@ coef.panelNNET <- function(obj, rescale = TRUE){
     })
     rn <- names(se)
     se <- t(matrix(unlist(se), length(se[[1]])))
-    colnames(se) <- colnames(m$param)
+    colnames(se) <- colnames(obj$param)
     rownames(se) <- rn
   } else {
     se <- 'No parameter covariance matrix in fitted model!'
