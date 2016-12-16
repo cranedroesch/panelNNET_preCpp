@@ -1,10 +1,12 @@
 vcov.panelNNET <-
-function(obj, option, J = NULL, numeric = TRUE){
+function(obj, option, J = NULL){
   e <- obj$y - obj$yhat
-  if (is.null(J) & grepl('Jacobian', option)){
-    J <- Jacobian.panelNNET(obj, numeric = TRUE)
-  } else {
-    J <- obj$hidden_layers[[length(obj$hidden_layers)]]
+  if (is.null(J)){
+    if (grepl('Jacobian', option)){
+      J <- Jacobian.panelNNET(obj)
+    } else {
+      J <- obj$hidden_layers[[length(obj$hidden_layers)]]
+    }
   }
   D <- rep(obj$lam, ncol(J))
   if (is.null(obj$fe_var)){

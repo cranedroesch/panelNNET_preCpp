@@ -255,7 +255,7 @@ function(y, X, hidden_units, fe_var, maxit = 1000, lam = 0, time_var = NULL, par
     , grads = grads, activation = activation, parapen = parapen, doscale = doscale
   )
   if(inference == TRUE){
-    J <- Jacobian.panelNNET(output, numeric = TRUE)
+    J <- Jacobian.panelNNET(output)
     X <- output$hidden_layers[[length(output$hidden_layers)]]
     vcs <- list(
         vc.JacHomo = tryCatch(vcov.panelNNET(output, 'Jacobian_homoskedastic', J = J), error = function(e)e, finally = NULL)

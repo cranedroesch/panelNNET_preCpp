@@ -75,7 +75,7 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, se.fit = FALSE){
         ni[i] <- names(obj$vcs)[i]
         return(se)
       }
-      colnames(semat) <- ni
+      colnames(semat) <- ni[!is.na(ni)]
     }
     yhat <- predfun(pvec = pvec, obj = obj, newX = newX, fe.newX = fe.newX, new.param = new.param)
     return(cbind(yhat, semat))
