@@ -84,6 +84,3 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, se.fit = FALSE){
 
 
 
-pr <- predict.panelNNET(m, newX = Z[e,], fe.newX = id[e], new.param = cbind(time[e], time[e]^2), se.fit = TRUE)
-
-
