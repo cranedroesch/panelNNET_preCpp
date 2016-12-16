@@ -8,7 +8,7 @@ Prediction function for panelNNET objects
 Prediction function for panel neural networks
 }
 \usage{
-\method{predict}{panelNNET}(obj, newX = NULL, fe.newX = NULL, new.param = NULL, se.fit = FALSE)
+\method{predict}{panelNNET}(obj, newX = NULL, fe.newX = NULL, new.param = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -24,16 +24,12 @@ A factor of cross-sectional units.  Cross-sectional units must be a subset of th
   \item{new.param}{
 New parametric variables corresponding to the new X's.
 }
-  \item{se.fit}{
-If TRUE, calculate standard errors of the fitted values.  This involves computing the Jacobian for the fitted values, and can be slow.  Currently only numerical Jacobian computation is implemented.  Pointwise standard errors are computed to each paramater covariance matrix stored in the fitted panelNNET object.
-}
-
 }
 \details{
 Prediction function for panelNNET
 }
 \value{
-The predicted values.  If se.fit = TRUE, a matrix with predicted values in the first column, and pointwise standard errors corresponding to each covariance matrix in the object in the subsequent columns.
+The predicted values
 }
 \references{
 Friedman, Jerome, Trevor Hastie, and Robert Tibshirani. The elements of statistical learning. Vol. 1. Springer, Berlin: Springer series in statistics, 2001.
