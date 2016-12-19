@@ -35,5 +35,5 @@ function(obj, folds = NULL, nfolds = 10, parallel = TRUE){
     mse <- mean((obj$y[te] - yhati)^2)
     return(mse)
   }
-  return(list(err.mean = mean(cv.err), err.sd = sd(cv.err)))
+  return(list(err.mean = mean(cv.err), err.sd = sd(cv.err), err.vec = cv.err))
 }
