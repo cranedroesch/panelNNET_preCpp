@@ -1,10 +1,10 @@
 predict.panelNNET <-
 function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, se.fit = FALSE){
-#obj <- m
+#obj <- pnn
 #fe.newX = id[e]
 #newX = Z[e,]
-#new.param = cbind(time[e], time[e]^2)
-#se.fit = TRUE
+#new.param = P[e,]
+#se.fit = FALSE
   if (obj$activation == 'tanh'){
     sigma <- tanh
   }
@@ -24,7 +24,7 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, se.fit = FALSE){
     if (!is.null(obj$fe)){
       tm <- foreach(i = 1:length(unique(obj$fe$fe_var)), .combine = rbind) %do% {
         #Because of numerical error, fixed effects within units can sometimes be slightly different.  This averages them.
-        c(unique(obj$fe$fe_var)[i], mean(obj$fe$fe[obj$fe$fe_var == unique(obj$fe$fe_var)[i]]))
+        data.frame(unique(obj$fe$fe_var)[i], mean(obj$fe$fe[obj$fe$fe_var == unique(obj$fe$fe_var)[i]]))
       }
       colnames(tm) <- c('fe_var','fe')
     }
