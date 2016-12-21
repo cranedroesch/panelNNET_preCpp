@@ -23,7 +23,9 @@ function(y, X, hidden_units, fe_var, maxit = 1000, lam = 0, time_var = NULL, par
 #doscale = TRUE
   if (doscale == TRUE){
     X <- scale(X)
-    param <- scale(param)
+    if (!is.null(param)){
+      param <- scale(param)
+    }
   }
   if (activation == 'tanh'){
     sigma <- tanh
