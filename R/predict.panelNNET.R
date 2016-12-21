@@ -41,7 +41,7 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, se.fit = FALSE){
         if (obj$used_bias == TRUE){D <- cbind(1,D)}
         D <- sigma(D %*% parlist[[i]])
       } 
-      D <- cbind(P, D)
+      if (!is.null(obj$param)){D <- cbind(P, D)}
       if (is.null(obj$fe)){D <- cbind(1, D)
         yhat <- D %*% c(parlist$beta_param, parlist$beta)
       } else {
