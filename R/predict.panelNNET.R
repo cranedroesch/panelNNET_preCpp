@@ -1,9 +1,10 @@
 predict.panelNNET <-
-function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, se.fit = FALSE){
+function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, se.fit = FALSE){
 #obj <- pnn
-#fe.newX = id[e]
-#newX = Z[e,]
-#new.param = P[e,]
+#fe.newX = NULL
+#newX = matrix(x)
+#new.param = matrix(time)
+#new.treatment = rep(1, N)
 #se.fit = FALSE
   if (obj$activation == 'tanh'){
     sigma <- tanh
@@ -29,7 +30,7 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, se.fit = FALSE){
       colnames(tm) <- c('fe_var','fe')
     }
     #prediction function, potentially for the Jacobian
-    predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL){
+    predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL){
       parlist <- relist(pvec)
       if (obj$doscale == TRUE){
         D <- sweep(sweep(newX, 2, STATS = attr(obj$X, "scaled:center"), FUN = '-'), 2, STATS = attr(obj$X, "scaled:scale"), FUN = '/')
@@ -41,11 +42,27 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, se.fit = FALSE){
         if (obj$used_bias == TRUE){D <- cbind(1,D)}
         D <- sigma(D %*% parlist[[i]])
       } 
-      if (!is.null(obj$param)){D <- cbind(P, D)}
-      if (is.null(obj$fe)){D <- cbind(1, D)
-        yhat <- D %*% c(parlist$beta_param, parlist$beta)
+      colnames(D) <- paste0('nodes',1:ncol(D))
+      if (!is.null(obj$treatment)){
+        #Add treatment interactions
+        if (obj$interact_treatment == TRUE){
+          ints <- sweep(D, 1, new.treatment, '*')
+          colnames(ints) <- paste0('TrInts',1:ncol(ints))
+          D <- cbind(ints, D)
+        }
+        #Add treatment dummy
+        D <- cbind(new.treatment, D)
+        colnames(D)[1] <- 'treatment'
+      }
+      if (!is.null(obj$param)){
+        D <- cbind(P, D)
+        colnames(D)[1:ncol(new.param)] <- paste0('param',1:ncol(new.param))
+      }
+      if (is.null(obj$fe_var)){D <- cbind(1, D)}#add intercept if no FEs
+      if (is.null(obj$fe)){
+        yhat <- D %*% with(parlist, c(beta_param, beta_treatment, beta_treatmentinteractions, beta))
       } else {
-        xpart <- D %*% c(parlist$beta_param, parlist$beta)
+        xpart <- D %*% with(parlist, c(beta_param, beta_treatment, beta_treatmentinteractions, beta))
         nd <- data.frame(fe.newX, xpart, id = 1:length(fe.newX))       
         nd <- merge(nd, tm, by.x = 'fe.newX', by.y = 'fe_var', all.x = TRUE, sort = FALSE)
         nd <- nd[order(nd$id),]
@@ -54,7 +71,7 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, se.fit = FALSE){
       return(yhat)
     }
     if (se.fit == FALSE){
-      yhat <- predfun(pvec = pvec, obj = obj, newX = newX, fe.newX = fe.newX, new.param = new.param)
+      yhat <- predfun(pvec = pvec, obj = obj, newX = newX, fe.newX = fe.newX, new.param = new.param, new.treatment)
       return(yhat)
     } else {
       if (is.null(obj$vcs)){
