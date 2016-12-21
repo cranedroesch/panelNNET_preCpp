@@ -286,8 +286,6 @@ function(y, X, hidden_units, fe_var, maxit = 1000, lam = 0, time_var = NULL, par
     }
     iter = iter+1
   }
-
-
   conv <- (iter<maxit)
   if(is.null(fe_var)){
     fe_output <- NULL
@@ -298,7 +296,7 @@ function(y, X, hidden_units, fe_var, maxit = 1000, lam = 0, time_var = NULL, par
     , fe = fe_output, converged = conv, mse = mse, lam = lam, time_var = time_var
     , X = X, y = y, param = param, fe_var = fe_var, hidden_units = hidden_units, maxit = maxit
     , used_bias = bias_hlayers, final_improvement = D, msevec = msevec, RMSprop = RMSprop, convtol = convtol
-    , grads = grads, activation = activation, parapen = parapen, doscale = doscale
+    , grads = grads, activation = activation, parapen = parapen, doscale = doscale, treatment = treatment, interact_treatment = interact_treatment
   )
   if(inference == TRUE){
     J <- Jacobian.panelNNET(output)
