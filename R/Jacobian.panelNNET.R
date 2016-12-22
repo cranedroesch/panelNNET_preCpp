@@ -23,7 +23,7 @@ function(obj){
     if (!is.null(obj$treatment)){
       #Add treatment interactions
       if (obj$interact_treatment == TRUE){
-        ints <- sweep(D, 1, new.treatment, '*')
+        ints <- sweep(D, 1, obj$treatment, '*')
         colnames(ints) <- paste0('TrInts',1:ncol(ints))
         D <- cbind(ints, D)
       }
