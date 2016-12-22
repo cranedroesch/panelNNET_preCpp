@@ -9,6 +9,8 @@ TBD:
   --summary function
   --man pages
 
+2.  Need a method for including groups that aren't necessarily represented by fixed effects in estimating cluster vcv
+
 3.  Optimization/rewriting in low-level languages
 
 

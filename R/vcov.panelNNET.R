@@ -10,10 +10,11 @@ function(obj, option, J = NULL){
   }
   D <- rep(obj$lam, ncol(J))
   if (is.null(obj$fe_var)){
-    pp <- c(1, obj$parapen) #parapen
+    pp <- c(0, obj$parapen) #never penalize the intercept
   } else {
     pp <- obj$parapen #parapen
   }
+  if (!is.null(obj$treatment)){pp <- append(pp, 0)}#treatment always follows parametric terms and will not be penalized
   D[1:length(pp)] <- D[1:length(pp)]*pp #incorporate parapen into diagonal of covmat
   bread <- solve(t(J) %*% J + diag(D))
   if (option == 'Jacobian_homoskedastic'){
