@@ -8,6 +8,10 @@ function(obj, folds = NULL, nfolds = 10, parallel = TRUE){
     utv <- sort(unique(obj$time_var))
     foldid <- sample(1:length(utv) %% nfolds)+1
     folds <- data.frame(year = utv, foldid)
+    if (nrow(folds)<nfolds){
+      nfolds <- nrow(folds)
+      warning('More folds than time periods -- CV is now leave-one-time-period-out-CV')
+    } #If there are fewer time periods than folds, reset the number of folds
   }
   `%fun%` <- ifelse(parallel == TRUE, `%dopar%`, `%do%`)
   #"X" matrix -- based on OLS approximation
