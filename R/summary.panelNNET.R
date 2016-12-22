@@ -13,7 +13,7 @@ function(x, ...){
     labs <- c('LTE, homoskedastic vcv', 'LTE, sandwich vcv', 'LTE, cluster vcv', 'OLS/ridge, homoskedastic vcv', 'OLS/ridge, sandwich vcv', 'OLS/ridge, cluster vcv')
     infstrings <- "\nParametric Estimates:\n"  
     if (is.null(colnames(x$param))){
-      if (is.null(obj$fe_var)){
+      if (is.null(x$fe_var)){
         parnames <- c('(Intercept)', paste0('V', 1:ncol(x$param)))
       } else {
         parnames <- paste0('V', 1:ncol(x$param))
