@@ -4,14 +4,18 @@ function(x, ...){
   if(is.null(x$vcs)){
     infstrings <- NULL
   } else {
-    dparm <- parm <- x$parlist$beta_param
-    if (x$doscale == TRUE){dparm <- dparm/attr(x$param, "scaled:scale")}
-    if (!is.null(x$treatment)){
-      dparm <- c(dparm, x$parlist$beta_treatment)
-      parm <- c(parm, x$parlist$beta_treatment)
+    dparm <- parm <- c(x$parlist$beta_param, x$parlist$beta_treatment)
+    if (x$doscale == TRUE){
+      scalefac <- c(
+          rep(attr(x$param, "scaled:scale"), ncol(x$param)+is.null(x$fe_var))
+        , attr(x$scaled.treatment, "scaled:scale")
+      )
+      dparm <- dparm/scalefac
     }
     labs <- c('LTE, homoskedastic vcv', 'LTE, sandwich vcv', 'LTE, cluster vcv', 'OLS/ridge, homoskedastic vcv', 'OLS/ridge, sandwich vcv', 'OLS/ridge, cluster vcv')
+    #Interence strings -- to send to `writelines`
     infstrings <- "\nParametric Estimates:\n"  
+    #Parameter names...
     if (is.null(colnames(x$param))){
       if (is.null(x$fe_var)){
         parnames <- c('(Intercept)', paste0('V', 1:ncol(x$param)))
@@ -26,8 +30,6 @@ function(x, ...){
       infstrings <- paste0(infstrings, labs[i], "\n")
       infstrings <- paste0(infstrings,  paste(rep(' ',max(nchar(parnames))), collapse = ""), "\t\t\tEst\t\tSE\t\tpval\t\t", "\n")
       #scale factor for parameters
-      scalefac <- rep(attr(x$param, "scaled:scale"), ncol(x$param)+is.null(x$fe_var))
-      if (!is.null(x$treatment)){scalefac <- append(scalefac, 1)}#treatment dummy doesn't get scaled
       for (j in 1:length(s[[1]])){
         if (length(s) == 1){
           infstrings <- paste0(infstrings, "\t", s, "\n")
@@ -38,7 +40,7 @@ function(x, ...){
           #futz with notation
           pnum <- dosci(signif(dparm[j],3),3)
           infstrings <- paste0(infstrings
-            ,  "\t", colnames(x$param)[j], "\t\t"
+            ,  "\t", parnames[j], "\t\t"
             , pnum, paste(rep(' ',10-nchar(pnum)), collapse = ""), "\t"
             , dosci(signif(s[[1]][j],3),3), paste(rep(' ',10-nchar(dosci(signif(s[[1]][j],3),3))), collapse = ""), "\t"
             , dosci(signif(s[[2]][j],3),3), "\t"
