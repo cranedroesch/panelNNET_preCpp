@@ -10,6 +10,7 @@ function(obj, folds = NULL, nfolds = 10, parallel = TRUE){
     folds <- data.frame(year = utv, foldid)
     if (nrow(folds)<nfolds){
       nfolds <- nrow(folds)
+      folds$foldid <- 1:nrow(folds)
       warning('More folds than time periods -- CV is now leave-one-time-period-out-CV')
     } #If there are fewer time periods than folds, reset the number of folds
   }
@@ -29,6 +30,10 @@ function(obj, folds = NULL, nfolds = 10, parallel = TRUE){
   cv.err <- foreach(i = 1:nfolds, .combine = c) %fun% {
     tr <- obj$time_var %ni% folds$year[folds$foldid == i]
     te <- tr == FALSE
+    if (all(te == FALSE)){
+      warning("One of the folds had no test set and got dropped")
+      return(NULL)
+    }
     #get the fe's
     m <- felm(obj$y[tr]~X[tr,]|obj$fe_var[tr])
     fe <- merge(obj$fe, getfe(m), by.x = 'fe_var', by.y = 'idx')[te,'effect']
