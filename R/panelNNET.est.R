@@ -95,7 +95,7 @@ function(y, X, hidden_units, fe_var, maxit = 1000, lam = 0, time_var = NULL, par
       hlayers[[i]] <- cbind(ints, hlayers[[i]])
     }
     #Add treatment dummy
-    hlayers[[i]] <- cbind(scale.treatment, hlayers[[i]])
+    hlayers[[i]] <- cbind(scaled.treatment, hlayers[[i]])
     colnames(hlayers[[i]])[1] <- 'treatment'
   }
   if (!is.null(param)){
