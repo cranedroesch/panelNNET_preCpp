@@ -311,9 +311,9 @@ function(y, X, hidden_units, fe_var, maxit = 1000, lam = 0, time_var = NULL, par
     if (!is.null(fe_var)){
       vc.JacClus = tryCatch(vcov.panelNNET(output, 'Jacobian_cluster', J = J), error = function(e)e, finally = NULL)
       vc.OLSClus = tryCatch(vcov.panelNNET(output, 'cluster', J = X), error = function(e)e, finally = NULL)
-      vcs <- list(vc.JacHomo, vc.JacSand , vc.JacClus , vc.OLSHomo, vc.OLSSand, vc.OLSClus)
+      vcs <- list(vc.JacHomo = vc.JacHomo, vc.JacSand = vc.JacSand , vc.JacClus = vc.JacClus , vc.OLSHomo = vc.OLSHomo, vc.OLSSand = vc.OLSSand, vc.OLSClus = vc.OLSClus)
     } else {
-      vcs <- list(vc.JacHomo, vc.JacSand , vc.OLSHomo, vc.OLSSand)
+      vcs <- list(vc.JacHomo = vc.JacHomo, vc.JacSand = vc.JacSand, vc.OLSHomo = vc.OLSHomo, vc.OLSSand = vc.OLSSand)
     }
     output$vcs <- vcs
   }

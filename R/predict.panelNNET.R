@@ -1,11 +1,11 @@
 predict.panelNNET <-
 function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, se.fit = FALSE){
-obj <- pnn
-fe.newX = NULL
-newX = matrix(x)
-new.param = matrix(time)
-new.treatment = rep(1, N)
-se.fit = TRUE
+#obj <- pnn
+#fe.newX = NULL
+#newX = matrix(x)
+#new.param = matrix(time)
+#new.treatment = rep(1, N)
+#se.fit = TRUE
   if (obj$activation == 'tanh'){
     sigma <- tanh
   }
@@ -70,19 +70,21 @@ se.fit = TRUE
       }
       return(yhat)
     }
+    yhat <- predfun(pvec = pvec, obj = obj, newX = newX, fe.newX = fe.newX, new.param = new.param, new.treatment)
     if (se.fit == FALSE){
-      yhat <- predfun(pvec = pvec, obj = obj, newX = newX, fe.newX = fe.newX, new.param = new.param, new.treatment)
       return(yhat)
     } else {
       if (is.null(obj$vcs)){
         stop("No vcov matrices in object.  Can't calculate se's")
       }
-      J <- jacobian(predfun, pvec, obj = obj, newX = newX, fe.newX = fe.newX, new.param = new.param)
+      J <- jacobian(predfun, pvec, obj = obj, newX = newX, fe.newX = fe.newX, new.param = new.param, new.treatment = new.treatment)
       J <- J[,c(#re-order jacobian so that parametric terms are on the front, followed by top layer.
           which(grepl('param', names(pvec)))
-        , which(grepl('beta', names(pvec)) & !grepl('param', names(pvec)))
+        , which(names(pvec) == 'beta_treatment')
+        , which(grepl('beta_treatmentinteractions', names(pvec)))
+        , which(grepl('beta', names(pvec)) & !grepl('param', names(pvec)) & !grepl('treatment', names(pvec)))
         , which(!grepl('beta', names(pvec)))#no particular order to lower-level parameters
-      )]
+       )]
       ni <- c()
       semat <- foreach(i = 1:length(obj$vcs), .combine = cbind, .errorhandling = 'remove') %do% {
         if (grepl('OLS', names(obj$vcs)[i])){
@@ -96,7 +98,6 @@ se.fit = TRUE
       }
       colnames(semat) <- ni[!is.na(ni)]
     }
-    yhat <- predfun(pvec = pvec, obj = obj, newX = newX, fe.newX = fe.newX, new.param = new.param)
     return(cbind(yhat, semat))
   }
 }
