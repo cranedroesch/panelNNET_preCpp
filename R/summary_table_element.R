@@ -3,7 +3,8 @@ function(vc, parm){#Function used internally to the infernce == TRUE argument
   if (inherits(vc, 'error')){
     'Error!  Probably an ill-conditioned covariance matrix'
   } else {
-    se <- sqrt(diag(vc$vc))[1:length(parm)]
+    if (
+    se <- sqrt(diag(vc$vc))[1:length(parm)]#The first vc elements are always the parametric terms, followed by any treatment dummy
     p <- 2*pnorm(-abs(parm/se))
     stars <- rep('',length(parm))
     stars[p<.1] <- '*'
@@ -12,3 +13,5 @@ function(vc, parm){#Function used internally to the infernce == TRUE argument
     list(signif(se, 4), signif(p,4), stars)
   }
 }
+
+
