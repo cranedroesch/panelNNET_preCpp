@@ -32,7 +32,7 @@ function(obj){
       colnames(D)[1] <- 'treatment'
     }
     if (!is.null(obj$param)){
-      D <- cbind(P, D)
+      D <- cbind(obj$param, D)
       colnames(D)[1:ncol(obj$param)] <- paste0('param',1:ncol(obj$param))
     }
     if (is.null(obj$fe_var)){D <- cbind(1, D)}#add intercept if no FEs
