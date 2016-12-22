@@ -1,6 +1,5 @@
 panelNNET.est <-
 function(y, X, hidden_units, fe_var, maxit = 1000, lam = 0, time_var = NULL, param = NULL, parapen = rep(0, ncol(param)), parlist = NULL, verbose = FALSE, save_each_iter = FALSE, path = NULL, tag = "", gravity = 1.01, convtol = 1e-8, bias_hlayers = TRUE, RMSprop = FALSE, start.LR = .01, activation = 'tanh', inference = TRUE, doscale = TRUE, treatment = NULL, interact_treatment = TRUE){
-
 #X <- x
 #hidden_units = 10
 #fe_var = NULL
@@ -28,6 +27,9 @@ function(y, X, hidden_units, fe_var, maxit = 1000, lam = 0, time_var = NULL, par
     if (!is.null(param)){
       param <- scale(param)
     }
+    if (!is.null(treatment)){
+      scaled.treatment <- scale(treatment)
+    }    
   }
   if (activation == 'tanh'){
     sigma <- tanh
@@ -93,7 +95,7 @@ function(y, X, hidden_units, fe_var, maxit = 1000, lam = 0, time_var = NULL, par
       hlayers[[i]] <- cbind(ints, hlayers[[i]])
     }
     #Add treatment dummy
-    hlayers[[i]] <- cbind(treatment, hlayers[[i]])
+    hlayers[[i]] <- cbind(scale.treatment, hlayers[[i]])
     colnames(hlayers[[i]])[1] <- 'treatment'
   }
   if (!is.null(param)){
@@ -213,7 +215,7 @@ function(y, X, hidden_units, fe_var, maxit = 1000, lam = 0, time_var = NULL, par
         hlayers[[i]] <- cbind(ints, hlayers[[i]])
       }
       #Add treatment dummy
-      hlayers[[i]] <- cbind(treatment, hlayers[[i]])
+      hlayers[[i]] <- cbind(scaled.treatment, hlayers[[i]])
       colnames(hlayers[[i]])[1] <- 'treatment'
     }
     if (!is.null(param)){
@@ -296,7 +298,8 @@ function(y, X, hidden_units, fe_var, maxit = 1000, lam = 0, time_var = NULL, par
     , fe = fe_output, converged = conv, mse = mse, lam = lam, time_var = time_var
     , X = X, y = y, param = param, fe_var = fe_var, hidden_units = hidden_units, maxit = maxit
     , used_bias = bias_hlayers, final_improvement = D, msevec = msevec, RMSprop = RMSprop, convtol = convtol
-    , grads = grads, activation = activation, parapen = parapen, doscale = doscale, treatment = treatment, interact_treatment = interact_treatment
+    , grads = grads, activation = activation, parapen = parapen, doscale = doscale, treatment = treatment
+    , scaled.treatment = scaled.treatment, interact_treatment = interact_treatment
   )
   if(inference == TRUE){
     J <- Jacobian.panelNNET(output)
