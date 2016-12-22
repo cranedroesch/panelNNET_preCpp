@@ -28,12 +28,12 @@ function(obj){
         D <- cbind(ints, D)
       }
       #Add treatment dummy
-      D <- cbind(new.treatment, D)
+      D <- cbind(obj$treatment, D)
       colnames(D)[1] <- 'treatment'
     }
     if (!is.null(obj$param)){
       D <- cbind(P, D)
-      colnames(D)[1:ncol(new.param)] <- paste0('param',1:ncol(new.param))
+      colnames(D)[1:ncol(obj$param)] <- paste0('param',1:ncol(obj$param))
     }
     if (is.null(obj$fe_var)){D <- cbind(1, D)}#add intercept if no FEs
     if (!is.null(obj$fe_var)){
