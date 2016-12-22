@@ -14,29 +14,44 @@ function(obj){
   pvec <- unlist(plist)
   Jfun <- function(pvec, obj){
     parlist <- relist(pvec)
-    nlayers <- length(obj$hidden_units)
-    hlayers <- vector('list', nlayers)
-    for (i in 1:nlayers){
-      if (i == 1){D <- obj$X} else {D <- hlayers[[i-1]]}
-      if (obj$used_bias == TRUE){D <- cbind(1, D)}
-      hlayers[[i]] <- sigma(D %*% parlist[[i]])
+    D <- obj$X
+    for (i in 1:length(obj$hidden_units)){
+      if (obj$used_bias == TRUE){D <- cbind(1,D)}
+      D <- sigma(D %*% parlist[[i]])
+    } 
+    colnames(D) <- paste0('nodes',1:ncol(D))
+    if (!is.null(obj$treatment)){
+      #Add treatment interactions
+      if (obj$interact_treatment == TRUE){
+        ints <- sweep(D, 1, new.treatment, '*')
+        colnames(ints) <- paste0('TrInts',1:ncol(ints))
+        D <- cbind(ints, D)
+      }
+      #Add treatment dummy
+      D <- cbind(new.treatment, D)
+      colnames(D)[1] <- 'treatment'
     }
-    if (!is.null(obj$param)){hlayers[[i]] <- cbind(obj$param, hlayers[[i]])}
-    if (is.null(obj$fe_var)){hlayers[[i]] <- cbind(1, hlayers[[i]])}#add intercept if no FEs
+    if (!is.null(obj$param)){
+      D <- cbind(P, D)
+      colnames(D)[1:ncol(new.param)] <- paste0('param',1:ncol(new.param))
+    }
+    if (is.null(obj$fe_var)){D <- cbind(1, D)}#add intercept if no FEs
     if (!is.null(obj$fe_var)){
-      Zdm <- demeanlist(hlayers[[i]], list(obj$fe_var))
+      Zdm <- demeanlist(D, list(obj$fe_var))
       ydm <<- demeanlist(obj$y, list(obj$fe_var))
-      fe <- (obj$y-ydm) - as.matrix(hlayers[[i]]-Zdm) %*% as.matrix(c(parlist$beta_param, parlist$beta))
-      yhat <- hlayers[[i]] %*% c(parlist$beta_param, parlist$beta) + fe    
+      fe <- (obj$y-ydm) - as.matrix(D-Zdm) %*% with(parlist, c(beta_param, beta_treatment, beta_treatmentinteractions, beta))
+      yhat <- D %*% with(parlist, c(beta_param, beta_treatment, beta_treatmentinteractions, beta)) + fe    
     } else {
-      yhat <- hlayers[[i]] %*% c(parlist$beta_param, parlist$beta)    
+      yhat <- D %*% with(parlist, c(beta_param, beta_treatment, beta_treatmentinteractions, beta)) 
     }
     return(yhat)
   }
   J <- jacobian(Jfun, pvec, obj = obj)
   J <- J[,c(#re-order jacobian so that parametric terms are on the front, followed by top layer.
       which(grepl('param', names(pvec)))
-    , which(grepl('beta', names(pvec)) & !grepl('param', names(pvec)))
+    , which(names(pvec) == 'beta_treatment')
+    , which(grepl('beta_treatmentinteractions', names(pvec)))
+    , which(grepl('beta', names(pvec)) & !grepl('param', names(pvec)) & !grepl('treatment', names(pvec)))
     , which(!grepl('beta', names(pvec)))#no particular order to lower-level parameters
    )]
   return(J)

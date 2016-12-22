@@ -1,11 +1,11 @@
 predict.panelNNET <-
 function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, se.fit = FALSE){
-#obj <- pnn
-#fe.newX = NULL
-#newX = matrix(x)
-#new.param = matrix(time)
-#new.treatment = rep(1, N)
-#se.fit = FALSE
+obj <- pnn
+fe.newX = NULL
+newX = matrix(x)
+new.param = matrix(time)
+new.treatment = rep(1, N)
+se.fit = TRUE
   if (obj$activation == 'tanh'){
     sigma <- tanh
   }
