@@ -27,9 +27,6 @@ function(y, X, hidden_units, fe_var, maxit = 1000, lam = 0, time_var = NULL, par
     if (!is.null(param)){
       param <- scale(param)
     }
-    if (!is.null(treatment)){
-      scaled.treatment <- scale(treatment)
-    }    
   }
   if (activation == 'tanh'){
     sigma <- tanh
@@ -95,7 +92,7 @@ function(y, X, hidden_units, fe_var, maxit = 1000, lam = 0, time_var = NULL, par
       hlayers[[i]] <- cbind(ints, hlayers[[i]])
     }
     #Add treatment dummy
-    hlayers[[i]] <- cbind(scaled.treatment, hlayers[[i]])
+    hlayers[[i]] <- cbind(treatment, hlayers[[i]])
     colnames(hlayers[[i]])[1] <- 'treatment'
   }
   if (!is.null(param)){
@@ -215,7 +212,7 @@ function(y, X, hidden_units, fe_var, maxit = 1000, lam = 0, time_var = NULL, par
         hlayers[[i]] <- cbind(ints, hlayers[[i]])
       }
       #Add treatment dummy
-      hlayers[[i]] <- cbind(scaled.treatment, hlayers[[i]])
+      hlayers[[i]] <- cbind(treatment, hlayers[[i]])
       colnames(hlayers[[i]])[1] <- 'treatment'
     }
     if (!is.null(param)){
@@ -299,7 +296,7 @@ function(y, X, hidden_units, fe_var, maxit = 1000, lam = 0, time_var = NULL, par
     , X = X, y = y, param = param, fe_var = fe_var, hidden_units = hidden_units, maxit = maxit
     , used_bias = bias_hlayers, final_improvement = D, msevec = msevec, RMSprop = RMSprop, convtol = convtol
     , grads = grads, activation = activation, parapen = parapen, doscale = doscale, treatment = treatment
-    , scaled.treatment = scaled.treatment, interact_treatment = interact_treatment
+    , interact_treatment = interact_treatment
   )
   if(inference == TRUE){
     J <- Jacobian.panelNNET(output)

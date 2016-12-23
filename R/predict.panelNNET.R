@@ -37,9 +37,6 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
         if (!is.null(obj$param)){
           P <- sweep(sweep(new.param, 2, STATS = attr(obj$param, "scaled:center"), FUN = '-'), 2, STATS = attr(obj$param, "scaled:scale"), FUN = '/')
         }
-        if (!is.null(obj$treatment)){
-          TR <- (new.treatment - attr(obj$scaled.treatment, "scaled:center"))/attr(obj$scaled.treatment, "scaled:scale")
-        }
       }
       for (i in 1:length(obj$hidden_units)){
         if (obj$used_bias == TRUE){D <- cbind(1,D)}
@@ -54,7 +51,7 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
           D <- cbind(ints, D)
         }
         #Add treatment dummy
-        D <- cbind(TR, D)
+        D <- cbind(new.treatment, D)
         colnames(D)[1] <- 'treatment'
       }
       if (!is.null(obj$param)){

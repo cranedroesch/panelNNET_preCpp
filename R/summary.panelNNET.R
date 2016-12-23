@@ -6,13 +6,10 @@ function(x, ...){
   } else {
     dparm <- parm <- c(x$parlist$beta_param, x$parlist$beta_treatment)
     if (x$doscale == TRUE){
-      scalefac <- c(
-          rep(attr(x$param, "scaled:scale"), ncol(x$param)+is.null(x$fe_var))
-        , attr(x$scaled.treatment, "scaled:scale")
-      )
+      scalefac <- c(rep(attr(x$param, "scaled:scale"), ncol(x$param)+is.null(x$fe_var)))
+      if (!is.null(x$treatment)){scalefac <- append(scalefac, 1)}#Treatment is never scaled because it is never subject to penalization.  Thus the scale factor is always 1
       dparm <- dparm/scalefac
     }
-
     #Interence strings -- to send to `writelines`
     infstrings <- "\nParametric Estimates:\n"  
     #Parameter names and variance estimate labels...
