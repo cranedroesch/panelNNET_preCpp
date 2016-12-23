@@ -12,14 +12,16 @@ function(x, ...){
       )
       dparm <- dparm/scalefac
     }
-    labs <- c('LTE, homoskedastic vcv', 'LTE, sandwich vcv', 'LTE, cluster vcv', 'OLS/ridge, homoskedastic vcv', 'OLS/ridge, sandwich vcv', 'OLS/ridge, cluster vcv')
+
     #Interence strings -- to send to `writelines`
     infstrings <- "\nParametric Estimates:\n"  
-    #Parameter names...
+    #Parameter names and variance estimate labels...
     if (is.null(colnames(x$param))){
       if (is.null(x$fe_var)){
+        labs <- c('LTE, homoskedastic vcv', 'LTE, sandwich vcv', 'OLS/ridge, homoskedastic vcv', 'OLS/ridge, sandwich vcv')
         parnames <- c('(Intercept)', paste0('V', 1:ncol(x$param)))
       } else {
+        labs <- c('LTE, homoskedastic vcv', 'LTE, sandwich vcv', 'LTE, cluster vcv', 'OLS/ridge, homoskedastic vcv', 'OLS/ridge, sandwich vcv', 'OLS/ridge, cluster vcv')
         parnames <- paste0('V', 1:ncol(x$param))
       }
     }

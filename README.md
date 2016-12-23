@@ -11,6 +11,8 @@ TBD:
 
 2.  Need a method for including groups that aren't necessarily represented by fixed effects in estimating cluster vcv
 
+3.  Remove duplicate Jacobians inside $vc.  They waste space.
+
 3.  Optimization/rewriting in low-level languages
 
 

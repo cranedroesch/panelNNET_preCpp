@@ -304,14 +304,17 @@ function(y, X, hidden_units, fe_var, maxit = 1000, lam = 0, time_var = NULL, par
   if(inference == TRUE){
     J <- Jacobian.panelNNET(output)
     X <- output$hidden_layers[[length(output$hidden_layers)]]
-    vcs <- list(
-        vc.JacHomo = tryCatch(vcov.panelNNET(output, 'Jacobian_homoskedastic', J = J), error = function(e)e, finally = NULL)
-      , vc.JacSand = tryCatch(vcov.panelNNET(output, 'Jacobian_sandwich', J = J), error = function(e)e, finally = NULL)
-      , vc.JacClus = tryCatch(vcov.panelNNET(output, 'Jacobian_cluster', J = J), error = function(e)e, finally = NULL)
-      , vc.OLSHomo = tryCatch(vcov.panelNNET(output, 'OLS', J = X), error = function(e)e, finally = NULL)
-      , vc.OLSSand = tryCatch(vcov.panelNNET(output, 'sandwich', J = X), error = function(e)e, finally = NULL)
-      , vc.OLSClus = tryCatch(vcov.panelNNET(output, 'cluster', J = X), error = function(e)e, finally = NULL)
-    )
+    vc.JacHomo = tryCatch(vcov.panelNNET(output, 'Jacobian_homoskedastic', J = J), error = function(e)e, finally = NULL)
+    vc.JacSand = tryCatch(vcov.panelNNET(output, 'Jacobian_sandwich', J = J), error = function(e)e, finally = NULL)    
+    vc.OLSHomo = tryCatch(vcov.panelNNET(output, 'OLS', J = X), error = function(e)e, finally = NULL)
+    vc.OLSSand = tryCatch(vcov.panelNNET(output, 'sandwich', J = X), error = function(e)e, finally = NULL)
+    if (!is.null(fe_var)){
+      vc.JacClus = tryCatch(vcov.panelNNET(output, 'Jacobian_cluster', J = J), error = function(e)e, finally = NULL)
+      vc.OLSClus = tryCatch(vcov.panelNNET(output, 'cluster', J = X), error = function(e)e, finally = NULL)
+      vcs <- list(vc.JacHomo, vc.JacSand , vc.JacClus , vc.OLSHomo, vc.OLSSand, vc.OLSClus)
+    } else {
+      vcs <- list(vc.JacHomo, vc.JacSand , vc.OLSHomo, vc.OLSSand)
+    }
     output$vcs <- vcs
   }
   return(output)
