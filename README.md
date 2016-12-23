@@ -10,6 +10,6 @@ TBD:
 
 3.  Remove duplicate Jacobians inside $vc.  They waste space.
 
-3.  Optimization/rewriting in low-level languages
+4.  Optimization/rewriting in low-level languages
 
-4.  In cross-validation function when dealing with fixed effects, FE's are estimated off of the unpenalized model.  This will give the wrong fixed effects.  Will need to estimate them longhand rather than relying on felm and getfe from lfe
+5.  In cross-validation function when dealing with fixed effects, FE's are estimated off of the unpenalized model.  This will give the wrong fixed effects.  Will need to estimate them longhand rather than relying on felm and getfe from lfe

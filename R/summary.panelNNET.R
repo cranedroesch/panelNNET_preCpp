@@ -15,10 +15,12 @@ function(x, ...){
     #Parameter names and variance estimate labels...
     if (is.null(colnames(x$param))){
       if (is.null(x$fe_var)){
-        labs <- c('LTE, homoskedastic vcv', 'LTE, sandwich vcv', 'OLS/ridge, homoskedastic vcv', 'OLS/ridge, sandwich vcv')
+        #labs <- c('LTE, homoskedastic vcv', 'LTE, sandwich vcv', 'OLS/ridge, homoskedastic vcv', 'OLS/ridge, sandwich vcv')
+        labs <- names(x$vcs)
         parnames <- c('(Intercept)', paste0('V', 1:ncol(x$param)))
       } else {
-        labs <- c('LTE, homoskedastic vcv', 'LTE, sandwich vcv', 'LTE, cluster vcv', 'OLS/ridge, homoskedastic vcv', 'OLS/ridge, sandwich vcv', 'OLS/ridge, cluster vcv')
+        #labs <- c('LTE, homoskedastic vcv', 'LTE, sandwich vcv', 'LTE, cluster vcv', 'OLS/ridge, homoskedastic vcv', 'OLS/ridge, sandwich vcv', 'OLS/ridge, cluster vcv')
+        labs <- names(x$vcs)
         parnames <- paste0('V', 1:ncol(x$param))
       }
     }
