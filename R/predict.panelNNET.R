@@ -135,9 +135,9 @@ predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, ne
   }
   if (is.null(obj$fe_var)){D <- cbind(1, D)}#add intercept if no FEs
   if (is.null(obj$fe)){
-    yhat <- D %*% with(parlist, c(beta_param, beta_treatment, beta_treatmentinteractions, beta))
+    yhat <- D %*% c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta)
   } else {
-    xpart <- D %*% with(parlist, c(beta_param, beta_treatment, beta_treatmentinteractions, beta))
+    xpart <- D %*% c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta))
     nd <- data.frame(fe.newX, xpart, id = 1:length(fe.newX))       
     nd <- merge(nd, tm, by.x = 'fe.newX', by.y = 'fe_var', all.x = TRUE, sort = FALSE)
     nd <- nd[order(nd$id),]
