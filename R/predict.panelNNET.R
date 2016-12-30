@@ -137,7 +137,7 @@ predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, ne
   if (is.null(obj$fe)){
     yhat <- D %*% c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta)
   } else {
-    xpart <- D %*% c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta))
+    xpart <- D %*% c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta)
     nd <- data.frame(fe.newX, xpart, id = 1:length(fe.newX))       
     nd <- merge(nd, tm, by.x = 'fe.newX', by.y = 'fe_var', all.x = TRUE, sort = FALSE)
     nd <- nd[order(nd$id),]
