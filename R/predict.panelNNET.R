@@ -100,6 +100,12 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
 
 #prediction function, potentially for the Jacobian
 predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, tauhat = FALSE){
+  if (obj$activation == 'tanh'){
+    sigma <- tanh
+  }
+  if (obj$activation == 'logistic'){
+    sigma <- logistic
+  }
   parlist <- relist(pvec)
   if (obj$doscale == TRUE){
     D <- sweep(sweep(newX, 2, STATS = attr(obj$X, "scaled:center"), FUN = '-'), 2, STATS = attr(obj$X, "scaled:scale"), FUN = '/')
