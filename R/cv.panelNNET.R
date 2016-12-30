@@ -1,9 +1,12 @@
 cv.panelNNET <-
-function(obj, folds = NULL, nfolds = 10, parallel = TRUE){
-#obj <- pnn
+function(obj, folds = NULL, nfolds = 10, parallel = TRUE, approx = 'OLS', J = NULL){
+#obj <- m
 #folds = NULL
 #nfolds = 10
 #parallel = TRUE
+#approx = 'OLS'
+#J = J
+  #Assign folds if unassigned
   if (is.null(folds)){
     if (is.null(obj$fe_var)){#If no time variable, assume that the data is not panel and do obs-wise cross-validation
       foldid <- sample(1:nrow(obj$X) %% nfolds)+1      
@@ -18,9 +21,14 @@ function(obj, folds = NULL, nfolds = 10, parallel = TRUE){
       } #If there are fewer time periods than folds, reset the number of folds
     }
   }
+  #parallelization...
   `%fun%` <- ifelse(parallel == TRUE, `%dopar%`, `%do%`)
   #"X" matrix -- based on OLS approximation
-  X <- obj$hidden_layers[[length(obj$hidden_layers)]]
+  if (approx == 'OLS'){
+    X <- obj$hidden_layers[[length(obj$hidden_layers)]]
+  } else {
+    X <- J
+  }
   #de-mean the y's
   if (!is.null(obj$fe_var)){
     ydm <- demeanlist(obj$y, list(obj$fe_var))

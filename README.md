@@ -17,3 +17,5 @@ TBD:
 6.  Try to make CV work with Jacobian rather than with top layer.
 
 7.  Need approaches for dealing with local minima, especially in dealing with HTEs.  This could be attempting random jitter when a local minimum is reached, and then reverting to the previous minimum if that doesn't offer any improvement.
+
+8.  Implement minibatch gradient descent as a training option
