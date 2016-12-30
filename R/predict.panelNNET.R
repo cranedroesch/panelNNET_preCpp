@@ -1,21 +1,18 @@
 predict.panelNNET <-
 function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, se.fit = FALSE, tauhat = FALSE){
-
-obj <- m
-fe.newX = NULL
-newX = (Z)
-new.param = matrix(time)
-new.treatment = rep(1, N)
-se.fit = TRUE
-tauhat = TRUE
+#obj <- m
+#fe.newX = NULL
+#newX = (Z)
+#new.param = matrix(time)
+#new.treatment = rep(1, N)
+#se.fit = TRUE
+#tauhat = TRUE
   if (obj$activation == 'tanh'){
     sigma <- tanh
   }
   if (obj$activation == 'logistic'){
     sigma <- logistic
   }
-
-
   if (is.null(newX)){
     return(obj$yhat)
   } else {
