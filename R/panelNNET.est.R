@@ -64,6 +64,7 @@ function(y, X, hidden_units, fe_var, maxit = 1000, lam = 0, time_var = NULL, par
     }
     #Add the treatment effect and the interaction of the treatment with the derived variables
     if (!is.null(treatment)){
+      warning('WARNING: panelNNET for heterogeneous treatment effects is still highly experimental.  the gradient descent algorithm appears to suffer badly from local minima and the standard errors of the treatment effects appear to be extremely buggy.')
       parlist$beta_treatment <- runif(1, -.7, .7)
       if (interact_treatment == TRUE){
         parlist$beta_treatmentinteractions <- runif(hidden_units[i], -.7, .7)
