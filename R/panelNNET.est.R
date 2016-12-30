@@ -105,10 +105,10 @@ function(y, X, hidden_units, fe_var, maxit = 1000, lam = 0, time_var = NULL, par
   if (!is.null(fe_var)){
     Zdm <- demeanlist(hlayers[[i]], list(fe_var))
     ydm <<- demeanlist(y, list(fe_var))
-    fe <- (y-ydm) - as.matrix(hlayers[[i]]-Zdm) %*% as.matrix(with(parlist, c(beta_param, beta_treatment, beta_treatmentinteractions, beta)))
-    yhat <- hlayers[[i]] %*% with(parlist, c(beta_param, beta_treatment, beta_treatmentinteractions, beta)) + fe    
+    fe <- (y-ydm) - as.matrix(hlayers[[i]]-Zdm) %*% as.matrix( c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta))
+    yhat <- hlayers[[i]] %*% c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta) + fe    
   } else {
-    yhat <- hlayers[[i]] %*% with(parlist, c(beta_param, beta_treatment, beta_treatmentinteractions, beta))
+    yhat <- hlayers[[i]] %*% c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta)
   }
   mse <- mseold <- mean((y-yhat)^2)
   #Calculate gradients.  These aren't the actual gradients, but become the gradients when multiplied by their respective layer.
@@ -225,10 +225,10 @@ function(y, X, hidden_units, fe_var, maxit = 1000, lam = 0, time_var = NULL, par
     if (!is.null(fe_var)){
       Zdm <- demeanlist(hlayers[[i]], list(fe_var))
       ydm <- demeanlist(y, list(fe_var))
-      fe <- (y-ydm) - as.matrix(hlayers[[i]]-Zdm) %*% as.matrix(with(parlist, c(beta_param, beta_treatment, beta_treatmentinteractions, beta)))
-    yhat <- hlayers[[i]] %*% with(parlist, c(beta_param, beta_treatment, beta_treatmentinteractions, beta)) + fe    
+      fe <- (y-ydm) - as.matrix(hlayers[[i]]-Zdm) %*% as.matrix(c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta))
+    yhat <- hlayers[[i]] %*% c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta) + fe    
   } else {
-    yhat <- hlayers[[i]] %*% with(parlist, c(beta_param, beta_treatment, beta_treatmentinteractions, beta))
+    yhat <- hlayers[[i]] %*% c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta)
     }
     mseold <- mse
     mse <- mean((y-yhat)^2)
