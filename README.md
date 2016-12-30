@@ -3,8 +3,7 @@ Semiparametric panel data models using neural networks
 
 TBD:
 
-1.  Implement methods for heterogeneous causal effects.  This is simply an interaction between the topmost derived variables and a treatment effect.  This has been started.  The following things need attention:
-  --man pages
+1.  Update manpages
 
 2.  Need a method for including groups that aren't necessarily represented by fixed effects in estimating cluster vcv
 
@@ -18,6 +17,4 @@ TBD:
 
 7.  Implement minibatch gradient descent as a training option
 
-8.  Write a function for getting tauhat from a HTE model
-
-9.  Write a function that steps through values of lambda
+8.  Write a function that steps through values of lambda

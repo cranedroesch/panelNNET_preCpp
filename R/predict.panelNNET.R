@@ -30,12 +30,12 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
     pvec <- unlist(plist)
     #prepare fe's in advance...
     if (!is.null(obj$fe)){
-      tm <- foreach(i = 1:length(unique(obj$fe$fe_var)), .combine = rbind) %do% {
+      FEs_to_merge <- foreach(i = 1:length(unique(obj$fe$fe_var)), .combine = rbind) %do% {
         #Because of numerical error, fixed effects within units can sometimes be slightly different.  This averages them.
         data.frame(unique(obj$fe$fe_var)[i], mean(obj$fe$fe[obj$fe$fe_var == unique(obj$fe$fe_var)[i]]))
       }
-      colnames(tm) <- c('fe_var','fe')
-    }
+      colnames(FEs_to_merge) <- c('fe_var','fe')
+    } else {FEs_to_merge <- NULL}
     #(predfun is defined below)
     if (tauhat == TRUE){
       taumat <- predfun(pvec = pvec, obj = obj, newX = newX, fe.newX = fe.newX, new.param = new.param, new.treatment, tauhat = TRUE)
@@ -63,14 +63,14 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
         return(tauhat)
       }
     } else { #if tauhat !=TRUE
-      yhat <- predfun(pvec = pvec, obj = obj, newX = newX, fe.newX = fe.newX, new.param = new.param, new.treatment)
+      yhat <- predfun(pvec = pvec, obj = obj, newX = newX, fe.newX = fe.newX, new.param = new.param, new.treatment, FEs_to_merge)
       if (se.fit == FALSE){
         return(yhat)
       } else {
         if (is.null(obj$vcs)){
           stop("No vcov matrices in object.  Can't calculate se's")
         }
-        J <- jacobian(predfun, pvec, obj = obj, newX = newX, fe.newX = fe.newX, new.param = new.param, new.treatment = new.treatment)
+        J <- jacobian(predfun, pvec, obj = obj, newX = newX, fe.newX = fe.newX, new.param = new.param, new.treatment = new.treatment, FEs_to_merge)
         J <- J[,c(#re-order jacobian so that parametric terms are on the front, followed by top layer.
             which(grepl('param', names(pvec)))
           , which(names(pvec) == 'beta_treatment')
@@ -99,7 +99,7 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
 
 
 #prediction function, potentially for the Jacobian
-predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, tauhat = FALSE){
+predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, tauhat = FALSE, FEs_to_merge = NULL){
   if (obj$activation == 'tanh'){
     sigma <- tanh
   }
@@ -139,7 +139,7 @@ predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, ne
   } else {
     xpart <- D %*% c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta)
     nd <- data.frame(fe.newX, xpart, id = 1:length(fe.newX))       
-    nd <- merge(nd, tm, by.x = 'fe.newX', by.y = 'fe_var', all.x = TRUE, sort = FALSE)
+    nd <- merge(nd, FEs_to_merge, by.x = 'fe.newX', by.y = 'fe_var', all.x = TRUE, sort = FALSE)
     nd <- nd[order(nd$id),]
     yhat <- nd$fe + nd$xpart
   }
