@@ -4,35 +4,53 @@ function(x, ...){
   if(is.null(x$vcs)){
     infstrings <- NULL
   } else {
-  dparm <- parm <- x$parlist$beta_param
-  if (x$doscale == TRUE){dparm <- dparm/attr(x$param, "scaled:scale")}
-  labs <- c('LTE, homoskedastic vcv', 'LTE, sandwich vcv', 'LTE, cluster vcv', 'OLS/ridge, homoskedastic vcv', 'OLS/ridge, sandwich vcv', 'OLS/ridge, cluster vcv')
-  infstrings <- "\nParametric Estimates:\n"  
-  if (is.null(colnames(x$param))){colnames(x$param) <- paste0('V', 1:ncol(x$param))}
-  for (i in 1:length(labs)){
-    s <- summary_table_element(x$vcs[[i]], parm)
-    infstrings <- paste0(infstrings, "-----------------------------------------------------------\n")
-    infstrings <- paste0(infstrings, labs[i], "\n")
-    infstrings <- paste0(infstrings,  paste(rep(' ',max(nchar(colnames(x$param)))), collapse = ""), "\t\t\tEst\t\tSE\t\tpval\t\t", "\n")
-    for (j in 1:length(s[[1]])){
-      if (length(s) == 1){
-        infstrings <- paste0(infstrings, "\t", s, "\n")
+    dparm <- parm <- c(x$parlist$beta_param, x$parlist$beta_treatment)
+    if (x$doscale == TRUE){
+      scalefac <- c(rep(attr(x$param, "scaled:scale"), ncol(x$param)+is.null(x$fe_var)))
+      if (!is.null(x$treatment)){scalefac <- append(scalefac, 1)}#Treatment is never scaled because it is never subject to penalization.  Thus the scale factor is always 1
+      dparm <- dparm/scalefac
+    }
+    #Interence strings -- to send to `writelines`
+    infstrings <- "\nParametric Estimates:\n"  
+    #Parameter names and variance estimate labels...
+    if (is.null(colnames(x$param))){
+      if (is.null(x$fe_var)){
+        #labs <- c('LTE, homoskedastic vcv', 'LTE, sandwich vcv', 'OLS/ridge, homoskedastic vcv', 'OLS/ridge, sandwich vcv')
+        labs <- names(x$vcs)
+        parnames <- c('(Intercept)', paste0('V', 1:ncol(x$param)))
       } else {
-        if (x$doscale == TRUE & j==1){
-          s[[1]] <- s[[1]]/attr(x$param, "scaled:scale")
-        }
-        pnum <- dosci(signif(dparm[j],3),3)
-        infstrings <- paste0(infstrings
-          ,  "\t", colnames(x$param)[j], "\t\t"
-          , pnum, paste(rep(' ',10-nchar(pnum)), collapse = ""), "\t"
-          , dosci(signif(s[[1]][j],3),3), paste(rep(' ',10-nchar(dosci(signif(s[[1]][j],3),3))), collapse = ""), "\t"
-          , dosci(signif(s[[2]][j],3),3), "\t"
-          , s[[3]][j], "\t"
-        )
-        infstrings <- paste0(infstrings, "\n")
+        #labs <- c('LTE, homoskedastic vcv', 'LTE, sandwich vcv', 'LTE, cluster vcv', 'OLS/ridge, homoskedastic vcv', 'OLS/ridge, sandwich vcv', 'OLS/ridge, cluster vcv')
+        labs <- names(x$vcs)
+        parnames <- paste0('V', 1:ncol(x$param))
       }
     }
-  }
+    if (!is.null(x$treatment)){parnames <- append(parnames, 'treatment')}
+    for (i in 1:length(labs)){
+      s <- summary_table_element(x$vcs[[i]], parm)
+      infstrings <- paste0(infstrings, "-----------------------------------------------------------\n")
+      infstrings <- paste0(infstrings, labs[i], "\n")
+      infstrings <- paste0(infstrings,  paste(rep(' ',max(nchar(parnames))), collapse = ""), "\t\t\tEst\t\tSE\t\tpval\t\t", "\n")
+      #scale factor for parameters
+      for (j in 1:length(s[[1]])){
+        if (length(s) == 1){
+          infstrings <- paste0(infstrings, "\t", s, "\n")
+        } else {
+          if (x$doscale == TRUE & j==1){
+            s[[1]] <- s[[1]]/scalefac
+          }
+          #futz with notation
+          pnum <- dosci(signif(dparm[j],3),3)
+          infstrings <- paste0(infstrings
+            ,  "\t", parnames[j], "\t\t"
+            , pnum, paste(rep(' ',10-nchar(pnum)), collapse = ""), "\t"
+            , dosci(signif(s[[1]][j],3),3), paste(rep(' ',10-nchar(dosci(signif(s[[1]][j],3),3))), collapse = ""), "\t"
+            , dosci(signif(s[[2]][j],3),3), "\t"
+            , s[[3]][j], "\t"
+          )
+          infstrings <- paste0(infstrings, "\n")
+        }
+      }
+    }
   }
   with(x, writeLines(paste0(
       "*******************************************\n"
