@@ -1,12 +1,9 @@
 predict.panelNNET <-
 function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, se.fit = FALSE, tauhat = FALSE){
-#obj <- m
-#fe.newX = NULL
-#newX = (Z)
-#new.param = matrix(time)
-#new.treatment = rep(1, N)
-#se.fit = TRUE
-#tauhat = TRUE
+obj <- pnn
+newX = Z[e,]
+fe.newX = id[e]
+new.param = P[e,]
   if (obj$activation == 'tanh'){
     sigma <- tanh
   }
@@ -65,14 +62,16 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
         return(tauhat)
       }
     } else { #if tauhat !=TRUE
-      yhat <- predfun(pvec = pvec, obj = obj, newX = newX, fe.newX = fe.newX, new.param = new.param, new.treatment, FEs_to_merge)
+      yhat <- predfun(pvec = pvec, obj = obj, newX = newX, fe.newX = fe.newX
+        , new.param = new.param, new.treatment = NULL, FEs_to_merge = FEs_to_merge)
       if (se.fit == FALSE){
         return(yhat)
       } else {
         if (is.null(obj$vcs)){
           stop("No vcov matrices in object.  Can't calculate se's")
         }
-        J <- jacobian(predfun, pvec, obj = obj, newX = newX, fe.newX = fe.newX, new.param = new.param, new.treatment = new.treatment, FEs_to_merge)
+        J <- jacobian(predfun, pvec, obj = obj, newX = newX, fe.newX = fe.newX
+          , new.param = new.param, new.treatment = new.treatment, FEs_to_merge = FEs_to_merge)
         J <- J[,c(#re-order jacobian so that parametric terms are on the front, followed by top layer.
             which(grepl('param', names(pvec)))
           , which(names(pvec) == 'beta_treatment')
