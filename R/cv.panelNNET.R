@@ -1,6 +1,6 @@
 cv.panelNNET <-
 function(obj, folds = NULL, nfolds = 10, parallel = TRUE, approx = 'OLS', J = NULL){
-#obj <- m
+#obj <- pnn
 #folds = NULL
 #nfolds = 10
 #parallel = TRUE
@@ -41,17 +41,22 @@ function(obj, folds = NULL, nfolds = 10, parallel = TRUE, approx = 'OLS', J = NU
     pp <- obj$parapen #parapen
   }
   D[1:length(pp)] <- D[1:length(pp)]*pp #incorporate parapen into diagonal of covmat
+  #Loop through folds:
   cv.err <- foreach(i = 1:nfolds, .combine = c) %fun% {
     tr <- folds$foldid != i
     te <- tr == FALSE
     #get the fe's
     if (!is.null(obj$fe_var)){
-      m <- felm(obj$y[tr]~X[tr,]|obj$fe_var[tr])#!!!!!!!!!!!!!!this is wrong.  FE's will be wrong because model is unpenalized.
-      fe <- merge(obj$fe, getfe(m), by.x = 'fe_var', by.y = 'idx')[te,'effect']
       #get the coefs
       Xdm <- demeanlist(X[tr,], list(obj$fe_var[tr]))
       B <- solve(crossprod(Xdm) + diag(D)) %*% t(Xdm) %*% ydm[tr]
-      yhati <- fe + X[te,] %*% B
+      #get the FE's
+      alpha <- (obj$y - ydm)[tr] - (X[tr,] - Xdm) %*% B
+      fe <- tapply(alpha, factor(obj$fe_var[tr]), mean)
+      fe <- data.frame(fe_var = names(fe), fe = fe)
+      fe <- merge(data.frame(fe_var = obj$fe_var[te]), fe)$fe
+      #Calc the MSE
+      yhati <- fe + as.numeric(X[te,] %*% B)
       mse <- mean((obj$y[te] - yhati)^2)
     } else {
       Xr <- X[tr,]
