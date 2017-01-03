@@ -38,10 +38,12 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
     } else {FEs_to_merge <- NULL}
     #(predfun is defined below)
     if (tauhat == TRUE){
-      taumat <- predfun(pvec = pvec, obj = obj, newX = newX, fe.newX = fe.newX, new.param = new.param, new.treatment, tauhat = TRUE)
+      taumat <- predfun(pvec = pvec, obj = obj, newX = newX
+        , fe.newX = fe.newX, new.param = new.param, new.treatment, tauhat = TRUE, FEs_to_merge = FEs_to_merge)
       tauhat <- taumat %*% c(obj$parlist$beta_treatment, obj$parlist$beta_treatmentinteractions)
       if (se.fit == TRUE){
-        J <- jacobian(predfun, pvec, obj = obj, newX = newX, fe.newX = fe.newX, new.param = new.param, new.treatment = new.treatment)
+        J <- jacobian(predfun, pvec, obj = obj, newX = newX, fe.newX = fe.newX
+          , new.param = new.param, new.treatment = new.treatment, FEs_to_merge = FEs_to_merge)
         Tidx <- c(which(names(pvec) == 'beta_treatment'), which(grepl('beta_treatmentinteractions', names(pvec))))
         J <- J[,Tidx]
         ni <- c()
