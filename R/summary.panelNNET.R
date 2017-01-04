@@ -59,6 +59,7 @@ function(x, ...){
     , "Hidden units: ",paste(hidden_units, collapse = ' '), "\n"
     , "Converged ", as.logical(converged), "\n"
     , "mse is ",mse, "\n"
+    , "loss is ",loss, "\n"
     , "Number of fixed effects: ", length(unique(fe_var)), "\n"
     , "Number of linear terms: ", ncol(param), "\n"
     , "Number of terms in the base layer: ", ncol(X), "\n"

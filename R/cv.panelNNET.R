@@ -1,5 +1,5 @@
 cv.panelNNET <-
-function(obj, folds = NULL, nfolds = 10, parallel = TRUE, approx = 'OLS', J = NULL){
+function(obj, folds = NULL, nfolds = 10, parallel = TRUE, approx = 'OLS', J = NULL, ...){
 #obj <- pnn
 #folds = NULL
 #nfolds = 10

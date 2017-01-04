@@ -1,5 +1,5 @@
 Jacobian.panelNNET <-
-function(obj){
+function(obj, ...){
   if (obj$activation == 'tanh'){
     sigma <- tanh
     sigma_prime <- tanh_prime

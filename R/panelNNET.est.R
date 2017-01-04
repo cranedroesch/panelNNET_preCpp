@@ -1,6 +1,25 @@
 panelNNET.est <-
 function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, param = NULL, parapen = rep(0, ncol(param)), parlist = NULL, verbose = FALSE, save_each_iter = FALSE, path = NULL, tag = "", gravity = 1.01, convtol = 1e-8, bias_hlayers = TRUE, RMSprop = FALSE, start.LR = .01, activation = 'tanh', inference = TRUE, doscale = TRUE, treatment = NULL, interact_treatment = TRUE, batchsize = nrow(X)){
 
+        y = obj$y
+ X = obj$X
+   hidden_units = obj$hidden_units
+   fe_var = obj$fe_var
+   maxit = obj$maxit
+   lam = 250
+   time_var = obj$time_var
+   param = obj$param
+   parapen = obj$parapen
+   parlist = obj$parlist
+   verbose = FALSE
+   convtol = obj$convtol
+   bias_hlayers = obj$used_bias
+   RMSprop = obj$RMSprop
+   start.LR = .01
+   activation = obj$activation
+   inference = FALSE
+   doscale = obj$doscale
+   batchsize =obj$batchsize
 #y = y[r]
 #X = Z[r,]
 #hidden_units = 10
@@ -11,9 +30,9 @@ function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, para
 #param = P[r,]
 #parlist = NULL
 #verbose = TRUE
-#save_each_iter = FALSE
-#path = NULL
-#tag = ""
+save_each_iter = FALSE
+path = NULL
+tag = ""
 #gravity = 1.01
 #bias_hlayers = TRUE
 #RMSprop = TRUE
@@ -22,7 +41,7 @@ function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, para
 #doscale = TRUE
 #inference = FALSE
 #parapen = rep(1, ncol(P))
-#treatment = NULL
+treatment = NULL
 #start.LR = .01
 #batchsize = 200
   if (doscale == TRUE){
@@ -114,7 +133,10 @@ function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, para
     yhat <- hlayers[[i]] %*% c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta)
   }
   mse <- mseold <- mean((y-yhat)^2)
-  loss <- lossold <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions)^2)
+  loss <- lossold <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions, unlist(parlist[!grepl('beta', names(pl))]))^2)
+
+
+
   #Calculate gradients.  These aren't the actual gradients, but become the gradients when multiplied by their respective layer.
   grads <- vector('list', nlayers+1)
   grads[[length(grads)]] <- getDelta(y, yhat)
@@ -244,7 +266,7 @@ function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, para
         }
       mse <- mean((y-yhat)^2)
       msevec <- append(msevec, mse)
-      loss <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions)^2)
+      loss <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions, unlist(parlist[!grepl('beta', names(pl))]))^2)
       lossvec <- append(lossvec, loss)
       if (verbose == TRUE){
         writeLines(paste0(
@@ -272,7 +294,6 @@ function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, para
         plot(lossvec, type = 'l', main = 'all epochs')
         plot(lossvec[(1+(iter)*max(batchid)):length(lossvec)], type = 'l', ylab = 'loss', main = 'Current epoch')
       }
-
     }
     #Finished epoch.  Assess whether MSE has increased and revert if so
     mse <- mean((y-yhat)^2)
@@ -303,7 +324,9 @@ function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, para
       D <- lossold - loss
       if (D<convtol){
         stopcounter <- stopcounter +1
-        if(verbose == TRUE){print(paste('slowing!', stopcounter))}
+#        if(verbose == TRUE){
+          print(paste('slowing!', stopcounter))
+#        }
       }else{
         stopcounter <-0
       }
