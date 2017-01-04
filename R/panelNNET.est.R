@@ -313,7 +313,7 @@ function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, para
     , X = X, y = y, param = param, fe_var = fe_var, hidden_units = hidden_units, maxit = maxit
     , used_bias = bias_hlayers, final_improvement = D, msevec = msevec, RMSprop = RMSprop, convtol = convtol
     , grads = grads, activation = activation, parapen = parapen, doscale = doscale, treatment = treatment
-    , interact_treatment = interact_treatment
+    , interact_treatment = interact_treatment, batchsize = batchsize
   )
   if(inference == TRUE){
     J <- Jacobian.panelNNET(output)
