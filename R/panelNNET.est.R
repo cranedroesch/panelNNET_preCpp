@@ -133,7 +133,7 @@ function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, para
     yhat <- hlayers[[i]] %*% c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta)
   }
   mse <- mseold <- mean((y-yhat)^2)
-  loss <- lossold <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions, unlist(parlist[!grepl('beta', names(pl))]))^2)
+  loss <- lossold <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions, unlist(parlist[!grepl('beta', names(parlist))]))^2)
 
 
 
@@ -266,7 +266,7 @@ function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, para
         }
       mse <- mean((y-yhat)^2)
       msevec <- append(msevec, mse)
-      loss <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions, unlist(parlist[!grepl('beta', names(pl))]))^2)
+      loss <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions, unlist(parlist[!grepl('beta', names(parlist))]))^2)
       lossvec <- append(lossvec, loss)
       if (verbose == TRUE){
         writeLines(paste0(
