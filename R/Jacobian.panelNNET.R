@@ -39,10 +39,10 @@ function(obj){
     if (!is.null(obj$fe_var)){
       Zdm <- demeanlist(D, list(obj$fe_var))
       ydm <<- demeanlist(obj$y, list(obj$fe_var))
-      fe <- (obj$y-ydm) - as.matrix(D-Zdm) %*% with(parlist, c(beta_param, beta_treatment, beta_treatmentinteractions, beta))
-      yhat <- D %*% with(parlist, c(beta_param, beta_treatment, beta_treatmentinteractions, beta)) + fe    
+      fe <- (obj$y-ydm) - as.matrix(D-Zdm) %*% c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta)
+      yhat <- D %*% c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta) + fe    
     } else {
-      yhat <- D %*% with(parlist, c(beta_param, beta_treatment, beta_treatmentinteractions, beta)) 
+      yhat <- D %*% c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta)
     }
     return(yhat)
   }
