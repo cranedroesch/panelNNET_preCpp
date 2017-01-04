@@ -1,49 +1,34 @@
 panelNNET.est <-
 function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, param = NULL, parapen = rep(0, ncol(param)), parlist = NULL, verbose = FALSE, save_each_iter = FALSE, path = NULL, tag = "", gravity = 1.01, convtol = 1e-8, bias_hlayers = TRUE, RMSprop = FALSE, start.LR = .01, activation = 'tanh', inference = TRUE, doscale = TRUE, treatment = NULL, interact_treatment = TRUE, batchsize = nrow(X)){
 
-#        y = obj$y
-# X = obj$X
-#   hidden_units = obj$hidden_units
-#   fe_var = obj$fe_var
-#   maxit = obj$maxit
-#   lam = 250
-#   time_var = obj$time_var
-#   param = obj$param
-#   parapen = obj$parapen
-#   parlist = obj$parlist
-#   verbose = FALSE
-#   convtol = obj$convtol
-#   bias_hlayers = obj$used_bias
-#   RMSprop = obj$RMSprop
-#   start.LR = .01
-#   activation = obj$activation
-#   inference = FALSE
-#   doscale = obj$doscale
-#   batchsize =obj$batchsize
 #y = y[r]
 #X = Z[r,]
-#hidden_units = 10
+#hidden_units = c(20,20)
+
 #fe_var = id[r]
 #maxit = 1000
-#lam = 1
+#lam = lam
+
 #time_var = time[r]
-#param = P[r,]
-#parlist = NULL
-#verbose = TRUE
+#param = P
+#parlist = pl
+#verbose = FALSE
+
 #save_each_iter = FALSE
 #path = NULL
 #tag = ""
 #gravity = 1.01
 #bias_hlayers = TRUE
-#RMSprop = TRUE
+# RMSprop = TRUE
 #convtol = 1e-8
 #activation = 'tanh'
 #doscale = TRUE
 #inference = FALSE
-#parapen = rep(1, ncol(P))
+#batchsize = 50
+#parapen = rep(0, ncol(P))
 #treatment = NULL
 #start.LR = .01
-#batchsize = 200
+
   if (doscale == TRUE){
     X <- scale(X)
     if (!is.null(param)){
@@ -134,9 +119,6 @@ function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, para
   }
   mse <- mseold <- mean((y-yhat)^2)
   loss <- lossold <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions, unlist(parlist[!grepl('beta', names(parlist))]))^2)
-
-
-
   #Calculate gradients.  These aren't the actual gradients, but become the gradients when multiplied by their respective layer.
   grads <- vector('list', nlayers+1)
   grads[[length(grads)]] <- getDelta(y, yhat)
@@ -172,8 +154,10 @@ function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, para
     #Start epoch
     #Assign batches
     batchid <- sample(1:nrow(X)%/%batchsize +1)
+    if (min(table(batchid))<(batchsize/2)){#Deal with orphan batches
+      batchid[batchid == max(batchid)] <- sample(1:(max(batchid) - 1), min(table(batchid)))
+    }
     for (bat in 1:max(batchid)) {
-    pt <- proc.time()
       curBat <- which(batchid == bat)
       #Get updated gradients
       grads <- vector('list', nlayers+1)
