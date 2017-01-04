@@ -1,25 +1,25 @@
 panelNNET.est <-
 function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, param = NULL, parapen = rep(0, ncol(param)), parlist = NULL, verbose = FALSE, save_each_iter = FALSE, path = NULL, tag = "", gravity = 1.01, convtol = 1e-8, bias_hlayers = TRUE, RMSprop = FALSE, start.LR = .01, activation = 'tanh', inference = TRUE, doscale = TRUE, treatment = NULL, interact_treatment = TRUE, batchsize = nrow(X)){
 
-        y = obj$y
- X = obj$X
-   hidden_units = obj$hidden_units
-   fe_var = obj$fe_var
-   maxit = obj$maxit
-   lam = 250
-   time_var = obj$time_var
-   param = obj$param
-   parapen = obj$parapen
-   parlist = obj$parlist
-   verbose = FALSE
-   convtol = obj$convtol
-   bias_hlayers = obj$used_bias
-   RMSprop = obj$RMSprop
-   start.LR = .01
-   activation = obj$activation
-   inference = FALSE
-   doscale = obj$doscale
-   batchsize =obj$batchsize
+#        y = obj$y
+# X = obj$X
+#   hidden_units = obj$hidden_units
+#   fe_var = obj$fe_var
+#   maxit = obj$maxit
+#   lam = 250
+#   time_var = obj$time_var
+#   param = obj$param
+#   parapen = obj$parapen
+#   parlist = obj$parlist
+#   verbose = FALSE
+#   convtol = obj$convtol
+#   bias_hlayers = obj$used_bias
+#   RMSprop = obj$RMSprop
+#   start.LR = .01
+#   activation = obj$activation
+#   inference = FALSE
+#   doscale = obj$doscale
+#   batchsize =obj$batchsize
 #y = y[r]
 #X = Z[r,]
 #hidden_units = 10
@@ -30,9 +30,9 @@ function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, para
 #param = P[r,]
 #parlist = NULL
 #verbose = TRUE
-save_each_iter = FALSE
-path = NULL
-tag = ""
+#save_each_iter = FALSE
+#path = NULL
+#tag = ""
 #gravity = 1.01
 #bias_hlayers = TRUE
 #RMSprop = TRUE
@@ -41,7 +41,7 @@ tag = ""
 #doscale = TRUE
 #inference = FALSE
 #parapen = rep(1, ncol(P))
-treatment = NULL
+#treatment = NULL
 #start.LR = .01
 #batchsize = 200
   if (doscale == TRUE){
