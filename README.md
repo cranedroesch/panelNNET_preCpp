@@ -11,4 +11,3 @@ TBD:
 
 4.  Optimization/rewriting in low-level languages
 
-8.  Write a function that steps through values of lambda

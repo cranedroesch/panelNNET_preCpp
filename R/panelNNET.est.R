@@ -312,10 +312,7 @@ function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, para
       lossold <- oldpar$lossold
       stopcounter <- stopcounter + 1
       LR <- LR/2
-#      if(verbose == TRUE){
-        print("MSE increased.  halving LR")
-        print(stopcounter)
-#      }
+      print(paste0("MSE increased.  halving LR.  Stopcounter now at ", stopcounter))
     } else {
       LRvec[iter+1] <- LR <- LR*gravity      #gravity...
       if (save_each_iter == TRUE){
@@ -324,9 +321,9 @@ function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, para
       D <- lossold - loss
       if (D<convtol){
         stopcounter <- stopcounter +1
-#        if(verbose == TRUE){
-          print(paste('slowing!', stopcounter))
-#        }
+        if(verbose == TRUE){
+          print(paste('slowing!  Stopcounter now at ', stopcounter))
+        }
       }else{
         stopcounter <-0
       }
