@@ -1,12 +1,12 @@
 panelNNET.est <-
-function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, param = NULL, parapen = rep(0, ncol(param)), parlist = NULL, verbose = FALSE, save_each_iter = FALSE, path = NULL, tag = "", gravity = 1.01, convtol = 1e-8, bias_hlayers = TRUE, RMSprop = FALSE, start.LR = .01, activation = 'tanh', inference = TRUE, doscale = TRUE, treatment = NULL, interact_treatment = TRUE, batchsize = 200){
+function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, param = NULL, parapen = rep(0, ncol(param)), parlist = NULL, verbose = FALSE, save_each_iter = FALSE, path = NULL, tag = "", gravity = 1.01, convtol = 1e-8, bias_hlayers = TRUE, RMSprop = FALSE, start.LR = .01, activation = 'tanh', inference = TRUE, doscale = TRUE, treatment = NULL, interact_treatment = TRUE, batchsize = nrow(X)){
 
 #y = y[r]
 #X = Z[r,]
 #hidden_units = 10
 #fe_var = id[r]
 #maxit = 1000
-#lam = .001
+#lam = 1
 #time_var = time[r]
 #param = P[r,]
 #parlist = NULL
@@ -114,6 +114,7 @@ function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, para
     yhat <- hlayers[[i]] %*% c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta)
   }
   mse <- mseold <- mean((y-yhat)^2)
+  loss <- lossold <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions)^2)
   #Calculate gradients.  These aren't the actual gradients, but become the gradients when multiplied by their respective layer.
   grads <- vector('list', nlayers+1)
   grads[[length(grads)]] <- getDelta(y, yhat)
@@ -140,16 +141,15 @@ function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, para
   LRvec <- LR <- start.LR#starting LR
   D <- 1e6
   stopcounter <- iter <- 0
-  msevec <- c()
+  msevec <- lossvec <- c()
   ###############
   #start iterating
   while(iter<maxit & stopcounter < 5){
     oldpar <- list(parlist=parlist, hlayers=hlayers, grads=grads
-      , yhat = yhat, mse = mse, mseold = mseold, updates = updates, G2 = G2)
+      , yhat = yhat, mse = mse, mseold = mseold, loss = loss, lossold = lossold, updates = updates, G2 = G2)
     #Start epoch
     #Assign batches
     batchid <- sample(1:nrow(X)%/%batchsize +1)
-    mse <- c()
     for (bat in 1:max(batchid)) {
     pt <- proc.time()
       curBat <- which(batchid == bat)
@@ -244,6 +244,8 @@ function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, para
         }
       mse <- mean((y-yhat)^2)
       msevec <- append(msevec, mse)
+      loss <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions)^2)
+      lossvec <- append(lossvec, loss)
       if (verbose == TRUE){
         writeLines(paste0(
             "*******************************************\n"
@@ -256,21 +258,27 @@ function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, para
           , "mse is ",mse, "\n"
           , "last mse was ", oldpar$mse, "\n"
           , "difference is ", oldpar$mse - mse, "\n"
+          , "loss is ",loss, "\n"
+          , "last loss was ", oldpar$loss, "\n"
+          , "difference is ", oldpar$loss - loss, "\n"
           , "*******************************************\n"
         ))
-        par(mfrow = c(2,2))
+        par(mfrow = c(3,2))
         plot(y, yhat, col = rgb(1,0,0,.5), pch = 19, main = 'in-sample performance')
         abline(0,1)
         plot(LRvec, type = 'b', main = 'learning rate history')
         plot(msevec, type = 'l', main = 'all epochs')
         plot(msevec[(1+(iter)*max(batchid)):length(msevec)], type = 'l', ylab = 'mse', main = 'Current epoch')
+        plot(lossvec, type = 'l', main = 'all epochs')
+        plot(lossvec[(1+(iter)*max(batchid)):length(lossvec)], type = 'l', ylab = 'loss', main = 'Current epoch')
       }
 
     }
     #Finished epoch.  Assess whether MSE has increased and revert if so
     mse <- mean((y-yhat)^2)
+    loss <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions)^2)
     #If MSE increases...
-    if (oldpar$mse < mse){
+    if (oldpar$loss < loss){
       parlist <- oldpar$parlist
       updates <- oldpar$updates
       G2 <- oldpar$G2
@@ -279,18 +287,20 @@ function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, para
       yhat <- oldpar$yhat
       mse <- oldpar$mse
       mseold <- oldpar$mseold
+      loss <- oldpar$loss
+      lossold <- oldpar$lossold
       stopcounter <- stopcounter + 1
       LR <- LR/2
-      if(verbose == TRUE){
+#      if(verbose == TRUE){
         print("MSE increased.  halving LR")
         print(stopcounter)
-      }
+#      }
     } else {
       LRvec[iter+1] <- LR <- LR*gravity      #gravity...
       if (save_each_iter == TRUE){
         save(parlist, file = paste0(path, '/pnnet_int_out_',tag,'_'))  #Save the intermediate output locally
       }
-      D <- mseold - mse
+      D <- lossold - loss
       if (D<convtol){
         stopcounter <- stopcounter +1
         if(verbose == TRUE){print(paste('slowing!', stopcounter))}
@@ -309,9 +319,9 @@ function(y, X, hidden_units, fe_var, maxit = 100, lam = 0, time_var = NULL, para
     fe_output <- data.frame(fe_var, fe)
   }
   output <- list(yhat = yhat, parlist = parlist, hidden_layers = hlayers
-    , fe = fe_output, converged = conv, mse = mse, lam = lam, time_var = time_var
+    , fe = fe_output, converged = conv, mse = mse, loss = loss, lam = lam, time_var = time_var
     , X = X, y = y, param = param, fe_var = fe_var, hidden_units = hidden_units, maxit = maxit
-    , used_bias = bias_hlayers, final_improvement = D, msevec = msevec, RMSprop = RMSprop, convtol = convtol
+    , used_bias = bias_hlayers, final_improvement = D, msevec = msevec, loss = loss, RMSprop = RMSprop, convtol = convtol
     , grads = grads, activation = activation, parapen = parapen, doscale = doscale, treatment = treatment
     , interact_treatment = interact_treatment, batchsize = batchsize
   )
