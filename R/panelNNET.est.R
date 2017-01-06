@@ -307,9 +307,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       D <- lossold - loss
       if (D<convtol){
         stopcounter <- stopcounter +1
-
-          print(paste('slowing!  Stopcounter now at ', stopcounter))
-        }
+        if(verbose == TRUE){print(paste('slowing!  Stopcounter now at ', stopcounter))}
       }else{
         stopcounter <-0
       }
