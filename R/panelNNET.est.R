@@ -1,5 +1,5 @@
 panelNNET.est <-
-function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist, verbose, save_each_iter, path, tag, gravity, convtol, bias_hlayers, RMSprop, start.LR, activation, inference, doscale, treatment, interact_treatment, batchsize, ...){
+function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist, verbose, save_each_iter, path, tag, gravity, convtol, bias_hlayers, RMSprop, start.LR, activation, inference, doscale, treatment, interact_treatment, batchsize, maxstopcounter, ...){
 
 #y = y[r]
 #X = Z[r,]
@@ -148,7 +148,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   msevec <- lossvec <- c()
   ###############
   #start iterating
-  while(iter<maxit & stopcounter < 5){
+  while(iter<maxit & stopcounter < maxstopcounter){
     oldpar <- list(parlist=parlist, hlayers=hlayers, grads=grads
       , yhat = yhat, mse = mse, mseold = mseold, loss = loss, lossold = lossold, updates = updates, G2 = G2)
     #Start epoch
