@@ -80,7 +80,7 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
           , which(grepl('beta', names(pvec)) & !grepl('param', names(pvec)) & !grepl('treatment', names(pvec)))
           , which(!grepl('beta', names(pvec)))#no particular order to lower-level parameters
          )]
-        ni <- c()
+        vcnames <- c()
         semat <- foreach(i = 1:length(obj$vcs), .combine = cbind, .errorhandling = 'remove') %do% {
           if (grepl('OLS', names(obj$vcs)[i])){
             X <- J[, 1:sum(grepl('beta', names(pvec)))]#the Jacobian is ordered so that the top layer is first...
@@ -88,11 +88,11 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
           } else {
             se <- sqrt(diag(J %*% obj$vcs[[i]]$vc %*% t(J)))
           }
-          if (any(is.na(ni))){warning("One or more VCV has negative diagonals")}
-          ni[i] <- names(obj$vcs)[i]
+          vcnames[i] <- names(obj$vcs)[i]
           return(matrix(se))
         }
-        colnames(semat) <- ni[!is.na(ni)]
+        if (any(is.na(vcnames))){warning("One or more VCV has negative diagonals")}
+        colnames(semat) <- vcnames[!is.na(vcnames)]
       }
       return(cbind(yhat, semat))
     }
