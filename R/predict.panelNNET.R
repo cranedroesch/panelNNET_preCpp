@@ -1,5 +1,10 @@
 predict.panelNNET <-
 function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, se.fit = FALSE, tauhat = FALSE){
+obj <- m
+newX = Z[e,]
+fe.newX = id[e]
+new.param = matrix(time[e])
+se.fit = TRUE
   if (obj$activation == 'tanh'){
     sigma <- tanh
   }
@@ -83,8 +88,9 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
           } else {
             se <- sqrt(diag(J %*% obj$vcs[[i]]$vc %*% t(J)))
           }
+          if (any(is.na(ni))){warning("One or more VCV has negative diagonals")}
           ni[i] <- names(obj$vcs)[i]
-          return(se)
+          return(matrix(se))
         }
         colnames(semat) <- ni[!is.na(ni)]
       }
