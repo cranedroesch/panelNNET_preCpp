@@ -12,7 +12,7 @@ function(y, X, hidden_units, fe_var
     , time_var, param, parapen, parlist, verbose, save_each_iter
     , path, tag, gravity, convtol, bias_hlayers, RMSprop
     , start_LR, activation, inference, doscale 
-    , treatment, interact_treatment, batchsize, maxstopcounter,
+    , treatment, interact_treatment, batchsize, maxstopcounter
     , OLStrick
   )
   out$call = match.call()
