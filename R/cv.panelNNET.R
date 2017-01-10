@@ -1,7 +1,7 @@
 cv.panelNNET <-
 function(obj, folds = NULL, nfolds = 10, parallel = TRUE, approx = 'OLS', J = NULL, wise = 'fewise',...){
 ##test arguments...
-#obj <- mlist[[i]]
+#obj <- pnn
 #folds = NULL
 #nfolds = 10
 #parallel = TRUE
@@ -57,9 +57,9 @@ function(obj, folds = NULL, nfolds = 10, parallel = TRUE, approx = 'OLS', J = NU
       #get the coefs
       if (wise == 'obswise'){
         Xdm <- demeanlist(X, list(obj$fe_var))
-        B <- solve(crossprod(Xdm[obj$time_var %in% tr,]) + diag(D)) %*% t(Xdm[obj$time_var %in% tr,]) %*% ydm[obj$time_var %in% tr]
-        yhatdmi <- Xdm[obj$time_var %in% te,] %*% B
-        mse <- mean((ydm[obj$time_var %in% te] - yhatdmi)^2)
+        B <- solve(crossprod(Xdm[tr,]) + diag(D)) %*% t(Xdm[tr,]) %*% ydm[tr]
+        yhatdmi <- Xdm[te,] %*% B
+        mse <- mean((ydm[te] - yhatdmi)^2)
       } else {
         Xdm <- demeanlist(X[obj$time_var %in% tr,], list(obj$fe_var[obj$time_var %in% tr]))
         B <- solve(crossprod(Xdm) + diag(D)) %*% t(Xdm) %*% ydm[obj$time_var %in% tr]
