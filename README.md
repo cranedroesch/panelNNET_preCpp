@@ -11,3 +11,10 @@ TBD:
 
 4.  Optimization/rewriting in low-level languages
 
+5.  Profiling
+
+6.  OLS in top layer
+
+7.  Fix bug with minibatch
+
+8.  Re-introduce optim option

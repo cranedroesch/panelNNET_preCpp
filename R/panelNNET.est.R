@@ -1,18 +1,17 @@
 panelNNET.est <-
 function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist, verbose, save_each_iter, path, tag, gravity, convtol, bias_hlayers, RMSprop, start.LR, activation, inference, doscale, treatment, interact_treatment, batchsize, maxstopcounter, ...){
-
+##examplearguments for testing
 #y = y[r]
 #X = Z[r,]
-#hidden_units = c(20,20)
-
+#hidden_units = c(100, 50)
 #fe_var = id[r]
 #maxit = 1000
 #lam = lam
 
 #time_var = time[r]
-#param = P
-#parlist = pl
-#verbose = FALSE
+#param = P[r,]
+#parlist = NULL
+#verbose = TRUE
 
 #save_each_iter = FALSE
 #path = NULL
@@ -24,7 +23,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 #activation = 'tanh'
 #doscale = TRUE
 #inference = FALSE
-#batchsize = 50
+#batchsize = 200
 #parapen = rep(0, ncol(P))
 #treatment = NULL
 #start.LR = .01
@@ -155,7 +154,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     #Assign batches
     batchid <- sample(1:nrow(X)%/%batchsize +1)
     if (min(table(batchid))<(batchsize/2)){#Deal with orphan batches
-      batchid[batchid == max(batchid)] <- sample(1:(max(batchid) - 1), min(table(batchid)))
+      batchid[batchid == max(batchid)] <- sample(1:(max(batchid) - 1), min(table(batchid)), replace = TRUE)
     }
     for (bat in 1:max(batchid)) {
       curBat <- which(batchid == bat)
