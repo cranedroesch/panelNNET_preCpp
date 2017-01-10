@@ -1,12 +1,12 @@
 cv.panelNNET <-
 function(obj, folds = NULL, nfolds = 10, parallel = TRUE, approx = 'OLS', J = NULL, wise = 'fewise',...){
 ##test arguments...
-obj <- pnn
-folds = NULL
-nfolds = 10
-parallel = TRUE
-approx = 'OLS'
-wise = ''
+#obj <- pnn
+#folds = NULL
+#nfolds = 10
+#parallel = TRUE
+#approx = 'OLS'
+#wise = ''
 #wise = 'obswise'
 #J = J
   #Assign folds if unassigned
