@@ -1,11 +1,11 @@
 cv.panelNNET <-
-function(obj, folds = NULL, nfolds = 10, parallel = TRUE, approx = 'OLS', J = NULL, wise = 'fewise'...){
-obj <- mlist[[10]]
-folds = NULL
-nfolds = 10
-parallel = TRUE
-approx = 'OLS'
-wise = 'obswise'
+function(obj, folds = NULL, nfolds = 10, parallel = TRUE, approx = 'OLS', J = NULL, wise = 'fewise',...){
+#obj <- mlist[[10]]
+#folds = NULL
+#nfolds = 10
+#parallel = TRUE
+#approx = 'OLS'
+#wise = 'obswise'
 #J = J
   #Assign folds if unassigned
   if (is.null(folds)){
