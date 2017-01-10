@@ -6,13 +6,13 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 #hidden_units = c(100, 50)
 #fe_var = id[r]
 #maxit = 1000
-#lam = lam
+#lam = 1
 
 #time_var = time[r]
 #param = P[r,]
 #parlist = NULL
 #verbose = TRUE
-
+#OLStrick = TRUE
 #save_each_iter = FALSE
 #path = NULL
 #tag = ""
@@ -23,10 +23,11 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 #activation = 'tanh'
 #doscale = TRUE
 #inference = FALSE
-#batchsize = 200
-#parapen = rep(0, ncol(P))
+#batchsize = nrow(X)
+#parapen = rep(1, ncol(P))
 #treatment = NULL
 #start.LR = .01
+#maxstopcounter = 10
 
   if (doscale == TRUE){
     X <- scale(X)
@@ -237,16 +238,36 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         colnames(hlayers[[i]])[1:ncol(param)] <- paste0('param',1:ncol(param))
       }
       if (is.null(fe_var)){hlayers[[i]] <- cbind(1, hlayers[[i]])}#add intercept if no FEs
+      #update yhat
+      if (!is.null(fe_var)){
+        Zdm <- demeanlist(hlayers[[i]], list(fe_var))
+        if (OLStrick == TRUE){#OLS trick!
+          lamvec <- rep(lam, ncol(Zdm))
+          if (is.null(fe_var)){
+            pp <- c(0, parapen) #never penalize the intercept
+          } else {
+            pp <- parapen #parapen
+          }
+          lamvec[1:length(pp)] <- lamvec[1:length(pp)]*pp #incorporate parapen into diagonal of covmat
 
-        if (!is.null(fe_var)){
-          Zdm <- demeanlist(hlayers[[i]], list(fe_var))
-          fe <- (y-ydm) - as.matrix(hlayers[[i]]-Zdm) %*% as.matrix(c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta))
-          yhat <- hlayers[[i]] %*% c(
-            parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta
-          ) + fe    
-        } else {
-          yhat <- hlayers[[i]] %*% c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta)
+          B <- solve(t(Zdm) %*% Zdm + diag(lamvec)) %*% t(Zdm) %*% ydm
+          parlist$beta <- B[grepl('nodes', rownames(B))]
+          parlist$beta_param <- B[grepl('param', rownames(B))]
+          if (!is.null(treatment)){
+            parlist$beta_treatment <- B[grepl('treatment', rownames(B))]
+            parlist$beta_treatmentinteractions <- B[grepl('TrInts', rownames(B))]
+          }
         }
+        fe <- (y-ydm) - as.matrix(hlayers[[i]]-Zdm) %*% as.matrix(c(
+            parlist$beta_param, parlist$beta_treatment
+          , parlist$beta_treatmentinteractions, parlist$beta
+        ))
+        yhat <- hlayers[[i]] %*% c(
+          parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta
+        ) + fe    
+      } else {
+        yhat <- hlayers[[i]] %*% c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta)
+      }
       mse <- mean((y-yhat)^2)
       msevec <- append(msevec, mse)
       loss <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions, unlist(parlist[!grepl('beta', names(parlist))]))^2)
