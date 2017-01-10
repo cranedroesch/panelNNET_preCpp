@@ -1,12 +1,12 @@
 cv.panelNNET <-
 function(obj, folds = NULL, nfolds = 10, parallel = TRUE, approx = 'OLS', J = NULL, wise = 'fewise',...){
 ##test arguments...
-#obj <- pnn
-#folds = NULL
-#nfolds = 10
-#parallel = TRUE
-#approx = 'OLS'
-#wise = ''
+obj <- pnn
+folds = NULL
+nfolds = 10
+parallel = TRUE
+approx = 'OLS'
+wise = ''
 #wise = 'obswise'
 #J = J
   #Assign folds if unassigned
@@ -46,8 +46,8 @@ function(obj, folds = NULL, nfolds = 10, parallel = TRUE, approx = 'OLS', J = NU
   D[1:length(pp)] <- D[1:length(pp)]*pp #incorporate parapen into diagonal of covmat
   #Loop through folds:
   cv.err <- foreach(i = 1:nfolds, .combine = c) %fun% {
-    tr <- which(folds$foldid != i)
-    te <- which(folds$foldid == i)
+    tr <- folds$id[which(folds$foldid != i)]
+    te <- folds$id[which(folds$foldid == i)]
     if (all(te == FALSE)){
       warning("One of the folds had no test set and got dropped")
       return(NULL)
