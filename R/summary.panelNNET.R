@@ -1,6 +1,5 @@
 summary.panelNNET <-
 function(x, ...){
-#x <- pnn
   if(is.null(x$vcs)){
     infstrings <- NULL
   } else {

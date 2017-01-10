@@ -1,6 +1,6 @@
 summary_table_element <-
 function(vc, parm){#Function used internally to the infernce == TRUE argument
-  if (inherits(vc, 'error')){
+  if (inherits(vc, 'error') | any(diag(vc$vc)<=0)){
     'Error!  Probably an ill-conditioned covariance matrix'
   } else {
     se <- sqrt(diag(vc$vc))[1:length(parm)]#The first vc elements are always the parametric terms, followed by any treatment dummy
