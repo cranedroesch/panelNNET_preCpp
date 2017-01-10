@@ -1,14 +1,15 @@
 cv.panelNNET <-
-function(obj, folds = NULL, nfolds = 10, parallel = TRUE, approx = 'OLS', J = NULL, ...){
-#obj <- pnn
-#folds = NULL
-#nfolds = 10
-#parallel = TRUE
-#approx = 'OLS'
+function(obj, folds = NULL, nfolds = 10, parallel = TRUE, approx = 'OLS', J = NULL, wise = 'fewise'...){
+obj <- mlist[[10]]
+folds = NULL
+nfolds = 10
+parallel = TRUE
+approx = 'OLS'
+wise = 'obswise'
 #J = J
   #Assign folds if unassigned
   if (is.null(folds)){
-    if (is.null(obj$fe_var)){#If no time variable, assume that the data is not panel and do obs-wise cross-validation
+    if (is.null(obj$fe_var) | wise == 'obswise'){#If no time variable, assume that the data is not panel and do obs-wise cross-validation
       foldid <- sample(1:nrow(obj$X) %% nfolds)+1      
       folds <- data.frame(id = 1:length(foldid), foldid)
     } else {#If time variable assume panel and do time-period-wise cross-validation
@@ -52,16 +53,23 @@ function(obj, folds = NULL, nfolds = 10, parallel = TRUE, approx = 'OLS', J = NU
     #get the fe's
     if (!is.null(obj$fe_var)){
       #get the coefs
-      Xdm <- demeanlist(X[tr,], list(obj$fe_var[tr]))
-      B <- solve(crossprod(Xdm) + diag(D)) %*% t(Xdm) %*% ydm[tr]
-      #get the FE's
-      alpha <- (obj$y - ydm)[tr] - (X[tr,] - Xdm) %*% B
-      fe <- tapply(alpha, factor(obj$fe_var[tr]), mean)
-      fe <- data.frame(fe_var = names(fe), fe = fe)
-      fe <- merge(data.frame(fe_var = obj$fe_var[te]), fe)$fe
-      #Calc the MSE
-      yhati <- fe + as.numeric(X[te,] %*% B)
-      mse <- mean((obj$y[te] - yhati)^2)
+      if (wise == 'obswise'){
+        Xdm <- demeanlist(X, list(obj$fe_var))
+        B <- solve(crossprod(Xdm[tr,]) + diag(D)) %*% t(Xdm[tr,]) %*% ydm[tr]
+        yhatdmi <- Xdm[te,] %*% B
+        mse <- mean((ydm[te] - yhatdmi)^2)
+      } else {
+        Xdm <- demeanlist(X[tr,], list(obj$fe_var[tr]))
+        B <- solve(crossprod(Xdm) + diag(D)) %*% t(Xdm) %*% ydm[tr]
+        #get the FE's
+        alpha <- (obj$y - ydm)[tr] - (X[tr,] - Xdm) %*% B
+        fe <- tapply(alpha, factor(obj$fe_var[tr]), mean)
+        fe <- data.frame(fe_var = names(fe), fe = fe)
+        fe <- merge(data.frame(fe_var = obj$fe_var[te]), fe)$fe
+        #Calc the MSE
+        yhati <- fe + as.numeric(X[te,] %*% B)
+        mse <- mean((obj$y[te] - yhati)^2)
+      }
     } else {
       Xr <- X[tr,]
       B <- solve(crossprod(Xr) + diag(D)) %*% t(Xr) %*% obj$y[tr]
