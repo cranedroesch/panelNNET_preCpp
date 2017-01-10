@@ -1,10 +1,12 @@
 cv.panelNNET <-
 function(obj, folds = NULL, nfolds = 10, parallel = TRUE, approx = 'OLS', J = NULL, wise = 'fewise',...){
-#obj <- mlist[[10]]
+##test arguments...
+#obj <- mlist[[i]]
 #folds = NULL
 #nfolds = 10
 #parallel = TRUE
 #approx = 'OLS'
+#wise = ''
 #wise = 'obswise'
 #J = J
   #Assign folds if unassigned
@@ -44,8 +46,8 @@ function(obj, folds = NULL, nfolds = 10, parallel = TRUE, approx = 'OLS', J = NU
   D[1:length(pp)] <- D[1:length(pp)]*pp #incorporate parapen into diagonal of covmat
   #Loop through folds:
   cv.err <- foreach(i = 1:nfolds, .combine = c) %fun% {
-    tr <- folds$foldid != i
-    te <- tr == FALSE
+    tr <- which(folds$foldid != i)
+    te <- which(folds$foldid == i)
     if (all(te == FALSE)){
       warning("One of the folds had no test set and got dropped")
       return(NULL)
@@ -55,20 +57,20 @@ function(obj, folds = NULL, nfolds = 10, parallel = TRUE, approx = 'OLS', J = NU
       #get the coefs
       if (wise == 'obswise'){
         Xdm <- demeanlist(X, list(obj$fe_var))
-        B <- solve(crossprod(Xdm[tr,]) + diag(D)) %*% t(Xdm[tr,]) %*% ydm[tr]
-        yhatdmi <- Xdm[te,] %*% B
-        mse <- mean((ydm[te] - yhatdmi)^2)
+        B <- solve(crossprod(Xdm[obj$time_var %in% tr,]) + diag(D)) %*% t(Xdm[obj$time_var %in% tr,]) %*% ydm[obj$time_var %in% tr]
+        yhatdmi <- Xdm[obj$time_var %in% te,] %*% B
+        mse <- mean((ydm[obj$time_var %in% te] - yhatdmi)^2)
       } else {
-        Xdm <- demeanlist(X[tr,], list(obj$fe_var[tr]))
-        B <- solve(crossprod(Xdm) + diag(D)) %*% t(Xdm) %*% ydm[tr]
+        Xdm <- demeanlist(X[obj$time_var %in% tr,], list(obj$fe_var[obj$time_var %in% tr]))
+        B <- solve(crossprod(Xdm) + diag(D)) %*% t(Xdm) %*% ydm[obj$time_var %in% tr]
         #get the FE's
-        alpha <- (obj$y - ydm)[tr] - (X[tr,] - Xdm) %*% B
-        fe <- tapply(alpha, factor(obj$fe_var[tr]), mean)
+        alpha <- (obj$y - ydm)[obj$time_var %in% tr] - (X[obj$time_var %in% tr,] - Xdm) %*% B
+        fe <- tapply(alpha, factor(obj$fe_var[obj$time_var %in% tr]), mean)
         fe <- data.frame(fe_var = names(fe), fe = fe)
-        fe <- merge(data.frame(fe_var = obj$fe_var[te]), fe)$fe
+        fe <- merge(data.frame(fe_var = obj$fe_var[obj$time_var %in% te]), fe)$fe
         #Calc the MSE
-        yhati <- fe + as.numeric(X[te,] %*% B)
-        mse <- mean((obj$y[te] - yhati)^2)
+        yhati <- fe + as.numeric(X[obj$time_var %in% te,] %*% B)
+        mse <- mean((obj$y[obj$time_var %in% te] - yhati)^2)
       }
     } else {
       Xr <- X[tr,]
