@@ -3,12 +3,14 @@ function(obj, ...){
   if (obj$activation == 'tanh'){
     sigma <- tanh
     sigma_prime <- tanh_prime
-    sigma_prime2 <- tanh_prime2
   }
   if (obj$activation == 'logistic'){
     sigma <- logistic
     sigma_prime <- logistic_prime
-    sigma_prime2 <- logistic_prime2
+  }
+  if (activation == 'relu'){
+    sigma <- relu
+    sigma_prime <- relu_prime
   }
   plist <- as.relistable(obj$parlist)
   pvec <- unlist(plist)

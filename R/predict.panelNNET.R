@@ -11,6 +11,9 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
   if (obj$activation == 'logistic'){
     sigma <- logistic
   }
+  if (activation == 'relu'){
+    sigma <- relu
+  }
   if (is.null(newX)){
     return(obj$yhat)
   } else {
