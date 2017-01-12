@@ -11,10 +11,6 @@ TBD:
 
 4.  Optimization/rewriting in low-level languages
 
-5.  Profiling
-
 6.  Re-introduce optim option
-
-7.  Implement Relu's
 
 8.  Look into GPU libraries after profiling

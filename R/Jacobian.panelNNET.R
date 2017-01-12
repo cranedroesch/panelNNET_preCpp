@@ -8,7 +8,7 @@ function(obj, ...){
     sigma <- logistic
     sigma_prime <- logistic_prime
   }
-  if (activation == 'relu'){
+  if (obj$activation == 'relu'){
     sigma <- relu
     sigma_prime <- relu_prime
   }

@@ -13,8 +13,8 @@ TBD:
 
 5.  Profiling
 
-6.  OLS in top layer
+6.  Re-introduce optim option
 
-7.  Fix bug with minibatch
+7.  Implement Relu's
 
-8.  Re-introduce optim option
+8.  Look into GPU libraries after profiling
