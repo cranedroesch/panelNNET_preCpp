@@ -274,6 +274,38 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       msevec <- append(msevec, mse)
       loss <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions, unlist(parlist[!grepl('beta', names(parlist))]))^2)
       lossvec <- append(lossvec, loss)
+    }
+    #Finished epoch.  Assess whether MSE has increased and revert if so
+    mse <- mean((y-yhat)^2)
+    loss <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions, unlist(parlist[!grepl('beta', names(parlist))]))^2)
+    #If loss increases...
+    if (oldpar$loss < loss){
+      parlist <- oldpar$parlist
+      updates <- oldpar$updates
+      G2 <- oldpar$G2
+      hlayers <- oldpar$hlayers
+      grads <- oldpar$grads
+      yhat <- oldpar$yhat
+      mse <- oldpar$mse
+      mseold <- oldpar$mseold
+      stopcounter <- stopcounter + 1
+      loss <- oldpar$loss
+      LR <- LR/2
+      if(verbose == TRUE){
+        print(paste0("Loss increased.  halving LR.  Stopcounter now at ", stopcounter))
+      }
+    } else {
+      LRvec[iter+1] <- LR <- LR*gravity      #gravity...
+      if (save_each_iter == TRUE){
+        save(parlist, file = paste0(path, '/pnnet_int_out_',tag,'_'))  #Save the intermediate output locally
+      }
+      D <- oldpar$loss - loss
+      if (D<convtol){
+        stopcounter <- stopcounter +1
+        if(verbose == TRUE){print(paste('slowing!  Stopcounter now at ', stopcounter))}
+      }else{
+        stopcounter <-0
+      }
       if (verbose == TRUE){
         writeLines(paste0(
             "*******************************************\n"
@@ -301,41 +333,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         plot(lossvec[(1+(iter)*max(batchid)):length(lossvec)], type = 'l', ylab = 'loss', main = 'Current epoch')
       }
     }
-    #Finished epoch.  Assess whether MSE has increased and revert if so
-    mse <- mean((y-yhat)^2)
-    loss <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions, unlist(parlist[!grepl('beta', names(parlist))]))^2)
-    #If loss increases...
-    if (oldpar$loss < loss){
-      parlist <- oldpar$parlist
-      updates <- oldpar$updates
-      G2 <- oldpar$G2
-      hlayers <- oldpar$hlayers
-      grads <- oldpar$grads
-      yhat <- oldpar$yhat
-      mse <- oldpar$mse
-      mseold <- oldpar$mseold
-      stopcounter <- stopcounter + 1
-      LR <- LR/2
-      if(verbose == TRUE){
-        print(paste0("Loss increased.  halving LR.  Stopcounter now at ", stopcounter))
-      }
-    } else {
-      LRvec[iter+1] <- LR <- LR*gravity      #gravity...
-      if (save_each_iter == TRUE){
-        save(parlist, file = paste0(path, '/pnnet_int_out_',tag,'_'))  #Save the intermediate output locally
-      }
-      D <- oldpar$loss - loss
-      if (D<convtol){
-        stopcounter <- stopcounter +1
-        if(verbose == TRUE){print(paste('slowing!  Stopcounter now at ', stopcounter))}
-      }else{
-        stopcounter <-0
-      }
-    }
     iter = iter+1
   } #close the while loop
-
-
   conv <- (iter<maxit)
   if(is.null(fe_var)){
     fe_output <- NULL
