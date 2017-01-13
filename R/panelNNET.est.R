@@ -314,7 +314,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       yhat <- oldpar$yhat
       mse <- oldpar$mse
       mseold <- oldpar$mseold
-      lossold <- oldpar$lossold
       stopcounter <- stopcounter + 1
       LR <- LR/2
       if(verbose == TRUE){
@@ -325,7 +324,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       if (save_each_iter == TRUE){
         save(parlist, file = paste0(path, '/pnnet_int_out_',tag,'_'))  #Save the intermediate output locally
       }
-      D <- lossold - loss
+      D <- oldpar$loss - loss
       if (D<convtol){
         stopcounter <- stopcounter +1
         if(verbose == TRUE){print(paste('slowing!  Stopcounter now at ', stopcounter))}
