@@ -120,7 +120,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     yhat <- hlayers[[i]] %*% c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta)
   }
   mse <- mseold <- mean((y-yhat)^2)
-  loss <- lossold <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions, unlist(parlist[!grepl('beta', names(parlist))]))^2)
+  loss <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions, unlist(parlist[!grepl('beta', names(parlist))]))^2)
   #Calculate gradients.  These aren't the actual gradients, but become the gradients when multiplied by their respective layer.
   grads <- vector('list', nlayers+1)
   grads[[length(grads)]] <- getDelta(y, yhat)
@@ -152,7 +152,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   #start iterating
   while(iter<maxit & stopcounter < maxstopcounter){
     oldpar <- list(parlist=parlist, hlayers=hlayers, grads=grads
-      , yhat = yhat, mse = mse, mseold = mseold, loss = loss, lossold = lossold, updates = updates, G2 = G2)
+      , yhat = yhat, mse = mse, mseold = mseold, loss = loss, updates = updates, G2 = G2)
     #Start epoch
     #Assign batches
     batchid <- sample(1:nrow(X)%/%batchsize +1)
@@ -314,12 +314,11 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       yhat <- oldpar$yhat
       mse <- oldpar$mse
       mseold <- oldpar$mseold
-      loss <- oldpar$loss
       lossold <- oldpar$lossold
       stopcounter <- stopcounter + 1
       LR <- LR/2
       if(verbose == TRUE){
-        print(paste0("MSE increased.  halving LR.  Stopcounter now at ", stopcounter))
+        print(paste0("Loss increased.  halving LR.  Stopcounter now at ", stopcounter))
       }
     } else {
       LRvec[iter+1] <- LR <- LR*gravity      #gravity...
