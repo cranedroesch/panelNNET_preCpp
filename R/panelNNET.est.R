@@ -522,8 +522,8 @@ lossfun <- function(pl, skel){
   yhat <- getYhat(pl, skel)
   mse <- mean((y-yhat)^2)
   plist <- relist(pl, skel)
+print(plist)
   loss <- mse + lam*sum(c(plist$beta_param*parapen, 0*plist$beta_treatment, plist$beta, plist$beta_treatmentinteractions, unlist(plist[!grepl('beta', names(plist))]))^2)
-print(lam*sum(c(plist$beta_param*parapen, 0*plist$beta_treatment, plist$beta, plist$beta_treatmentinteractions, unlist(plist[!grepl('beta', names(plist))]))^2))
   return(loss)
 }
 
