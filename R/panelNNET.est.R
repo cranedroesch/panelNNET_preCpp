@@ -128,6 +128,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   if (useOptim == TRUE){
     parlist <- as.relistable(parlist)
     pl <- unlist(parlist)
+    environment(lossfun) <- environment(getYhat) <- environment() 
     out <- optim(par = pl, fn = lossfun
       , control = list(trace  =6, maxit = 10000)
       , method = optimMethod, skel = attr(pl, 'skeleton')
@@ -459,7 +460,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 
 
 getYhat <- function(pl, skel = attr(pl, 'skeleton')){ 
-  environment(getYhat) <- environment() 
 #print((pl))
   pl <- relist(pl, skel)
   #Update hidden layers
@@ -519,7 +519,6 @@ getYhat <- function(pl, skel = attr(pl, 'skeleton')){
 }
 
 lossfun <- function(pl, skel){
-  environment(lossfun) <- environment() 
   yhat <- getYhat(pl, skel)
   mse <- mean((y-yhat)^2)
   parlist <- relist(pl, skel)
