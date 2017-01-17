@@ -521,8 +521,8 @@ getYhat <- function(pl, skel = attr(pl, 'skeleton')){
 lossfun <- function(pl, skel){
   yhat <- getYhat(pl, skel)
   mse <- mean((y-yhat)^2)
-  parlist <- relist(pl, skel)
-  loss <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions, unlist(parlist[!grepl('beta', names(parlist))]))^2)
+  plist <- relist(pl, skel)
+  loss <- mse + lam*sum(c(plist$beta_param*parapen, 0*plist$beta_treatment, plist$beta, plist$beta_treatmentinteractions, unlist(plist[!grepl('beta', names(plist))]))^2)
   return(loss)
 }
 
