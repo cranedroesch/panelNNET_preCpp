@@ -128,7 +128,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   if (useOptim == TRUE){
     parlist <- as.relistable(parlist)
     pl <- unlist(parlist)
-    environment(lossfun) <- environment(getYhat) <- environment() 
     out <- optim(par = pl, fn = lossfun
       , control = list(trace  =6, maxit = 10000)
       , method = optimMethod, skel = attr(pl, 'skeleton')
@@ -459,20 +458,21 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 
 
 
-getYhat <- function(pl, skel = attr(pl, 'skeleton')){ 
+getYhat <- function(pl, skel = attr(pl, 'skeleton'), env = parent.frame()){ 
 #print((pl))
   pl <- relist(pl, skel)
   #Update hidden layers
-  for (i in 1:nlayers){
-    if (i == 1){D <- X} else {D <- hlayers[[i-1]]}
-    if (bias_hlayers == TRUE){D <- cbind(1, D)}
+  hlayers <- env$hlayers
+  for (i in 1:env$nlayers){
+    if (i == 1){D <- env$X} else {D <- hlayers[[i-1]]}
+    if (env$bias_hlayers == TRUE){D <- cbind(1, D)}
     hlayers[[i]] <- sigma(D %*% pl[[i]])
   }
   colnames(hlayers[[i]]) <- paste0('nodes',1:ncol(hlayers[[i]]))
-  if (!is.null(treatment)){
+  if (!is.null(env$treatment)){
     #Add treatment interactions
-    if (interact_treatment == TRUE){
-      ints <- sweep(hlayers[[i]], 1, treatment, '*')
+    if (env$interact_treatment == TRUE){
+      ints <- sweep(hlayers[[i]], 1, env$treatment, '*')
       colnames(ints) <- paste0('TrInts',1:ncol(ints))
       hlayers[[i]] <- cbind(ints, hlayers[[i]])
     }
@@ -480,24 +480,24 @@ getYhat <- function(pl, skel = attr(pl, 'skeleton')){
     hlayers[[i]] <- cbind(treatment, hlayers[[i]])
     colnames(hlayers[[i]])[1] <- 'treatment'
   }
-  if (!is.null(param)){
-    hlayers[[i]] <- cbind(param, hlayers[[i]])
-    colnames(hlayers[[i]])[1:ncol(param)] <- paste0('param',1:ncol(param))
+  if (!is.null(env$param)){
+    hlayers[[i]] <- cbind(env$param, hlayers[[i]])
+    colnames(hlayers[[i]])[1:ncol(env$param)] <- paste0('param',1:ncol(env$param))
   }
-  if (is.null(fe_var)){hlayers[[i]] <- cbind(1, hlayers[[i]])}#add intercept if no FEs
+  if (is.null(env$fe_var)){hlayers[[i]] <- cbind(1, hlayers[[i]])}#add intercept if no FEs
   #update yhat
-  if (!is.null(fe_var)){
-    Zdm <- demeanlist(hlayers[[i]], list(fe_var))
+  if (!is.null(env$fe_var)){
+    Zdm <- demeanlist(hlayers[[i]], list(env$fe_var))
     if (OLStrick == TRUE){#OLS trick!
-      lamvec <- rep(lam, ncol(Zdm))
-      if (is.null(fe_var)){
-        pp <- c(0, parapen) #never penalize the intercept
+      lamvec <- rep(env$lam, ncol(Zdm))
+      if (is.null(env$fe_var)){
+        pp <- c(0, env$parapen) #never penalize the intercept
       } else {
-        pp <- parapen #parapen
+        pp <- env$parapen #parapen
       }
       lamvec[1:length(pp)] <- lamvec[1:length(pp)]*pp #incorporate parapen into diagonal of covmat
 
-      B <- solve(t(Zdm) %*% Zdm + diag(lamvec)) %*% t(Zdm) %*% ydm
+      B <- solve(t(Zdm) %*% Zdm + diag(lamvec)) %*% t(Zdm) %*% env$ydm
       pl$beta <- B[grepl('nodes', rownames(B))]
       pl$beta_param <- B[grepl('param', rownames(B))]
       if (!is.null(treatment)){
@@ -505,7 +505,7 @@ getYhat <- function(pl, skel = attr(pl, 'skeleton')){
         pl$beta_treatmentinteractions <- B[grepl('TrInts', rownames(B))]
       }
     }
-    fe <- (y-ydm) - as.matrix(hlayers[[i]]-Zdm) %*% as.matrix(c(
+    fe <- (env$y-env$ydm) - as.matrix(hlayers[[i]]-Zdm) %*% as.matrix(c(
         pl$beta_param, pl$beta_treatment
       , pl$beta_treatmentinteractions, pl$beta
     ))
@@ -515,14 +515,14 @@ getYhat <- function(pl, skel = attr(pl, 'skeleton')){
   } else {
     yhat <- hlayers[[i]] %*% c(pl$beta_param, pl$beta_treatment, pl$beta_treatmentinteractions, pl$beta)
   }
-  yhat
+  return(yhat)
 }
 
-lossfun <- function(pl, skel){
+lossfun <- function(pl, skel, env = parent.frame()){
   yhat <- getYhat(pl, skel)
-  mse <- mean((y-yhat)^2)
+  mse <- mean((env$y-yhat)^2)
   parlist <- relist(pl, skel)
-  loss <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions, unlist(parlist[!grepl('beta', names(parlist))]))^2)
+  loss <- mse + env$lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions, unlist(parlist[!grepl('beta', names(parlist))]))^2)
   return(loss)
 }
 
