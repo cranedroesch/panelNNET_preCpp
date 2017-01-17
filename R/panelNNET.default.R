@@ -6,14 +6,15 @@ function(y, X, hidden_units, fe_var
   , convtol = 1e-8, bias_hlayers = TRUE, RMSprop = TRUE, start_LR = .01
   , activation = 'tanh', inference = TRUE, doscale = TRUE
   , treatment = NULL, interact_treatment = TRUE, batchsize = nrow(X)
-  , maxstopcounter = 10, OLStrick = FALSE, ...)
+  , maxstopcounter = 10, OLStrick = FALSE, useOptim = FALSE
+  , optimMethod = 'BFGS', ...)
 {
   out <- panelNNET.est(y, X, hidden_units, fe_var, maxit, lam
     , time_var, param, parapen, parlist, verbose, save_each_iter
     , path, tag, gravity, convtol, bias_hlayers, RMSprop
     , start_LR, activation, inference, doscale 
     , treatment, interact_treatment, batchsize, maxstopcounter
-    , OLStrick
+    , OLStrick, useOptim, optimMethod
   )
   out$call = match.call()
   class(out) <- 'panelNNET'
