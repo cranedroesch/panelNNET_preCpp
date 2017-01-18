@@ -97,7 +97,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     }
   } 
   #calculate hidden layers
-  hlayers <- calc_hlayers(parlist)
+  hlayers <- calc_hlayers(parlist, nlayers = nlayers, X = X, param = param)
   #calculate ydm and put it in global...
   if (!is.null(fe_var)){
     ydm <<- demeanlist(y, list(fe_var)) 
@@ -106,7 +106,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   if (useOptim == TRUE){
     parlist <- as.relistable(parlist)
     pl <- unlist(parlist)
-    environment(lossfun) <- environment(getYhat) <- environment(calc_hlayers) <- environment(calc_grads) <- environment(getgr) <- environment() 
     #start optimizer
     out <- optim(par = pl, fn = lossfun, gr = getgr
       , control = list(trace  =6, maxit = 10000)
@@ -432,7 +431,7 @@ getYhat <- function(pl, skel = attr(pl, 'skeleton'), hlay = NULL){
   return(yhat)
 }
 
-lossfun <- function(pl, skel){
+lossfun <- function(pl, skel, ...){
   yhat <- getYhat(pl, skel)
   mse <- mean((y-yhat)^2)
   plist <- relist(pl, skel)
@@ -440,8 +439,7 @@ lossfun <- function(pl, skel){
   return(loss)
 }
 
-calc_hlayers <- function(parlist){
-print(ls())
+calc_hlayers <- function(parlist, nlayers, ...){
   hlayers <- vector('list', nlayers)
   for (i in 1:nlayers){
     if (i == 1){D <- X} else {D <- hlayers[[i-1]]}
@@ -471,7 +469,7 @@ print(ls())
 }
 
 
-calc_grads<- function(plist, hlay = NULL, yhat = NULL){
+calc_grads<- function(plist, hlay = NULL, yhat = NULL, ...){
   if (is.null(hlay)){hlay <- calc_hlayers(plist)}
   if (is.null(yhat)){yhat <- getYhat(unlist(plist), hlay = hlay)}
   grads <- vector('list', nlayers+1)
@@ -489,7 +487,7 @@ calc_grads<- function(plist, hlay = NULL, yhat = NULL){
 }
 
 
-getgr <- function(pl, skel = attr(pl, 'skeleton')){
+getgr <- function(pl, skel = attr(pl, 'skeleton'), ...){
   plist <- relist(pl, skel)
   #calculate hidden layers
   hlayers <- calc_hlayers(plist)
