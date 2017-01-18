@@ -349,7 +349,8 @@ getgr <- function(pl, skel = attr(pl, 'skeleton')){
           }
         }
         #Update parameters from update list
-        parlist <- mapply('-', parlist, updates)
+        parlist <- as.relistable(mapply('-', parlist, updates))
+        pl <- unlist(parlist)
         #Update hidden layers
         hlayers <- calc_hlayers(parlist)
 #        for (i in 1:nlayers){
@@ -375,7 +376,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton')){
 #        }
 #        if (is.null(fe_var)){hlayers[[i]] <- cbind(1, hlayers[[i]])}#add intercept if no FEs
         #update yhat
-        yhat <- getYhat(unlist(parlist), hlay = hlayers)
+        yhat <- getYhat(pl, attr(pl, 'skeleton'), hlay = hlayers)
 #        if (!is.null(fe_var)){
 #          Zdm <- demeanlist(hlayers[[i]], list(fe_var))
 #          if (OLStrick == TRUE){#OLS trick!
