@@ -218,7 +218,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton')){
   if (useOptim == TRUE){
     #start optimizer
     out <- optim(par = pl, fn = lossfun, gr = getgr
-      , control = list(trace  =6, maxit = 10000)
+      , control = list(trace  =verbose*6, maxit = 10000)
       , method = optimMethod, skel = attr(pl, 'skeleton')
     )
     parlist <- relist(out$par)  
@@ -431,19 +431,5 @@ getgr <- function(pl, skel = attr(pl, 'skeleton')){
   }
   return(output)
 }
-
-
-
-
-
-
-
-
-
-
-#TBD:
-#Make yhat and lossfun work for both options
-#make optim option work with minibatch gradient descent
-#Fix OLStrick with math
 
 

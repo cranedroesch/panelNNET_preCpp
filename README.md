@@ -11,6 +11,6 @@ TBD:
 
 4.  Optimization/rewriting in low-level languages
 
-6.  Re-introduce optim option
+5.  Implement minibatch with the optim option
 
-8.  Look into GPU libraries after profiling
+6.  Look into GPU libraries after profiling
