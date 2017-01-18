@@ -243,28 +243,10 @@ getgr <- function(pl, skel = attr(pl, 'skeleton')){
   } else { #if useOptim  == FALSE
   #get starting MSE
     yhat <- getYhat(pl, hlay = hlayers)
-#    if (!is.null(fe_var)){
-#      Zdm <- demeanlist(hlayers[[i]], list(fe_var))
-#      fe <- (y-ydm) - as.matrix(hlayers[[i]]-Zdm) %*% as.matrix( c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta))
-#      yhat <- hlayers[[i]] %*% c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta) + fe    
-#    } else {
-#      yhat <- hlayers[[i]] %*% c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta)
-#    }
     mse <- mseold <- mean((y-yhat)^2)
     loss <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions, unlist(parlist[!grepl('beta', names(parlist))]))^2)
     #Calculate gradients.  These aren't the actual gradients, but become the gradients when multiplied by their respective layer.
     grads <- calc_grads(parlist, hlayers, yhat)
-#    grads <- vector('list', nlayers+1)
-#    grads[[length(grads)]] <- getDelta(y, yhat)
-#    for (i in (nlayers):1){
-#      if (i == nlayers){outer_param = as.matrix(c(parlist$beta))} else {outer_param = parlist[[i+1]]}
-#      if (i == 1){lay = X} else {lay= hlayers[[i-1]]}
-#      if (bias_hlayers == TRUE){
-#        lay <- cbind(1, lay) #add bias to the hidden layer
-#        if (i!=nlayers){outer_param <- outer_param[-1,]}      #remove parameter on upper-layer bias term
-#      }
-#      grads[[i]] <- getS(D_layer = lay, inner_param = parlist[[i]], outer_deriv = grads[[i+1]], outer_param = outer_param, activation)
-#    }
     #Initialize updates
     updates <- lapply(parlist, function(x){x*0})
     #initialize G2 term for RMSprop
@@ -295,17 +277,6 @@ getgr <- function(pl, skel = attr(pl, 'skeleton')){
         curBat <- which(batchid == bat)
         #Get updated gradients
         grads <- calc_grads(parlist, hlayers, yhat)
-#        grads <- vector('list', nlayers+1)
-#        grads[[length(grads)]] <- getDelta(y[curBat], yhat[curBat])
-#        for (i in (nlayers):1){
-#          if (i == nlayers){outer_param = as.matrix(c(parlist$beta))} else {outer_param = parlist[[i+1]]}
-#          if (i == 1){lay = X[curBat,]} else {lay= hlayers[[i-1]][curBat,]}
-#          if (bias_hlayers == TRUE){
-#            lay <- cbind(1, lay) #add bias to the hidden layer
-#            if (i!=nlayers){outer_param <- outer_param[-1,]}      #remove parameter on upper-layer bias term
-#          }
-#          grads[[i]] <- getS(D_layer = lay, inner_param = parlist[[i]], outer_deriv = grads[[i+1]], outer_param = outer_param, activation)
-#        }
         #Calculate updates to parameters based on gradients and learning rates
         if (RMSprop == TRUE){
           newG2 <- foreach(i = 1:(length(hlayers)+1)) %do% {
@@ -353,59 +324,8 @@ getgr <- function(pl, skel = attr(pl, 'skeleton')){
         pl <- unlist(parlist)
         #Update hidden layers
         hlayers <- calc_hlayers(parlist)
-#        for (i in 1:nlayers){
-#          if (i == 1){D <- X} else {D <- hlayers[[i-1]]}
-#          if (bias_hlayers == TRUE){D <- cbind(1, D)}
-#          hlayers[[i]] <- sigma(D %*% parlist[[i]])
-#        }
-#        colnames(hlayers[[i]]) <- paste0('nodes',1:ncol(hlayers[[i]]))
-#        if (!is.null(treatment)){
-#          #Add treatment interactions
-#          if (interact_treatment == TRUE){
-#            ints <- sweep(hlayers[[i]], 1, treatment, '*')
-#            colnames(ints) <- paste0('TrInts',1:ncol(ints))
-#            hlayers[[i]] <- cbind(ints, hlayers[[i]])
-#          }
-#          #Add treatment dummy
-#          hlayers[[i]] <- cbind(treatment, hlayers[[i]])
-#          colnames(hlayers[[i]])[1] <- 'treatment'
-#        }
-#        if (!is.null(param)){
-#          hlayers[[i]] <- cbind(param, hlayers[[i]])
-#          colnames(hlayers[[i]])[1:ncol(param)] <- paste0('param',1:ncol(param))
-#        }
-#        if (is.null(fe_var)){hlayers[[i]] <- cbind(1, hlayers[[i]])}#add intercept if no FEs
         #update yhat
         yhat <- getYhat(pl, attr(pl, 'skeleton'), hlay = hlayers)
-#        if (!is.null(fe_var)){
-#          Zdm <- demeanlist(hlayers[[i]], list(fe_var))
-#          if (OLStrick == TRUE){#OLS trick!
-#            lamvec <- rep(lam, ncol(Zdm))
-#            if (is.null(fe_var)){
-#              pp <- c(0, parapen) #never penalize the intercept
-#            } else {
-#              pp <- parapen #parapen
-#            }
-#            lamvec[1:length(pp)] <- lamvec[1:length(pp)]*pp #incorporate parapen into diagonal of covmat
-
-#            B <- solve(t(Zdm) %*% Zdm + diag(lamvec)) %*% t(Zdm) %*% ydm
-#            parlist$beta <- B[grepl('nodes', rownames(B))]
-#            parlist$beta_param <- B[grepl('param', rownames(B))]
-#            if (!is.null(treatment)){
-#              parlist$beta_treatment <- B[grepl('treatment', rownames(B))]
-#              parlist$beta_treatmentinteractions <- B[grepl('TrInts', rownames(B))]
-#            }
-#          }
-#          fe <- (y-ydm) - as.matrix(hlayers[[i]]-Zdm) %*% as.matrix(c(
-#              parlist$beta_param, parlist$beta_treatment
-#            , parlist$beta_treatmentinteractions, parlist$beta
-#          ))
-#          yhat <- hlayers[[i]] %*% c(
-#            parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta
-#          ) + fe    
-#        } else {
-#          yhat <- hlayers[[i]] %*% c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta)
-#        }
         mse <- mean((y-yhat)^2)
         msevec <- append(msevec, mse)
         loss <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions, unlist(parlist[!grepl('beta', names(parlist))]))^2)
@@ -475,7 +395,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton')){
     if(is.null(fe_var)){
       fe_output <- NULL
     } else {
-      fe <- (y-ydm) - as.matrix(hlayers[[i]]-Zdm) %*% as.matrix(c(
+      fe <- (y-ydm) - as.matrix(hlayers[[length(hlayers)]]-Zdm) %*% as.matrix(c(
           parlist$beta_param, parlist$beta_treatment
         , parlist$beta_treatmentinteractions, parlist$beta
       ))
