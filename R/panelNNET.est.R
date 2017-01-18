@@ -218,7 +218,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton')){
   if (useOptim == TRUE){
     #start optimizer
     out <- optim(par = pl, fn = lossfun, gr = getgr
-      , control = list(trace  =verbose*6, maxit = 10000)
+      , control = list(trace  =verbose*6, maxit = maxit)
       , method = optimMethod, skel = attr(pl, 'skeleton')
     )
     parlist <- relist(out$par)  
