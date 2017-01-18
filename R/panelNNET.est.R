@@ -36,7 +36,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 #treatment = NULL
 #start.LR = .01
 #maxstopcounter = 10
-#useOptim = TRUE
+#batchsize = 100
+#useOptim = FALSE
 #optimMethod = 'BFGS'
 
 getYhat <- function(pl, skel = attr(pl, 'skeleton'), hlay = NULL){ 
@@ -114,14 +115,15 @@ calc_hlayers <- function(parlist){
 }
 
 
-calc_grads<- function(plist, hlay = NULL, yhat = NULL){
+calc_grads<- function(plist, hlay = NULL, yhat = NULL, curBat = NULL){
+  if (!is.null(curBat)){CB <- function(x){x[curBat,,drop = FALSE]}} else {CB <- function(x){x}}
   if (is.null(hlay)){hlay <- calc_hlayers(plist)}
   if (is.null(yhat)){yhat <- getYhat(unlist(plist), hlay = hlay)}
   grads <- vector('list', nlayers+1)
-  grads[[length(grads)]] <- getDelta(y, yhat)
+  grads[[length(grads)]] <- getDelta(CB(as.matrix(y)), yhat)
   for (i in (nlayers):1){
     if (i == nlayers){outer_param = as.matrix(c(plist$beta))} else {outer_param = plist[[i+1]]}
-    if (i == 1){lay = X} else {lay= hlay[[i-1]]}
+    if (i == 1){lay = CB(X)} else {lay= hlay[[i-1]]}
     if (bias_hlayers == TRUE){
       lay <- cbind(1, lay) #add bias to the hidden layer
       if (i!=nlayers){outer_param <- outer_param[-1,]}      #remove parameter on upper-layer bias term
@@ -211,6 +213,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton')){
   if (!is.null(fe_var)){
     ydm <<- demeanlist(y, list(fe_var)) 
   }
+  ###############
   #Optim approach
   if (useOptim == TRUE){
     #start optimizer
@@ -276,7 +279,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton')){
       for (bat in 1:max(batchid)) {
         curBat <- which(batchid == bat)
         #Get updated gradients
-        grads <- calc_grads(parlist, hlayers, yhat)
+        grads <- calc_grads(parlist, lapply(hlayers, function(x){x[curBat,]}), yhat[curBat], curBat = curBat)
         #Calculate updates to parameters based on gradients and learning rates
         if (RMSprop == TRUE){
           newG2 <- foreach(i = 1:(length(hlayers)+1)) %do% {
