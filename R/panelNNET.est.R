@@ -228,8 +228,8 @@ getgr <- function(pl, skel = attr(pl, 'skeleton')){
     yhat <- getYhat(out$par, hlay = hlayers)
     #calc fixed effects
     if (!is.null(fe_var)){
-      Zdm <- demeanlist(hlayers[[i]], list(fe_var))
-      fe <- (y-ydm) - as.matrix(hlayers[[i]]-Zdm) %*% as.matrix(c(
+      Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))
+      fe <- (y-ydm) - as.matrix(hlayers[[length(hlayers)]]-Zdm) %*% as.matrix(c(
           parlist$beta_param, parlist$beta_treatment
         , parlist$beta_treatmentinteractions, parlist$beta
       ))
