@@ -204,7 +204,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton')){
     }
   } 
   #calculate hidden layers
-  hlayers <- calc_hlayers(parlist, nlayers = nlayers, X = X, param = param)
+  hlayers <- calc_hlayers(parlist)
   #calculate ydm and put it in global...
   if (!is.null(fe_var)){
     ydm <<- demeanlist(y, list(fe_var)) 
