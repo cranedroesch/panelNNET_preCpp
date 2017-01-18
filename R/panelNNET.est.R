@@ -97,6 +97,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     }
   } 
   #calculate hidden layers
+print(dim(X))
   hlayers <- calc_hlayers(parlist, nlayers = nlayers, X = X, param = param)
   #calculate ydm and put it in global...
   if (!is.null(fe_var)){
