@@ -395,6 +395,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton')){
     if(is.null(fe_var)){
       fe_output <- NULL
     } else {
+      Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))
       fe <- (y-ydm) - as.matrix(hlayers[[length(hlayers)]]-Zdm) %*% as.matrix(c(
           parlist$beta_param, parlist$beta_treatment
         , parlist$beta_treatmentinteractions, parlist$beta
