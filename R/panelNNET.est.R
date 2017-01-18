@@ -411,7 +411,6 @@ getYhat <- function(pl, skel = attr(pl, 'skeleton'), hlay = NULL){
         pp <- parapen #parapen
       }
       lamvec[1:length(pp)] <- lamvec[1:length(pp)]*pp #incorporate parapen into diagonal of covmat
-
       B <- solve(t(Zdm) %*% Zdm + diag(lamvec)) %*% t(Zdm) %*% ydm
       plist$beta <- B[grepl('nodes', rownames(B))]
       plist$beta_param <- B[grepl('param', rownames(B))]
@@ -442,6 +441,7 @@ lossfun <- function(pl, skel){
 }
 
 calc_hlayers <- function(parlist){
+print(ls())
   hlayers <- vector('list', nlayers)
   for (i in 1:nlayers){
     if (i == 1){D <- X} else {D <- hlayers[[i-1]]}
