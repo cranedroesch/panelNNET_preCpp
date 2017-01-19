@@ -66,29 +66,13 @@ function(obj, folds = NULL, nfolds = 10, parallel = TRUE, type = 'OLS', J = NULL
       pl <- unlist(as.relistable(obj$parlist))
       pl <- relist(pl+rnorm(length(pl), sd = abs(pl+.01)/10))
       conv <- FALSE
-      subcounter <- 0
-      while(conv == FALSE){
-        optpass <- panelNNET(obj$y[obj$time_var %in% tr], obj$X[obj$time_var %in% tr,], hidden_units = obj$hidden_units
-          , fe_var = obj$fe_var[obj$time_var %in% tr], maxit = obj$maxit, lam = obj$lam
-          , time_var = obj$time[obj$time_var %in% tr], param = obj$param[obj$time_var %in% tr,, drop = FALSE],  verbose = FALSE
-          , convtol = obj$convtol, activation = obj$activation, inference = FALSE
-          , parlist = pl, 
-          , useOptim = obj$usedOptim, optimMethod = obj$optimMethod
-        )
-        MBpass <- panelNNET(obj$y[obj$time_var %in% tr], obj$X[obj$time_var %in% tr,], hidden_units = obj$hidden_units
-          , fe_var = obj$fe_var[obj$time_var %in% tr], maxit = 200, lam = obj$lam
-          , time_var = obj$time[obj$time_var %in% tr], param = obj$param[obj$time_var %in% tr,, drop = FALSE],  verbose = FALSE
-          , convtol = obj$convtol, activation = obj$activation, inference = FALSE
-          , parlist = optpass$parlist, 
-          , batchsize = round(sum(obj$time_var %in% tr)/10)
-        )
-        if (optpass$loss <= MBpass$loss | subcounter > 10){
-          conv <- TRUE
-        } else {
-          pl <- MBpass$parlist
-          subcounter <- subcounter + 1
-        }
-      }
+      optpass <- panelNNET(obj$y[obj$time_var %in% tr], obj$X[obj$time_var %in% tr,], hidden_units = obj$hidden_units
+        , fe_var = obj$fe_var[obj$time_var %in% tr], maxit = obj$maxit, lam = obj$lam
+        , time_var = obj$time[obj$time_var %in% tr], param = obj$param[obj$time_var %in% tr,, drop = FALSE],  verbose = FALSE
+        , convtol = obj$convtol, activation = obj$activation, inference = FALSE
+        , parlist = pl, 
+        , useOptim = obj$usedOptim, optimMethod = obj$optimMethod
+      )
       p <- predict(optpass, newX = obj$X[obj$time_var %in% te,]
         , fe.newX = obj$fe_var[obj$time_var %in% te]
         , new.param =obj$param[obj$time_var %in% te,, drop = FALSE]
