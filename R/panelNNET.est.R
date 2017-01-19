@@ -1,6 +1,12 @@
 panelNNET.est <-
 function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist, verbose, save_each_iter, path, tag, gravity, convtol, bias_hlayers, RMSprop, start.LR, activation, inference, doscale, treatment, interact_treatment, batchsize, maxstopcounter, OLStrick, useOptim, optimMethod, ...){
-##examplearguments for testing
+#examplearguments for testing
+
+#rm(list=ls())
+#gc()
+#gc()
+#"%ni%" <- Negate("%in%")
+
 
 #library(panelNNET)
 #N <- 1000
@@ -8,8 +14,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 #time <- (1:N-1)%%20+1
 #id <- (1:N-1)%/%20+1
 #y <- id + time + x*sin(x) + rnorm(N, sd = 3)
-#plot(x, y)
-###y = y[r]
+##plot(x, y)
+####y = y[r]
 #X = matrix(x)
 #fe_var = factor(id)
 #time_var = time
@@ -17,10 +23,10 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 
 #lam = .00001
 #maxit = 1000
-#hidden_units = c(50,50)
+#hidden_units = c(5, 2)
 #parlist = NULL
 #verbose = TRUE
-#OLStrick = FALSE
+#OLStrick = TRUE
 #save_each_iter = FALSE
 #path = NULL
 #tag = ""
@@ -37,7 +43,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 #start.LR = .01
 #maxstopcounter = 10
 #batchsize = 100
-#useOptim = FALSE
+#useOptim = TRUE
 #optimMethod = 'BFGS'
 
 getYhat <- function(pl, skel = attr(pl, 'skeleton'), hlay = NULL){ 
@@ -411,7 +417,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton')){
     , X = X, y = y, param = param, fe_var = fe_var, hidden_units = hidden_units, maxit = maxit
     , used_bias = bias_hlayers, final_improvement = D, msevec = msevec, RMSprop = RMSprop, convtol = convtol
     , grads = grads, activation = activation, parapen = parapen, doscale = doscale, treatment = treatment
-    , interact_treatment = interact_treatment, batchsize = batchsize
+    , interact_treatment = interact_treatment, batchsize = batchsize, usedOptim = useOptim, optimMethod = optimMethod
   )
   if(inference == TRUE){
     J <- Jacobian.panelNNET(output)
