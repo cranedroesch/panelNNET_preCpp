@@ -1,13 +1,12 @@
 cv.panelNNET <-
-function(obj, folds = NULL, nfolds = 10, parallel = TRUE, approx = 'OLS', J = NULL, wise = 'fewise',...){
+function(obj, folds = NULL, nfolds = 10, parallel = TRUE, type = 'OLS', J = NULL, wise = 'fewise',...){
 ##test arguments...
 #obj <- pnn
 #folds = NULL
 #nfolds = 10
 #parallel = TRUE
-#approx = 'OLS'
-#wise = ''
-#wise = 'obswise'
+#type = 'full'
+#wise = 'fewise'
 #J = J
   #Assign folds if unassigned
   if (is.null(folds)){
@@ -27,10 +26,20 @@ function(obj, folds = NULL, nfolds = 10, parallel = TRUE, approx = 'OLS', J = NU
   #parallelization...
   `%fun%` <- ifelse(parallel == TRUE, `%dopar%`, `%do%`)
   #"X" matrix -- based on OLS approximation
-  if (approx == 'OLS'){
+  if (type == 'OLS'){
     X <- obj$hidden_layers[[length(obj$hidden_layers)]]
-  } else {
+    if (obj$lam>0){
+      warning('OLS approximation will perform poorly when neural net is penalized')
+    }
+  }
+  if (type == 'Jacobian'){
     X <- J
+#    if (obj$lam>0){
+#      warning('Jacobian approximation will perform poorly when neural net is penalized')
+#    }
+  }
+  if (type == 'full'){
+    X <- obj$X
   }
   #de-mean the y's
   if (!is.null(obj$fe_var)){
@@ -52,31 +61,64 @@ function(obj, folds = NULL, nfolds = 10, parallel = TRUE, approx = 'OLS', J = NU
       warning("One of the folds had no test set and got dropped")
       return(NULL)
     }
-    #get the fe's
-    if (!is.null(obj$fe_var)){
-      #get the coefs
-      if (wise == 'obswise'){
-        Xdm <- demeanlist(X, list(obj$fe_var))
-        B <- solve(crossprod(Xdm[tr,]) + diag(D)) %*% t(Xdm[tr,]) %*% ydm[tr]
-        yhatdmi <- Xdm[te,] %*% B
-        mse <- mean((ydm[te] - yhatdmi)^2)
-      } else {
-        Xdm <- demeanlist(X[obj$time_var %in% tr,], list(obj$fe_var[obj$time_var %in% tr]))
-        B <- solve(crossprod(Xdm) + diag(D)) %*% t(Xdm) %*% ydm[obj$time_var %in% tr]
-        #get the FE's
-        alpha <- (obj$y - ydm)[obj$time_var %in% tr] - (X[obj$time_var %in% tr,] - Xdm) %*% B
-        fe <- tapply(alpha, factor(obj$fe_var[obj$time_var %in% tr]), mean)
-        fe <- data.frame(fe_var = names(fe), fe = fe)
-        fe <- merge(data.frame(fe_var = obj$fe_var[obj$time_var %in% te]), fe)$fe
-        #Calc the MSE
-        yhati <- fe + as.numeric(X[obj$time_var %in% te,] %*% B)
-        mse <- mean((obj$y[obj$time_var %in% te] - yhati)^2)
+    if (type == 'full'){
+      #jitter the parameters
+      pl <- unlist(as.relistable(obj$parlist))
+      pl <- relist(pl+rnorm(length(pl), sd = abs(pl+.01)/10))
+      conv <- FALSE
+      while(conv == FALSE){
+        optpass <- panelNNET(obj$y[obj$time_var %in% tr], obj$X[obj$time_var %in% tr,], hidden_units = obj$hidden_units
+          , fe_var = obj$fe_var[obj$time_var %in% tr], maxit = obj$maxit, lam = obj$lam
+          , time_var = obj$time[obj$time_var %in% tr], param = obj$param[obj$time_var %in% tr,, drop = FALSE],  verbose = FALSE
+          , convtol = obj$convtol, activation = obj$activation, inference = FALSE
+          , parlist = pl, 
+          , useOptim = obj$usedOptim, optimMethod = obj$optimMethod
+        )
+        MBpass <- panelNNET(obj$y[obj$time_var %in% tr], obj$X[obj$time_var %in% tr,], hidden_units = obj$hidden_units
+          , fe_var = obj$fe_var[obj$time_var %in% tr], maxit = obj$maxit, lam = obj$lam
+          , time_var = obj$time[obj$time_var %in% tr], param = obj$param[obj$time_var %in% tr,, drop = FALSE],  verbose = FALSE
+          , convtol = obj$convtol, activation = obj$activation, inference = FALSE
+          , parlist = optpass$parlist, 
+          , batchsize = round(sum(obj$time_var %in% tr)/10)
+        )
+        if (optpass$loss <= MBpass$loss){
+          conv <- TRUE
+        } else {
+          pl <- MBpass$parlist
+        }
       }
+      p <- predict(optpass, newX = obj$X[obj$time_var %in% te,]
+        , fe.newX = obj$fe_var[obj$time_var %in% te]
+        , new.param =obj$param[obj$time_var %in% te,, drop = FALSE]
+      )
+      mse <- mean((obj$y[obj$time_var %in% te] - p)^2)
     } else {
-      Xr <- X[tr,]
-      B <- solve(crossprod(Xr) + diag(D)) %*% t(Xr) %*% obj$y[tr]
-      p <- X[te,]%*% B
-      mse <- mean((obj$y[te] - p)^2)
+      #get the fe's
+      if (!is.null(obj$fe_var)){
+        #get the coefs
+        if (wise == 'obswise'){
+          Xdm <- demeanlist(X, list(obj$fe_var))
+          B <- solve(crossprod(Xdm[tr,]) + diag(D)) %*% t(Xdm[tr,]) %*% ydm[tr]
+          yhatdmi <- Xdm[te,] %*% B
+          mse <- mean((ydm[te] - yhatdmi)^2)
+        } else {
+          Xdm <- demeanlist(X[obj$time_var %in% tr,], list(obj$fe_var[obj$time_var %in% tr]))
+          B <- solve(crossprod(Xdm) + diag(D)) %*% t(Xdm) %*% ydm[obj$time_var %in% tr]
+          #get the FE's
+          alpha <- (obj$y - ydm)[obj$time_var %in% tr] - (X[obj$time_var %in% tr,] - Xdm) %*% B
+          fe <- tapply(alpha, factor(obj$fe_var[obj$time_var %in% tr]), mean)
+          fe <- data.frame(fe_var = names(fe), fe = fe)
+          fe <- merge(data.frame(fe_var = obj$fe_var[obj$time_var %in% te]), fe)$fe
+          #Calc the MSE
+          yhati <- fe + as.numeric(X[obj$time_var %in% te,] %*% B)
+          mse <- mean((obj$y[obj$time_var %in% te] - yhati)^2)
+        }
+      } else {
+        Xr <- X[tr,]
+        B <- solve(crossprod(Xr) + diag(D)) %*% t(Xr) %*% obj$y[tr]
+        p <- X[te,]%*% B
+        mse <- mean((obj$y[te] - p)^2)
+      }
     }
     return(mse)
   }

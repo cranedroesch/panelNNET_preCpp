@@ -13,4 +13,6 @@ TBD:
 
 5.  Implement minibatch with the optim option
 
+6.  Remove vestiges of OLStrick option
+
 6.  Look into GPU libraries after profiling
