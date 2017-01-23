@@ -1,7 +1,7 @@
 cv.panelNNET <-
 function(obj, folds = NULL, nfolds = 10, parallel = TRUE, type = 'OLS', J = NULL, wise = 'fewise',...){
 ##test arguments...
-#obj <- mlist[[3]]
+#obj <- pnn
 #folds = NULL
 #nfolds = 10
 #parallel = TRUE
@@ -47,7 +47,7 @@ function(obj, folds = NULL, nfolds = 10, parallel = TRUE, type = 'OLS', J = NULL
     #getting implicit regressors depending on whether regression is panel
     if (!is.null(obj$fe_var)){
       Zdm <- Xdm
-      targ <- obj$ydm
+      targ <- ydm
     } else {
       Zdm <- X
       targ <- obj$y
@@ -58,7 +58,7 @@ function(obj, folds = NULL, nfolds = 10, parallel = TRUE, type = 'OLS', J = NULL
       (t(bi) %*% bi - constraint)^2
     }
     #optimize it
-    o <- optim(par = lam, f = f, method = 'Brent', lower = obj$lam, upper = 1e9)
+    o <- optim(par = obj$lam+1, f = f, method = 'Brent', lower = obj$lam, upper = 1e9)
     #new lambda
     newlam <- o$par
   }
