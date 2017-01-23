@@ -1,13 +1,12 @@
 cv.panelNNET <-
 function(obj, folds = NULL, nfolds = 10, parallel = TRUE, type = 'OLS', J = NULL, wise = 'fewise',...){
 ##test arguments...
-#obj <- pnn
+#obj <- mlist[[3]]
 #folds = NULL
 #nfolds = 10
 #parallel = TRUE
-#type = 'full'
+#type = 'OLS'
 #wise = 'fewise'
-#J = J
   #Assign folds if unassigned
   if (is.null(folds)){
     if (is.null(obj$fe_var) | wise == 'obswise'){#If no time variable, assume that the data is not panel and do obs-wise cross-validation
@@ -28,25 +27,43 @@ function(obj, folds = NULL, nfolds = 10, parallel = TRUE, type = 'OLS', J = NULL
   #"X" matrix -- based on OLS approximation
   if (type == 'OLS'){
     X <- obj$hidden_layers[[length(obj$hidden_layers)]]
-    if (obj$lam>0){
-      warning('OLS approximation will perform poorly when neural net is penalized')
-    }
   }
   if (type == 'Jacobian'){
     X <- J
-#    if (obj$lam>0){
-#      warning('Jacobian approximation will perform poorly when neural net is penalized')
-#    }
+    newlam <- obj$lam
   }
   if (type == 'full'){
     X <- obj$X
+    newlam <- obj$lam
   }
-  #de-mean the y's
+  #de-mean the y's and X's
   if (!is.null(obj$fe_var)){
     ydm <- demeanlist(obj$y, list(obj$fe_var))
+    Xdm <- demeanlist(X, list(obj$fe_var))
   }
-  #ridge penalty
-  D <- rep(obj$lam, ncol(X))
+  #ridge penalty for top-level
+  if (type == 'OLS'){
+    constraint <- sum(c(obj$parlist$beta_param*obj$parapen, obj$parlist$beta)^2)
+    #getting implicit regressors depending on whether regression is panel
+    if (!is.null(obj$fe_var)){
+      Zdm <- Xdm
+      targ <- obj$ydm
+    } else {
+      Zdm <- X
+      targ <- obj$y
+    }
+    #function to find implicit lambda
+    f <- function(lam){
+      bi <- solve(t(Zdm) %*% Zdm + diag(rep(lam, ncol(Zdm)))) %*% t(Zdm) %*% targ
+      (t(bi) %*% bi - constraint)^2
+    }
+    #optimize it
+    o <- optim(par = lam, f = f, method = 'Brent', lower = obj$lam, upper = 1e9)
+    #new lambda
+    newlam <- o$par
+  }
+  #new penalty vector
+  D <- rep(newlam, ncol(X))
   if (is.null(obj$fe_var)){
     pp <- c(0, obj$parapen) #never penalize the intercept
   } else {
@@ -68,7 +85,7 @@ function(obj, folds = NULL, nfolds = 10, parallel = TRUE, type = 'OLS', J = NULL
       conv <- FALSE
       optpass <- panelNNET(obj$y[obj$time_var %in% tr], obj$X[obj$time_var %in% tr,], hidden_units = obj$hidden_units
         , fe_var = obj$fe_var[obj$time_var %in% tr], maxit = obj$maxit, lam = obj$lam
-        , time_var = obj$time[obj$time_var %in% tr], param = obj$param[obj$time_var %in% tr,, drop = FALSE],  verbose = FALSE
+        , time_var = obj$time[obj$time_var %in% tr], param = obj$param[obj$time_var %in% tr,, drop = FALSE],  verbose = TRUE
         , convtol = obj$convtol, activation = obj$activation, inference = FALSE
         , parlist = pl, 
         , useOptim = obj$usedOptim, optimMethod = obj$optimMethod
