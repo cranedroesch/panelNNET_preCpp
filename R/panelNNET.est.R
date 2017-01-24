@@ -1,12 +1,13 @@
 panelNNET.est <-
 function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist, verbose, save_each_iter, path, tag, gravity, convtol, bias_hlayers, RMSprop, start.LR, activation, inference, doscale, treatment, interact_treatment, batchsize, maxstopcounter, OLStrick, useOptim, optimMethod, ...){
-#examplearguments for testing
 
+##examplearguments for testing
 #rm(list=ls())
 #gc()
 #gc()
 #"%ni%" <- Negate("%in%")
 
+#set.seed(1)
 #library(panelNNET)
 #N <- 1000
 #x <- sort(runif(N, 0, 20))
@@ -20,7 +21,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 #time_var = time
 #param = matrix(time)
 
-#lam = .1
+#lam = .01
 #maxit = 1000
 #hidden_units = c(50, 20)
 #parlist = NULL
@@ -37,7 +38,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 #doscale = TRUE
 #inference = FALSE
 #batchsize = nrow(X)
-#parapen = rep(1, ncol(param))
+#parapen = rep(0, ncol(param))
 #treatment = NULL
 #start.LR = .01
 #maxstopcounter = 10
@@ -69,7 +70,7 @@ getYhat <- function(pl, skel = attr(pl, 'skeleton'), hlay = NULL){
   return(yhat)
 }
 
-lossfun <- function(pl, skel){
+lossfun <- function(pl, skel, lam = lam, parapen = parapen){
   yhat <- getYhat(pl, skel)
   mse <- mean((y-yhat)^2)
   plist <- relist(pl, skel)
@@ -126,7 +127,21 @@ calc_grads<- function(plist, hlay = NULL, yhat = NULL, curBat = NULL){
 }
 
 
-getgr <- function(pl, skel = attr(pl, 'skeleton')){
+#getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
+#  plist <- relist(pl, skel)
+#  #calculate hidden layers
+#  hlayers <- calc_hlayers(plist)
+#  #calculate gradients
+#  grads <- calc_grads(plist, hlay = hlayers)
+#  gr <- foreach(i = 1:(length(hlayers)+1)) %do% {
+#    if (i == 1){D <- X} else {D <- hlayers[[i-1]]}
+#    if (bias_hlayers == TRUE & i != length(hlayers)+1){D <- cbind(1, D)}
+#      (t(D) %*% grads[[i]])
+#  }
+#  return(unlist(gr))
+#}
+
+getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
   plist <- relist(pl, skel)
   #calculate hidden layers
   hlayers <- calc_hlayers(plist)
@@ -137,8 +152,15 @@ getgr <- function(pl, skel = attr(pl, 'skeleton')){
     if (bias_hlayers == TRUE & i != length(hlayers)+1){D <- cbind(1, D)}
       (t(D) %*% grads[[i]])
   }
+  plist$beta_param <- plist$beta_param*parapen
+  penalty <- mapply('*', plist, lam*2)
+  penalty$beta_param <- matrix(c(penalty$beta_param, penalty$beta))
+  penalty$beta <- NULL
+  gr <- mapply('+', gr, penalty)
   return(unlist(gr))
 }
+
+
 
   if (doscale == TRUE){
     X <- scale(X)
@@ -211,8 +233,10 @@ getgr <- function(pl, skel = attr(pl, 'skeleton')){
     #start optimizer
     out <- optim(par = pl, fn = lossfun, gr = getgr
       , control = list(trace  =verbose*6, maxit = maxit)
-      , method = optimMethod, skel = attr(pl, 'skeleton')
+      , method = optimMethod, skel = attr(pl, 'skeleton'), parapen = parapen, lam = lam
     )
+
+
     parlist <- relist(out$par)  
     #Update hidden layers
     hlayers <- calc_hlayers(parlist)
