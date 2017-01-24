@@ -127,20 +127,6 @@ calc_grads<- function(plist, hlay = NULL, yhat = NULL, curBat = NULL){
 }
 
 
-getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
-  plist <- relist(pl, skel)
-  #calculate hidden layers
-  hlayers <- calc_hlayers(plist)
-  #calculate gradients
-  grads <- calc_grads(plist, hlay = hlayers)
-  gr <- foreach(i = 1:(length(hlayers)+1)) %do% {
-    if (i == 1){D <- X} else {D <- hlayers[[i-1]]}
-    if (bias_hlayers == TRUE & i != length(hlayers)+1){D <- cbind(1, D)}
-      (t(D) %*% grads[[i]])
-  }
-  return(unlist(gr))
-}
-
 #getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
 #  plist <- relist(pl, skel)
 #  #calculate hidden layers
@@ -152,13 +138,27 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
 #    if (bias_hlayers == TRUE & i != length(hlayers)+1){D <- cbind(1, D)}
 #      (t(D) %*% grads[[i]])
 #  }
-#  plist$beta_param <- plist$beta_param*parapen
-#  penalty <- mapply('*', plist, lam*2)
-#  penalty$beta_param <- matrix(c(penalty$beta_param, penalty$beta))
-#  penalty$beta <- NULL
-#  gr <- mapply('+', gr, penalty)
 #  return(unlist(gr))
 #}
+
+getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
+  plist <- relist(pl, skel)
+  #calculate hidden layers
+  hlayers <- calc_hlayers(plist)
+  #calculate gradients
+  grads <- calc_grads(plist, hlay = hlayers)
+  gr <- foreach(i = 1:(length(hlayers)+1)) %do% {
+    if (i == 1){D <- X} else {D <- hlayers[[i-1]]}
+    if (bias_hlayers == TRUE & i != length(hlayers)+1){D <- cbind(1, D)}
+      (t(D) %*% grads[[i]])
+  }
+  plist$beta_param <- plist$beta_param*parapen
+  penalty <- mapply('*', plist, lam*2)
+  penalty$beta_param <- matrix(c(penalty$beta_param, penalty$beta))
+  penalty$beta <- NULL
+  gr <- mapply('+', gr, penalty)
+  return(unlist(gr))
+}
 
 
 
@@ -272,7 +272,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
       #second pass
       out <- optim(par = unlist(parlist), fn = lossfun, gr = getgr
         , control = list(trace  =verbose*6, maxit = maxit)
-        , method = optimMethod, skel = attr(pl, 'skeleton')
+        , method = optimMethod, skel = attr(pl, 'skeleton'), parapen = parapen, lam = lam
       )
       parlist <- relist(out$par)  
       hlayers <- calc_hlayers(parlist)
