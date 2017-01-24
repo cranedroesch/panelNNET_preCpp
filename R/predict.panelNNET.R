@@ -1,6 +1,6 @@
 predict.panelNNET <-
 function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, se.fit = FALSE, tauhat = FALSE){
-#obj <- m
+#obj <- pnn2
 #newX = Z[e,]
 #fe.newX = id[e]
 #new.param = matrix(time[e])
@@ -111,6 +111,9 @@ predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, ne
   }
   if (obj$activation == 'logistic'){
     sigma <- logistic
+  }
+  if (obj$activation == 'relu'){
+    sigma <- relu
   }
   parlist <- relist(pvec)
   if (obj$doscale == TRUE){
