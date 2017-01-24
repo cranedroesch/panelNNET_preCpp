@@ -70,7 +70,7 @@ getYhat <- function(pl, skel = attr(pl, 'skeleton'), hlay = NULL){
   return(yhat)
 }
 
-lossfun <- function(pl, skel, lam = lam, parapen = parapen){
+lossfun <- function(pl, skel, lam, parapen){
   yhat <- getYhat(pl, skel)
   mse <- mean((y-yhat)^2)
   plist <- relist(pl, skel)
