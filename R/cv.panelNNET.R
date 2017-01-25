@@ -72,10 +72,8 @@ function(obj, folds = NULL, nfolds = 10, parallel = TRUE, type = 'OLS', J = NULL
   D[1:length(pp)] <- D[1:length(pp)]*pp #incorporate parapen into diagonal of covmat
   #Loop through folds:
   cv.err <- foreach(i = 1:nfolds, .combine = c) %fun% {
-print('1')
     tr <- folds$id[which(folds$foldid != i)]
     te <- folds$id[which(folds$foldid == i)]
-print('2')
     if (all(te == FALSE)){
       warning("One of the folds had no test set and got dropped")
       return(NULL)
@@ -84,7 +82,6 @@ print('2')
       #jitter the parameters
       pl <- unlist(as.relistable(obj$parlist))
       pl <- relist(pl+rnorm(length(pl), sd = abs(pl+.01)/10))
-print('3')
       conv <- FALSE
       optpass <- panelNNET(obj$y[obj$time_var %in% tr], obj$X[obj$time_var %in% tr,], hidden_units = obj$hidden_units
         , fe_var = obj$fe_var[obj$time_var %in% tr], maxit = obj$maxit, lam = obj$lam
