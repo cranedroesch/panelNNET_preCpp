@@ -87,7 +87,7 @@ function(obj, folds = NULL, nfolds = 10, parallel = TRUE, type = 'OLS', J = NULL
         , fe_var = obj$fe_var[obj$time_var %in% tr], maxit = obj$maxit, lam = obj$lam
         , time_var = obj$time[obj$time_var %in% tr], param = obj$param[obj$time_var %in% tr,, drop = FALSE],  verbose = TRUE
         , convtol = obj$convtol, activation = obj$activation, inference = FALSE
-        , parlist = pl, 
+        , parlist = pl
         , useOptim = obj$usedOptim, optimMethod = obj$optimMethod
       )
       p <- predict(optpass, newX = obj$X[obj$time_var %in% te,]
