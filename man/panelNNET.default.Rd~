@@ -98,6 +98,27 @@ Should the input data be scaled?  Generally it should.
   \item{\dots}{
 Not used.
 }
+  \item{\treatment}{
+For heterogeneous treatment effects models.  A binary vector of treatment assignments.  NOTE: HTE estimation isn't yet working smoothly.
+}
+  \item{\interact_treatment}{
+Logical.  Should the treatment be interacted with the upper-level derived variables?  NOTE: HTE estimation isn't yet working smoothly.
+}
+  \item{\batchsize}{
+Size of batches for minibatch gradient descent.  Defaults to nrow(X), which is batch gradient descent.
+}
+  \item{\maxstopcounter}{
+How many times should the learning rate be halved after an epoch increases MSE, before panelNNET exits?
+}
+  \item{\OLStrick}{
+Find the closed-form solution on the top layer of the network that minimizes the penalized loss function -- augmenting gradient descent.  May not make sense when using minibatch methods.
+}
+  \item{\useOptim}{
+Logical.  Use R's optim function for gradient descent?
+}
+  \item{\optimMethod}{
+If useOptime == TRUE, an optimizer method.
+}
 }
 \details{
 Function fits a model of the form

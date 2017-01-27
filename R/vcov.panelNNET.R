@@ -15,11 +15,11 @@ function(obj, option, J = NULL){
       #OLS trick
       constraint <- sum(c(obj$parlist$beta_param*obj$parapen, obj$parlist$beta)^2)
       #getting implicit regressors depending on whether regression is panel
-      if (!is.null(fe_var)){
-        Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))
+      if (!is.null(obj$fe_var)){
+        Zdm <- demeanlist(obj$hidden_layers[[length(obj$hidden_layers)]], list(obj$fe_var))
         targ <- ydm
       } else {
-        Zdm <- hlayers[[length(hlayers)]]
+        Zdm <- obj$hidden_layers[[length(obj$hidden_layers)]]
         targ <- y
       }
       #function to find implicit lambda
