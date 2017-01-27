@@ -85,7 +85,7 @@ function(obj, folds = NULL, nfolds = 10, parallel = TRUE, type = 'OLS', J = NULL
       conv <- FALSE
       optpass <- panelNNET(obj$y[obj$time_var %in% tr], obj$X[obj$time_var %in% tr,], hidden_units = obj$hidden_units
         , fe_var = obj$fe_var[obj$time_var %in% tr], maxit = obj$maxit, lam = obj$lam
-        , time_var = obj$time[obj$time_var %in% tr], param = obj$param[obj$time_var %in% tr,, drop = FALSE],  verbose = TRUE
+        , time_var = obj$time[obj$time_var %in% tr], param = obj$param[obj$time_var %in% tr,, drop = FALSE],  verbose = FALSE
         , convtol = obj$convtol, activation = obj$activation, inference = FALSE
         , parlist = pl
         , useOptim = obj$usedOptim, optimMethod = obj$optimMethod

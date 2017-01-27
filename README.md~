@@ -13,6 +13,8 @@ TBD:
 
 5.  Implement minibatch with the optim option
 
-6.  Remove vestiges of OLStrick option
+6.  fix plot method for when optim is selected
 
 6.  Look into GPU libraries after profiling
+
+7.  Convolutional neural nets
