@@ -16,13 +16,17 @@ Semi-parametric fixed-effects models for panel data, using neural networks
 Function fits fixed effects models in which some variables entering linearly and others entering non-parametrically.  Nonparametric component of the model represented by a feed-forward neural network.  
 }
 \usage{
-panelNNET.default(y, X, hidden_units, fe_var, seed = 1
+panelNNET.default(y, X, hidden_units, fe_var
   , maxit = 1000, lam = 0, time_var = NULL, param = NULL
   , parapen = rep(0, ncol(param)), parlist = NULL, verbose = FALSE
   , save_each_iter = FALSE, path = NULL, tag = "", gravity = 1.01
-  , convtol = 1e-8, bias_hlayers = FALSE, RMSprop = FALSE, start_LR = .01
-  , activation = 'tanh', inference = TRUE, doscale = TRUE, ...)
+  , convtol = 1e-8, bias_hlayers = TRUE, RMSprop = TRUE, start_LR = .01
+  , activation = 'tanh', inference = TRUE, doscale = TRUE, 
+  , treatment = NULL, interact_treatment = TRUE, batchsize = nrow(X)
+  , maxstopcounter = 10, OLStrick = FALSE, useOptim = FALSE
+  , optimMethod = 'BFGS', ...)
 }
+
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{y}{
@@ -36,9 +40,6 @@ Numeric vector of hidden units within hidden layers.  First entry is the lowest 
 }
   \item{fe_var}{
 A factor indicating the cross-sectional unit.  At present only one cross-sectional unit is supported.
-}
-  \item{seed}{
-A random seed
 }
   \item{maxit}{
 Maximum number of iterations
@@ -80,13 +81,13 @@ Convergence tolerance.  When 10 successive iterations fail to improve MSE by thi
 Add bias terms to hidden layers (not top layer).  Currently broken when RMSprop is set to TRUE
 }
   \item{RMSprop}{
-Gradient descent by RMSprop.  If FALSE, by "vanilla" batch gradient descent
+Gradient descent by RMSprop.  If FALSE, by "vanilla" gradient descent
 }
   \item{start_LR}{
 The initial learning rate
 }
   \item{activation}{
-"tanh" or "logistic"
+"tanh", "logistic", or "relu"
 }
   \item{inference}{
 Should approximate inference be performed?  If so, various forms of covariance matrix will be estimated.

@@ -1,11 +1,36 @@
 vcov.panelNNET <-
 function(obj, option, J = NULL){
+#obj <- pnn2
   e <- obj$y - obj$yhat
   if (is.null(J)){
     if (grepl('Jacobian', option)){
       J <- Jacobian.panelNNET(obj)
     } else {
       J <- obj$hidden_layers[[length(obj$hidden_layers)]]
+      if (!is.null(obj$fe_var)){
+        J <- demeanlist(J, list(obj$fe_var))
+        targ <- demeanlist(obj$y, list(obj$fe_var))
+      } else {targ = obj$y}
+
+      #OLS trick
+      constraint <- sum(c(obj$parlist$beta_param*obj$parapen, obj$parlist$beta)^2)
+      #getting implicit regressors depending on whether regression is panel
+      if (!is.null(fe_var)){
+        Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))
+        targ <- ydm
+      } else {
+        Zdm <- hlayers[[length(hlayers)]]
+        targ <- y
+      }
+      #function to find implicit lambda
+      f <- function(lam){
+        bi <- solve(t(J) %*% J + diag(rep(lam, ncol(J)))) %*% t(J) %*% targ
+        (t(bi) %*% bi - constraint)^2
+      }
+      #optimize it
+      o <- optim(par = obj$lam, f = f, method = 'Brent', lower = obj$lam/2, upper = 1e9)
+      #new lambda
+      obj$lam <- o$par
     }
   }
   D <- rep(obj$lam, ncol(J))

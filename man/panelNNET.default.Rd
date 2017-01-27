@@ -20,9 +20,13 @@ panelNNET.default(y, X, hidden_units, fe_var
   , maxit = 1000, lam = 0, time_var = NULL, param = NULL
   , parapen = rep(0, ncol(param)), parlist = NULL, verbose = FALSE
   , save_each_iter = FALSE, path = NULL, tag = "", gravity = 1.01
-  , convtol = 1e-8, bias_hlayers = FALSE, RMSprop = FALSE, start_LR = .01
-  , activation = 'tanh', inference = TRUE, doscale = TRUE, ...)
+  , convtol = 1e-8, bias_hlayers = TRUE, RMSprop = TRUE, start_LR = .01
+  , activation = 'tanh', inference = TRUE, doscale = TRUE, 
+  , treatment = NULL, interact_treatment = TRUE, batchsize = nrow(X)
+  , maxstopcounter = 10, OLStrick = FALSE, useOptim = FALSE
+  , optimMethod = 'BFGS', ...)
 }
+
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{y}{
@@ -77,13 +81,13 @@ Convergence tolerance.  When 10 successive iterations fail to improve MSE by thi
 Add bias terms to hidden layers (not top layer).  Currently broken when RMSprop is set to TRUE
 }
   \item{RMSprop}{
-Gradient descent by RMSprop.  If FALSE, by "vanilla" batch gradient descent
+Gradient descent by RMSprop.  If FALSE, by "vanilla" gradient descent
 }
   \item{start_LR}{
 The initial learning rate
 }
   \item{activation}{
-"tanh" or "logistic"
+"tanh", "logistic", or "relu"
 }
   \item{inference}{
 Should approximate inference be performed?  If so, various forms of covariance matrix will be estimated.
@@ -93,6 +97,27 @@ Should the input data be scaled?  Generally it should.
 }
   \item{\dots}{
 Not used.
+}
+  \item{\treatment}{
+For heterogeneous treatment effects models.  A binary vector of treatment assignments.  NOTE: HTE estimation isn't yet working smoothly.
+}
+  \item{\interact_treatment}{
+Logical.  Should the treatment be interacted with the upper-level derived variables?  NOTE: HTE estimation isn't yet working smoothly.
+}
+  \item{\batchsize}{
+Size of batches for minibatch gradient descent.  Defaults to nrow(X), which is batch gradient descent.
+}
+  \item{\maxstopcounter}{
+How many times should the learning rate be halved after an epoch increases MSE, before panelNNET exits?
+}
+  \item{\OLStrick}{
+Find the closed-form solution on the top layer of the network that minimizes the penalized loss function -- augmenting gradient descent.  May not make sense when using minibatch methods.
+}
+  \item{\useOptim}{
+Logical.  Use R's optim function for gradient descent?
+}
+  \item{\optimMethod}{
+If useOptime == TRUE, an optimizer method.
 }
 }
 \details{
