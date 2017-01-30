@@ -18,3 +18,5 @@ TBD:
 6.  Look into GPU libraries
 
 7.  Implement convolutional neural nets with weight sharing
+
+8.  Verbose output should give information about mean and sd of activations, to monitor saturation

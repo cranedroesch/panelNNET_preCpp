@@ -17,7 +17,6 @@ function(obj, option, J = NULL){
       #getting implicit regressors depending on whether regression is panel
       if (!is.null(obj$fe_var)){
         Zdm <- demeanlist(obj$hidden_layers[[length(obj$hidden_layers)]], list(obj$fe_var))
-        targ <- ydm
       } else {
         Zdm <- obj$hidden_layers[[length(obj$hidden_layers)]]
         targ <- y

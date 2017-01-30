@@ -15,6 +15,6 @@ TBD:
 
 6.  fix plot method for when optim is selected
 
-6.  Look into GPU libraries after profiling
+6.  Look into GPU libraries
 
-7.  Convolutional neural nets
+7.  Implement convolutional neural nets with weight sharing
