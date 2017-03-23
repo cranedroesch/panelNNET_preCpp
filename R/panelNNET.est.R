@@ -1,7 +1,7 @@
 panelNNET.est <-
 function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist, verbose, save_each_iter, path, tag, gravity, convtol, bias_hlayers, RMSprop, start.LR, activation, inference, doscale, treatment, interact_treatment, batchsize, maxstopcounter, OLStrick, useOptim, optimMethod, ...){
 
-##examplearguments for testing
+###examplearguments for testing
 #rm(list=ls())
 #gc()
 #gc()
@@ -15,7 +15,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 #id <- (1:N-1)%/%20+1
 #y <- id + time + x*sin(x) + rnorm(N, sd = 3)
 #plot(x, y)
-#####y = y[r]
+######y = y[r]
 #X = matrix(x)
 #fe_var = factor(id)
 #time_var = time
@@ -38,12 +38,12 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 #doscale = TRUE
 #inference = FALSE
 #batchsize = nrow(X)
-#parapen = rep(0, ncol(param))
+#parapen = rep(1, ncol(param))
 #treatment = NULL
 #start.LR = .01
 #maxstopcounter = 10
-#batchsize = 100
-#useOptim = TRUE
+##batchsize = 100
+#useOptim = FALSE
 #optimMethod = 'BFGS'
 
 getYhat <- function(pl, skel = attr(pl, 'skeleton'), hlay = NULL){ 
@@ -125,21 +125,6 @@ calc_grads<- function(plist, hlay = NULL, yhat = NULL, curBat = NULL){
   }
   return(grads)
 }
-
-
-#getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
-#  plist <- relist(pl, skel)
-#  #calculate hidden layers
-#  hlayers <- calc_hlayers(plist)
-#  #calculate gradients
-#  grads <- calc_grads(plist, hlay = hlayers)
-#  gr <- foreach(i = 1:(length(hlayers)+1)) %do% {
-#    if (i == 1){D <- X} else {D <- hlayers[[i-1]]}
-#    if (bias_hlayers == TRUE & i != length(hlayers)+1){D <- cbind(1, D)}
-#      (t(D) %*% grads[[i]])
-#  }
-#  return(unlist(gr))
-#}
 
 getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
   plist <- relist(pl, skel)
@@ -235,8 +220,6 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
       , control = list(trace  =verbose*6, maxit = maxit)
       , method = optimMethod, skel = attr(pl, 'skeleton'), parapen = parapen, lam = lam
     )
-
-
     parlist <- relist(out$par)  
     #Update hidden layers
     hlayers <- calc_hlayers(parlist)
@@ -307,10 +290,14 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
     grads <- msevec <- NULL
 ##################################
   } else { #if useOptim  == FALSE
-  #get starting MSE
+    #get starting MSE
     yhat <- getYhat(pl, hlay = hlayers)
     mse <- mseold <- mean((y-yhat)^2)
-    loss <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions, unlist(parlist[!grepl('beta', names(parlist))]))^2)
+    loss <- mse + lam*sum(c(parlist$beta_param*parapen
+      , 0*parlist$beta_treatment, parlist$beta
+      , parlist$beta_treatmentinteractions
+      , unlist(parlist[!grepl('beta', names(parlist))]))^2
+    )
     #Calculate gradients.  These aren't the actual gradients, but become the gradients when multiplied by their respective layer.
     grads <- calc_grads(parlist, hlayers, yhat)
     #Initialize updates
@@ -354,7 +341,10 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
           G2 <- mapply('+', newG2, oldG2)
           uB <- LR/sqrt(G2[[length(G2)]]+1e-10) *
             t(t(grads[[length(grads)]]) %*% hlayers[[length(hlayers)]][curBat,]) + 
-            LR*as.matrix(2*lam*c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions))#Treatment is always unpenalized
+            LR*as.matrix(2*lam*c(parlist$beta_param*parapen#penalty/weight decay...
+              , 0*parlist$beta_treatment, parlist$beta
+              , parlist$beta_treatmentinteractions)
+            )#Treatment is always unpenalized
           updates$beta_param <- uB[1:length(parlist$beta_param)]
           updates$beta <- uB[grepl('nodes', rownames(uB))]
           if (!is.null(treatment)){
@@ -420,12 +410,19 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
         yhat <- getYhat(pl, attr(pl, 'skeleton'), hlay = hlayers)
         mse <- mean((y-yhat)^2)
         msevec <- append(msevec, mse)
-        loss <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions, unlist(parlist[!grepl('beta', names(parlist))]))^2)
+        loss <- mse + lam*sum(c(parlist$beta_param*parapen
+          , 0*parlist$beta_treatment, parlist$beta
+          , parlist$beta_treatmentinteractions
+          , unlist(parlist[!grepl('beta', names(parlist))]))^2)
         lossvec <- append(lossvec, loss)
       }
       #Finished epoch.  Assess whether MSE has increased and revert if so
       mse <- mean((y-yhat)^2)
-      loss <- mse + lam*sum(c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions, unlist(parlist[!grepl('beta', names(parlist))]))^2)
+      loss <- mse + lam*sum(c(parlist$beta_param*parapen
+        , 0*parlist$beta_treatment, parlist$beta
+        , parlist$beta_treatmentinteractions
+        , unlist(parlist[!grepl('beta', names(parlist))]))^2
+      )
       #If loss increases...
       if (oldpar$loss < loss){
         parlist <- oldpar$parlist

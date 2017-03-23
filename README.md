@@ -20,3 +20,7 @@ TBD:
 7.  Implement convolutional neural nets with weight sharing
 
 8.  Verbose output should give information about mean and sd of activations, to monitor saturation
+
+9.  Add option to include validation set, tracked in terms of MSE when verbose set to TRUE
+
+10.  VCV should account for effective degrees of freedom, not raw DF
