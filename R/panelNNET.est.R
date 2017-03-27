@@ -361,6 +361,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
 hl <<- hlayers
 GG <<- G2
 GR <<- grads
+PL <<- parlist
           uB <- LR/sqrt(G2[[length(G2)]]+1e-10) *
             t(t(grads[[length(grads)]]) %*% hlayers[[length(hlayers)]][curBat,]) + 
             LR*as.matrix(2*lam*c(parlist$beta_param*parapen#penalty/weight decay...
