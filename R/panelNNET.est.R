@@ -504,7 +504,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
             for (lay in 1:length(para_plot_list)){
               x <- as.matrix(as.numeric(parlist[[lay]]))
               l <- length(x)
-              if (l > 15){
+              if (l > 30){
                 q <- quantile(x, probs = seq(.05, .95, by = .1))
                 mu = mean(x)
                 para_plot_list[[lay]] <- cbind(para_plot_list[[lay]], c(q, mu = mu))
@@ -512,7 +512,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
                 plot(para_plot_list[[lay]]['mu',], ylim = range(para_plot_list[[lay]])
                   , type = 'l', col = 'red', main = names(parlist)[[lay]], ylab = 'weights'
                 )
-                apply(para_plot_list[[lay]][-nrow(para_plot_list[[lay]]),], 1, lines, col = 'grey')
+                apply(para_plot_list[[lay]][-nrow(para_plot_list[[lay]]),], 1, lines, col = 'black')
                 abline(h = 0, lty = 2)
               } else {
                 para_plot_list[[lay]] <- cbind(para_plot_list[[lay]], x)
