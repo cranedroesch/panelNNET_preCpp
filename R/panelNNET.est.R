@@ -1,5 +1,5 @@
 panelNNET.est <-
-function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist, verbose, save_each_iter, path, tag, gravity, convtol, bias_hlayers, RMSprop, start.LR, activation, inference, doscale, treatment, interact_treatment, batchsize, maxstopcounter, OLStrick, useOptim, optimMethod, ...){
+function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist, verbose, para_plot, report_interval, save_each_iter, path, tag, gravity, convtol, bias_hlayers, RMSprop, start.LR, activation, inference, doscale, treatment, interact_treatment, batchsize, maxstopcounter, OLStrick, useOptim, optimMethod, ...){
 
 ###examplearguments for testing
 #rm(list=ls())
@@ -9,11 +9,11 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 
 #set.seed(1)
 #library(panelNNET)
-#N <- 1000
+#N <- 2000
 #x <- sort(runif(N, 0, 20))
 #time <- (1:N-1)%%20+1
 #id <- (1:N-1)%/%20+1
-#y <- id + time + x*sin(x) + rnorm(N, sd = 3)
+#y <- id + time + x*sin(x) + rnorm(N, sd = 10)
 #plot(x, y)
 ######y = y[r]
 #X = matrix(x)
@@ -21,11 +21,13 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 #time_var = time
 #param = matrix(time)
 
-#lam = .01
+#lam = .00001
 #maxit = 1000
-#hidden_units = c(50, 20)
+#hidden_units = c(5, 5, 5, 5, 5, 5)
 #parlist = NULL
 #verbose = TRUE
+#para_plot = TRUE
+#report_interval = 10
 #OLStrick = TRUE
 #save_each_iter = FALSE
 #path = NULL
@@ -45,6 +47,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 ##batchsize = 100
 #useOptim = FALSE
 #optimMethod = 'BFGS'
+
 
 getYhat <- function(pl, skel = attr(pl, 'skeleton'), hlay = NULL){ 
 #print((pl))
@@ -212,6 +215,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
   if (!is.null(fe_var)){
     ydm <<- demeanlist(y, list(fe_var)) 
   }
+
   ###############
   #Optim approach
   if (useOptim == TRUE){
@@ -290,6 +294,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
     grads <- msevec <- NULL
 ##################################
   } else { #if useOptim  == FALSE
+
     #get starting MSE
     yhat <- getYhat(pl, hlay = hlayers)
     mse <- mseold <- mean((y-yhat)^2)
@@ -315,6 +320,20 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
     D <- 1e6
     stopcounter <- iter <- 0
     msevec <- lossvec <- c()
+    #initialize list for plotting parameters during training
+    if (para_plot == TRUE){
+      para_plot_list <- lapply(parlist, function(x){
+        x <- as.matrix(as.numeric(unlist(x)))
+        l <- length(x)
+        if (l > 15){ #if many parameters in a layer, take their quantiles and their mean
+          q <- quantile(x, probs = seq(.05, .95, by = .1))
+          mu = mean(x)
+          return(c(q, mu = mu))
+        } else { #if not, just take their absolute values
+          return(x)
+        }
+      })
+    }
     ###############
     #start iterating
     while(iter<maxit & stopcounter < maxstopcounter){
@@ -451,7 +470,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
         }else{
           stopcounter <-0
         }
-        if (verbose == TRUE){
+        if (verbose == TRUE & iter %% report_interval == 0){
           writeLines(paste0(
               "*******************************************\n"
             , tag, "\n"
@@ -468,7 +487,11 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
             , "difference is ", oldpar$loss - loss, "\n"
             , "*******************************************\n"
           ))
-          par(mfrow = c(3,2))
+          if (para_plot == TRUE){#additional plots if plotting parameter evolution
+            par(mfrow = c(ceiling(length(parlist)/2)+3,2))
+          } else {
+            par(mfrow = c(3,2))
+          }
           plot(y, yhat, col = rgb(1,0,0,.5), pch = 19, main = 'in-sample performance')
           abline(0,1)
           plot(LRvec, type = 'b', main = 'learning rate history')
@@ -476,10 +499,37 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
           plot(msevec[(1+(iter)*max(batchid)):length(msevec)], type = 'l', ylab = 'mse', main = 'Current epoch')
           plot(lossvec, type = 'l', main = 'all epochs')
           plot(lossvec[(1+(iter)*max(batchid)):length(lossvec)], type = 'l', ylab = 'loss', main = 'Current epoch')
+          if (para_plot == TRUE){
+            #update para plot list
+            for (lay in 1:length(para_plot_list)){
+              x <- as.matrix(as.numeric(parlist[[lay]]))
+              l <- length(x)
+              if (l > 15){
+                q <- quantile(x, probs = seq(.05, .95, by = .1))
+                mu = mean(x)
+                para_plot_list[[lay]] <- cbind(para_plot_list[[lay]], c(q, mu = mu))
+        
+                plot(para_plot_list[[lay]]['mu',], ylim = range(para_plot_list[[lay]])
+                  , type = 'l', col = 'red', main = names(parlist)[[lay]], ylab = 'weights'
+                )
+                apply(para_plot_list[[lay]][-nrow(para_plot_list[[lay]]),], 1, lines, col = 'grey')
+                abline(h = 0, lty = 2)
+              } else {
+                para_plot_list[[lay]] <- cbind(para_plot_list[[lay]], x)
+                plot(apply(para_plot_list[[lay]], 2, mean), ylim = range(para_plot_list[[lay]])
+                  , type = 'l', col = 'red', main = names(parlist)[[lay]], ylab = 'weights'
+                )
+                apply(para_plot_list[[lay]], 1, lines, col = 'grey')
+                abline(h = 0, lty = 2)
+              }
+            }
+          }
         }
       }
       iter = iter+1
     } #close the while loop
+
+
     conv <- (iter<maxit)
     if(is.null(fe_var)){
       fe_output <- NULL
