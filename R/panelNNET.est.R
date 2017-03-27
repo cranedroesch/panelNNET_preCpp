@@ -359,7 +359,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
           oldG2 <- lapply(G2, function(x){.9*x})
           G2 <- mapply('+', newG2, oldG2)
           uB <- LR/sqrt(G2[[length(G2)]]+1e-10) *
-            t(t(grads[[length(grads)]]) %*% hlayers[[length(hlayers)]][curBat,,drop == FALSE]) + 
+            t(t(grads[[length(grads)]]) %*% hlayers[[length(hlayers)]][curBat,,drop = FALSE]) + 
             LR*as.matrix(2*lam*c(parlist$beta_param*parapen#penalty/weight decay...
               , 0*parlist$beta_treatment, parlist$beta
               , parlist$beta_treatmentinteractions)
