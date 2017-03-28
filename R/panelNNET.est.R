@@ -325,7 +325,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
       para_plot_list <- lapply(parlist, function(x){
         x <- as.matrix(as.numeric(unlist(x)))
         l <- length(x)
-        if (l > 15){ #if many parameters in a layer, take their quantiles and their mean
+        if (l > 30){ #if many parameters in a layer, take their quantiles and their mean
           q <- quantile(x, probs = seq(.05, .95, by = .1))
           mu = mean(x)
           return(c(q, mu = mu))
