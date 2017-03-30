@@ -174,6 +174,10 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
     activ <- relu
     activ_prime <- relu_prime
   }
+  if (activation == 'lrelu'){
+    activ <- lrelu
+    activ_prime <- lrelu_prime
+  }
   if (!is.null(path)){
     fi <- list.files(path, pattern = tag)
     if(length(fi) > 1){stop('borked tags!')}
