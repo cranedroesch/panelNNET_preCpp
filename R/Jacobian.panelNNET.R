@@ -53,7 +53,7 @@ function(obj, ...){
   J <- jacobian(Jfun, pvec, obj = obj)
   #drop any zero columns that represent lower-level parameters
   dJ <- ncol(J)
-  tokeep <- which(!(apply(J, 2, function(x){all(x==0)}) & !grepl('beta', names(pvec))))
+  tokeep <- which(!(apply(J, 2, function(x){all(x==0)}) & !grepl('treatment|param', names(pvec))))
   J <- J[,tokeep]
   if (ncol(J) < dJ){
     warning(paste0(dJ - ncol(J), ' columns dropped from Jacobian because dY/dParm =~ 0'))
