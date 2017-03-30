@@ -49,7 +49,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 #optimMethod = 'BFGS'
 #initialization = 'HZRS'
 
-
+print(initialization)
 
 getYhat <- function(pl, skel = attr(pl, 'skeleton'), hlay = NULL){ 
 #print((pl))
