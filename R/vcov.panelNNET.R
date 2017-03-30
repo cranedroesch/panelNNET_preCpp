@@ -86,7 +86,7 @@ function(obj, option, J = NULL){
     }
     vcov <- G/(G-1)*(length(e) - 1)/(length(e) - edf) * bread %*% meat %*% bread
   }
-  return(list(vc = vcov, J = J))
+  return(vcov)
 }
 
 
