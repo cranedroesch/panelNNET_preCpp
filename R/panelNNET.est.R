@@ -49,7 +49,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 #optimMethod = 'BFGS'
 #initialization = 'HZRS'
 
-print(initialization)
 
 getYhat <- function(pl, skel = attr(pl, 'skeleton'), hlay = NULL){ 
 #print((pl))
@@ -186,7 +185,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
     parlist <- vector('list', nlayers)
     for (i in 1:nlayers){
       if (i == 1){D <- ncol(X)} else {D <- hidden_units[i-1]}
-      if (initializaton %ni% c('XG', 'HZRS')){#random initialization schemes
+      if (initialization %ni% c('XG', 'HZRS')){#random initialization schemes
         ubounds <- .7 #follows ESL recommendaton
       } else {
         if (initialization == 'XG'){
@@ -198,7 +197,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
       }
       parlist[[i]] <- matrix(runif((hidden_units[i])*(D+bias_hlayers), -ubounds, ubounds), ncol = hidden_units[i])
     }
-    if (initializaton %ni% c('XG', 'HZRS')){
+    if (initialization %ni% c('XG', 'HZRS')){
       ubounds <- .7 #follows ESL recommendaton
     } else {
       if (initialization == 'XG'){
