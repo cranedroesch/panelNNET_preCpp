@@ -23,8 +23,10 @@ TBD:
 
 9.  Add option to include validation set, tracked in terms of MSE when verbose set to TRUE
 
-10.  VCV should account for effective degrees of freedom, not raw DF
+10.  VCV should account for effective degrees of freedom, not raw DF.  It should also throw a warning if edf is higher than the number of obs.
 
 11.  Add sanity checks:  that FE input is defined and is a factor, that the parametric penalty multiplier is the same length as the parametric term vector, etc.
 
 12.  Add analytical Jacobian
+
+
