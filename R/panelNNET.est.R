@@ -1,7 +1,7 @@
 panelNNET.est <-
-function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist, verbose, para_plot, report_interval, save_each_iter, path, tag, gravity, convtol, bias_hlayers, RMSprop, start.LR, activation, inference, doscale, treatment, interact_treatment, batchsize, maxstopcounter, OLStrick, useOptim, optimMethod, ...){
+function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist, verbose, para_plot, report_interval, save_each_iter, path, tag, gravity, convtol, bias_hlayers, RMSprop, start.LR, activation, inference, doscale, treatment, interact_treatment, batchsize, maxstopcounter, OLStrick, useOptim, optimMethod, initialization,  ...){
 
-###examplearguments for testing
+##examplearguments for testing
 #rm(list=ls())
 #gc()
 #gc()
@@ -23,7 +23,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 
 #lam = .00001
 #maxit = 1000
-#hidden_units = c(5, 5, 5, 5, 5, 5)
+#hidden_units = c(10:3)
 #parlist = NULL
 #verbose = TRUE
 #para_plot = TRUE
@@ -47,6 +47,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 ##batchsize = 100
 #useOptim = FALSE
 #optimMethod = 'BFGS'
+#initialization = 'HZRS'
+
 
 
 getYhat <- function(pl, skel = attr(pl, 'skeleton'), hlay = NULL){ 
@@ -184,14 +186,34 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
     parlist <- vector('list', nlayers)
     for (i in 1:nlayers){
       if (i == 1){D <- ncol(X)} else {D <- hidden_units[i-1]}
-      parlist[[i]] <- matrix(runif((hidden_units[i])*(D+bias_hlayers), -.7, .7), ncol = hidden_units[i])
+      if (initializaton %ni% c('XG', 'HZRS')){#random initialization schemes
+        ubounds <- .7 #follows ESL recommendaton
+      } else {
+        if (initialization == 'XG'){
+          ubounds <- sqrt(6)/sqrt(D+hidden_units[i]+2*bias_hlayers)
+        }
+        if (initialization == 'HZRS'){
+          ubounds <- 2*sqrt(6)/sqrt(D+hidden_units[i]+2*bias_hlayers)
+        }
+      }
+      parlist[[i]] <- matrix(runif((hidden_units[i])*(D+bias_hlayers), -ubounds, ubounds), ncol = hidden_units[i])
+    }
+    if (initializaton %ni% c('XG', 'HZRS')){
+      ubounds <- .7 #follows ESL recommendaton
+    } else {
+      if (initialization == 'XG'){
+        ubounds <- sqrt(6)/sqrt(hidden_units[length(hidden_units)])
+      }
+      if (initialization == 'HZRS'){
+        ubounds <- 2*sqrt(6)/sqrt(hidden_units[length(hidden_units)])
+      }
     }
     if (is.null(param)){
       parlist$beta_param <-  NULL
     } else {
-      parlist$beta_param <- runif(ncol(param), -.7, .7)
+      parlist$beta_param <- runif(ncol(param), -ubounds, ubounds)
     }
-    parlist$beta <- runif(hidden_units[i], -.7, .7)
+    parlist$beta <- runif(hidden_units[i], -ubounds, ubounds)
     #Add the treatment effect and the interaction of the treatment with the derived variables
     if (!is.null(treatment)){
       warning('WARNING: panelNNET for heterogeneous treatment effects is still highly experimental.  the gradient descent algorithm appears to suffer badly from local minima and the standard errors of the treatment effects appear to be extremely buggy.')
@@ -547,7 +569,9 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
     , X = X, y = y, param = param, fe_var = fe_var, hidden_units = hidden_units, maxit = maxit
     , used_bias = bias_hlayers, final_improvement = D, msevec = msevec, RMSprop = RMSprop, convtol = convtol
     , grads = grads, activation = activation, parapen = parapen, doscale = doscale, treatment = treatment
-    , interact_treatment = interact_treatment, batchsize = batchsize, usedOptim = useOptim, optimMethod = optimMethod
+    , interact_treatment = interact_treatment, batchsize = batchsize
+    , usedOptim = useOptim, optimMethod = optimMethod
+    , initialization = initialization
   )
   if(inference == TRUE){
     J <- Jacobian.panelNNET(output)
