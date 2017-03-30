@@ -10,3 +10,18 @@ function(v){
   v[v>=0] <- 1
   v
 }
+
+lrelu <-
+function(v){
+  v[v<0] <- v*.01
+  v
+}
+
+lrelu_prime <- 
+function(v){
+  v[v<0] <- 0.01
+  v[v>=0] <- 1
+  v
+}
+
+

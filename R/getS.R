@@ -9,5 +9,8 @@ function(D_layer, inner_param, outer_deriv, outer_param, activation){
   if (activation == 'relu'){
     sigma_prime <- relu_prime
   }
+  if (activation == 'lrelu'){
+    sigma_prime <- lrelu_prime
+  }
   sigma_prime(D_layer %*% inner_param) * outer_deriv %*% t(outer_param)
 }

@@ -12,6 +12,10 @@ function(obj, ...){
     sigma <- relu
     sigma_prime <- relu_prime
   }
+  if (obj$activation == 'lrelu'){
+    sigma <- lrelu
+    sigma_prime <- lrelu_prime
+  }
   plist <- as.relistable(obj$parlist)
   pvec <- unlist(plist)
   #define function to pass to `jacobian` from `numDeriv`
