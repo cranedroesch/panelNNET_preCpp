@@ -118,6 +118,9 @@ predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, ne
   if (obj$activation == 'relu'){
     activ <- relu
   }
+  if (obj$activation == 'lrelu'){
+    activ <- lrelu
+  }
   parlist <- relist(pvec)
   if (obj$doscale == TRUE){
     D <- sweep(sweep(newX, 2, STATS = attr(obj$X, "scaled:center"), FUN = '-'), 2, STATS = attr(obj$X, "scaled:scale"), FUN = '/')
