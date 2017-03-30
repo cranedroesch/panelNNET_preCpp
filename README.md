@@ -28,3 +28,5 @@ TBD:
 12.  Add effective degrees of freedom to summary output
 
 13.  Write multistart function
+
+14.  Implement leaky RELU's and PReLUs

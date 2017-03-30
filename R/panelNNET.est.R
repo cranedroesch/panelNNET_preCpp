@@ -82,12 +82,18 @@ lossfun <- function(pl, skel, lam, parapen){
   return(loss)
 }
 
-calc_hlayers <- function(parlist){
+calc_hlayers <- function(parlist, normalize = FALSE){
   hlayers <- vector('list', nlayers)
   for (i in 1:nlayers){
     if (i == 1){D <- X} else {D <- hlayers[[i-1]]}
     if (bias_hlayers == TRUE){D <- cbind(1, D)}
-    hlayers[[i]] <- sigma(D %*% parlist[[i]])
+    if (normalize == TRUE){
+      hli <- sigma(D %*% parlist[[i]])
+      v <- sd(as.numeric(hli))
+      hlayers[[i]] <- hli/v 
+    } else {
+      hlayers[[i]] <- sigma(D %*% parlist[[i]])
+    }
   }
   colnames(hlayers[[i]]) <- paste0('nodes',1:ncol(hlayers[[i]]))
   if (!is.null(treatment)){
@@ -110,7 +116,6 @@ calc_hlayers <- function(parlist){
   }
   return(hlayers)
 }
-
 
 calc_grads<- function(plist, hlay = NULL, yhat = NULL, curBat = NULL){
   if (!is.null(curBat)){CB <- function(x){x[curBat,,drop = FALSE]}} else {CB <- function(x){x}}
@@ -231,7 +236,12 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
   parlist <- as.relistable(parlist)
   pl <- unlist(parlist) 
   #calculate hidden layers
-  hlayers <- calc_hlayers(parlist)
+  if (initialization == 'enforce_normalization'){
+    hlayers <- calc_hlayers(parlist, normalize = TRUE)
+  } else {
+    hlayers <- calc_hlayers(parlist)
+  }
+  lapply(hlayers, function(x){var(as.numeric(x))})
   #calculate ydm and put it in global...
   if (!is.null(fe_var)){
     ydm <<- demeanlist(y, list(fe_var)) 
