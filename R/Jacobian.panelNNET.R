@@ -1,20 +1,20 @@
 Jacobian.panelNNET <-
 function(obj, ...){
   if (obj$activation == 'tanh'){
-    sigma <- tanh
-    sigma_prime <- tanh_prime
+    activ <- tanh
+    activ_prime <- tanh_prime
   }
   if (obj$activation == 'logistic'){
-    sigma <- logistic
-    sigma_prime <- logistic_prime
+    activ <- logistic
+    activ_prime <- logistic_prime
   }
   if (obj$activation == 'relu'){
-    sigma <- relu
-    sigma_prime <- relu_prime
+    activ <- relu
+    activ_prime <- relu_prime
   }
   if (obj$activation == 'lrelu'){
-    sigma <- lrelu
-    sigma_prime <- lrelu_prime
+    activ <- lrelu
+    activ_prime <- lrelu_prime
   }
   plist <- as.relistable(obj$parlist)
   pvec <- unlist(plist)
@@ -24,7 +24,7 @@ function(obj, ...){
     D <- obj$X
     for (i in 1:length(obj$hidden_units)){
       if (obj$used_bias == TRUE){D <- cbind(1,D)}
-      D <- sigma(D %*% parlist[[i]])
+      D <- activ(D %*% parlist[[i]])
     } 
     colnames(D) <- paste0('nodes',1:ncol(D))
     if (!is.null(obj$treatment)){

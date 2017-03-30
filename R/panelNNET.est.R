@@ -88,11 +88,11 @@ calc_hlayers <- function(parlist, normalize = FALSE){
     if (i == 1){D <- X} else {D <- hlayers[[i-1]]}
     if (bias_hlayers == TRUE){D <- cbind(1, D)}
     if (normalize == TRUE){
-      hli <- sigma(D %*% parlist[[i]])
+      hli <- activ(D %*% parlist[[i]])
       v <- sd(as.numeric(hli))
       hlayers[[i]] <- hli/v 
     } else {
-      hlayers[[i]] <- sigma(D %*% parlist[[i]])
+      hlayers[[i]] <- activ(D %*% parlist[[i]])
     }
   }
   colnames(hlayers[[i]]) <- paste0('nodes',1:ncol(hlayers[[i]]))
@@ -163,16 +163,16 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
     }
   }
   if (activation == 'tanh'){
-    sigma <- tanh
-    sigma_prime <- tanh_prime
+    activ <- tanh
+    activ_prime <- tanh_prime
   }
   if (activation == 'logistic'){
-    sigma <- logistic
-    sigma_prime <- logistic_prime
+    activ <- logistic
+    activ_prime <- logistic_prime
   }
   if (activation == 'relu'){
-    sigma <- relu
-    sigma_prime <- relu_prime
+    activ <- relu
+    activ_prime <- relu_prime
   }
   if (!is.null(path)){
     fi <- list.files(path, pattern = tag)

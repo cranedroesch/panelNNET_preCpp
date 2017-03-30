@@ -6,16 +6,16 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
 #new.param = matrix(time[e])
 #se.fit = TRUE
   if (obj$activation == 'tanh'){
-    sigma <- tanh
+    activ <- tanh
   }
   if (obj$activation == 'logistic'){
-    sigma <- logistic
+    activ <- logistic
   }
   if (obj$activation == 'relu'){
-    sigma <- relu
+    activ <- relu
   }
   if (obj$activation == 'lrelu'){
-    sigma <- lrelu
+    activ <- lrelu
   }
   if (is.null(newX)){
     return(obj$yhat)
@@ -110,13 +110,13 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
 #prediction function, potentially for the Jacobian
 predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, tauhat = FALSE, FEs_to_merge = NULL){
   if (obj$activation == 'tanh'){
-    sigma <- tanh
+    activ <- tanh
   }
   if (obj$activation == 'logistic'){
-    sigma <- logistic
+    activ <- logistic
   }
   if (obj$activation == 'relu'){
-    sigma <- relu
+    activ <- relu
   }
   parlist <- relist(pvec)
   if (obj$doscale == TRUE){
@@ -127,7 +127,7 @@ predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, ne
   }
   for (i in 1:length(obj$hidden_units)){
     if (obj$used_bias == TRUE){D <- cbind(1,D)}
-    D <- sigma(D %*% parlist[[i]])
+    D <- activ(D %*% parlist[[i]])
   } 
   colnames(D) <- paste0('nodes',1:ncol(D))
   if (!is.null(obj$treatment)){
