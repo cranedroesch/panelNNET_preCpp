@@ -51,7 +51,16 @@ function(obj, ...){
   }
   #pass `Jfun` to `jacobian` from `numDeriv`
   J <- jacobian(Jfun, pvec, obj = obj)
-  J <- J[,c(#re-order jacobian so that parametric terms are on the front, followed by top layer.
+  #drop any zero columns that represent lower-level parameters
+  dJ <- ncol(J)
+  tokeep <- which(!(apply(J, 2, function(x){all(x==0)}) & !grepl('beta', names(pvec))))
+  J <- J[,tokeep]
+  if (ncol(J) < dJ){
+    warning(paste0(dJ - ncol(J), ' columns dropped from Jacobian because dY/dParm =~ 0'))
+  }
+  pvec <- pvec[tokeep]
+  #re-order jacobian so that parametric terms are on the front, followed by top layer.
+  J <- J[,c(
       which(grepl('param', names(pvec)))
     , which(names(pvec) == 'beta_treatment')
     , which(grepl('beta_treatmentinteractions', names(pvec)))

@@ -88,3 +88,5 @@ function(obj, option, J = NULL){
   }
   return(list(vc = vcov, J = J))
 }
+
+
