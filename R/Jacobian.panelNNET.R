@@ -14,6 +14,7 @@ function(obj, ...){
   }
   plist <- as.relistable(obj$parlist)
   pvec <- unlist(plist)
+  #define function to pass to `jacobian` from `numDeriv`
   Jfun <- function(pvec, obj){
     parlist <- relist(pvec)
     D <- obj$X
@@ -48,6 +49,7 @@ function(obj, ...){
     }
     return(yhat)
   }
+  #pass `Jfun` to `jacobian` from `numDeriv`
   J <- jacobian(Jfun, pvec, obj = obj)
   J <- J[,c(#re-order jacobian so that parametric terms are on the front, followed by top layer.
       which(grepl('param', names(pvec)))

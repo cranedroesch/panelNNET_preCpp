@@ -1,17 +1,17 @@
 vcov.panelNNET <-
 function(obj, option, J = NULL){
-#obj <- pnn2
+#obj <- pnn
+#option = 'Jacobian_cluster'
   e <- obj$y - obj$yhat
   if (is.null(J)){
     if (grepl('Jacobian', option)){
       J <- Jacobian.panelNNET(obj)
-    } else {
+    } else {#if using OLS approximation...
       J <- obj$hidden_layers[[length(obj$hidden_layers)]]
       if (!is.null(obj$fe_var)){
         J <- demeanlist(J, list(obj$fe_var))
         targ <- demeanlist(obj$y, list(obj$fe_var))
       } else {targ = obj$y}
-
       #OLS trick
       constraint <- sum(c(obj$parlist$beta_param*obj$parapen, obj$parlist$beta)^2)
       #getting implicit regressors depending on whether regression is panel
@@ -32,6 +32,7 @@ function(obj, option, J = NULL){
       obj$lam <- o$par
     }
   }
+  #set uo penality vector
   D <- rep(obj$lam, ncol(J))
   if (is.null(obj$fe_var)){
     pp <- c(0, obj$parapen) #never penalize the intercept
@@ -40,15 +41,23 @@ function(obj, option, J = NULL){
   }
   if (!is.null(obj$treatment)){pp <- append(pp, 0)}#treatment always follows parametric terms and will not be penalized
   D[1:length(pp)] <- D[1:length(pp)]*pp #incorporate parapen into diagonal of covmat
+  #check effective degrees of freedom against parameters
+  jtj <- crossprod(J)
+  ev <- eigen(jtj)$values
+  edf <- sum(ev/(ev+D))
+  if (edf>= nrow(J)){
+    warning('more effective degrees of freedom than observations.  change the architecture or increase the penalty if you want to calculate a parameter covariance matrix')
+    return(NULL)
+  }
   bread <- solve(t(J) %*% J + diag(D))
   if (option == 'Jacobian_homoskedastic'){
-    vcov <- sum(e^2)/(length(e) - ncol(J)) * bread
+    vcov <- sum(e^2)/(length(e) - edf) * bread
   }
   if (option == 'Jacobian_sandwich'){
     meat <- foreach(i = 1:length(e), .combine = '+') %do% {
       e[i]^2*J[i,] %*% t(J[i,])
     }
-    vcov <- (length(e)-1)/(length(e) - ncol(J)) * bread %*% meat %*% bread
+    vcov <- (length(e)-1)/(length(e) - edf) * bread %*% meat %*% bread
   }
   if (option == 'Jacobian_cluster'){
     G <- length(unique(obj$fe_var))
@@ -57,16 +66,16 @@ function(obj, option, J = NULL){
       Ji <- J[obj$fe_var == unique(obj$fe_var)[i],]
       t(Ji) %*% ei %*% t(ei) %*% Ji
     }
-    vcov <- G/(G-1)*(length(e) - 1)/(length(e) - ncol(J)) * bread %*% meat %*% bread
+    vcov <- G/(G-1)*(length(e) - 1)/(length(e) - edf) * bread %*% meat %*% bread
   }
   if (option == 'OLS'){
-    vcov <- sum(e^2)/(length(e) - ncol(J)) * bread
+    vcov <- sum(e^2)/(length(e) - edf) * bread
   }
   if (option == 'sandwich'){
     meat <- foreach(i = 1:length(e), .combine = '+') %do% {
       e[i]^2*J[i,] %*% t(J[i,])
     }
-    vcov <- (length(e)-1)/(length(e) - ncol(J)) * bread %*% meat %*% bread
+    vcov <- (length(e)-1)/(length(e) - edf) * bread %*% meat %*% bread
   }
   if (option == 'cluster'){
     G <- length(unique(obj$fe_var))
@@ -75,7 +84,7 @@ function(obj, option, J = NULL){
       Ji <- J[obj$fe_var == unique(obj$fe_var)[i],]
       t(Ji) %*% ei %*% t(ei) %*% Ji
     }
-    vcov <- G/(G-1)*(length(e) - 1)/(length(e) - ncol(J)) * bread %*% meat %*% bread
+    vcov <- G/(G-1)*(length(e) - 1)/(length(e) - edf) * bread %*% meat %*% bread
   }
   return(list(vc = vcov, J = J))
 }

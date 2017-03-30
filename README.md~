@@ -26,3 +26,5 @@ TBD:
 10.  VCV should account for effective degrees of freedom, not raw DF
 
 11.  Add sanity checks:  that FE input is defined and is a factor, that the parametric penalty multiplier is the same length as the parametric term vector, etc.
+
+12.  Add analytical Jacobian
