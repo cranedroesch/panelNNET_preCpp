@@ -564,6 +564,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
       vcs <- list(vc.JacHomo = vc.JacHomo, vc.JacSand = vc.JacSand, vc.OLSHomo = vc.OLSHomo, vc.OLSSand = vc.OLSSand)
     }
     output$vcs <- vcs
+    output$J <- J
   }
   return(output)
 }
