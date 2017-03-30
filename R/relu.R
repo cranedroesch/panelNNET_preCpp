@@ -13,7 +13,7 @@ function(v){
 
 lrelu <-
 function(v){
-  v[v<0] <- v*.01
+  v[v<0] <- v[v<0]*.01
   v
 }
 
