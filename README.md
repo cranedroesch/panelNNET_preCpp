@@ -29,4 +29,3 @@ TBD:
 
 13.  Write multistart function
 
-14.  Implement leaky RELU's and PReLUs
