@@ -90,9 +90,9 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
         semat <- foreach(i = 1:length(obj$vcs), .combine = cbind, .errorhandling = 'remove') %do% {
           if (grepl('OLS', names(obj$vcs)[i])){
             X <- J[, 1:sum(grepl('beta', names(pvec)))]#the Jacobian is ordered so that the top layer is first...
-            se <- sqrt(diag(X %*% obj$vcs[[i]]$vc %*% t(X)))
+            se <- sqrt(diag(X %*% obj$vcs[[i]] %*% t(X)))
           } else {
-            se <- sqrt(diag(J %*% obj$vcs[[i]]$vc %*% t(J)))
+            se <- sqrt(diag(J %*% obj$vcs[[i]] %*% t(J)))
           }
           vcnames[i] <- names(obj$vcs)[i]
           return(matrix(se))
