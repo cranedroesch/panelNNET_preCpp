@@ -602,6 +602,10 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
     }
     output$vcs <- vcs
     output$J <- J
+    #calculate EDF and add to output
+    jtj <- crossprod(J)
+    ev <- eigen(jtj)$values
+    output$edf <- sum(ev/(ev+D))
   }
   return(output)
 }
