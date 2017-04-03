@@ -5,7 +5,7 @@ coef.panelNNET <- function(obj, rescale = TRUE){
   }
   if (!is.null(obj$vcs)){
     se <- lapply(obj$vcs, function(x){
-      se <- sqrt(diag(x$vc))[1:length(parm)]
+      se <- sqrt(diag(x))[1:length(parm)]
       if (rescale == TRUE & obj$doscale == TRUE){
         se <- se/attr(obj$param, "scaled:scale")
       }
