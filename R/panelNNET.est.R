@@ -346,6 +346,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
         batchid[batchid == max(batchid)] <- sample(1:(max(batchid) - 1), min(table(batchid)), replace = TRUE)
       }
       for (bat in 1:max(batchid)) {
+#bat = 1
         curBat <- which(batchid == bat)
         #Get updated gradients
         grads <- calc_grads(parlist, lapply(hlayers, function(x){x[curBat,]}), yhat[curBat], curBat = curBat)
@@ -400,6 +401,8 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
         pl <- unlist(parlist)
         #Update hidden layers
         hlayers <- calc_hlayers(parlist)
+#plo <- parlist
+#parlist <- plo
         #OLS trick!
         if (OLStrick == TRUE){
           parlist <- OLStrick(parlist = parlist, hidden_layers = hlayers, y = y
@@ -410,6 +413,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
         #update yhat
         yhat <- getYhat(pl, attr(pl, 'skeleton'), hlay = hlayers)
         mse <- mean((y-yhat)^2)
+#mse
         msevec <- append(msevec, mse)
         loss <- mse + lam*sum(c(parlist$beta_param*parapen
           , 0*parlist$beta_treatment, parlist$beta
