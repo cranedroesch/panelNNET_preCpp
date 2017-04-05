@@ -2,52 +2,52 @@ panelNNET.est <-
 function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist, verbose, para_plot, report_interval, save_each_iter, path, tag, gravity, convtol, bias_hlayers, RMSprop, start.LR, activation, inference, doscale, treatment, interact_treatment, batchsize, maxstopcounter, OLStrick, useOptim, optimMethod, initialization,  ...){
 
 ##examplearguments for testing
-#rm(list=ls())
-#gc()
-#gc()
-#"%ni%" <- Negate("%in%")
+rm(list=ls())
+gc()
+gc()
+"%ni%" <- Negate("%in%")
 
-#set.seed(1)
-#library(panelNNET)
-#N <- 2000
-#x <- sort(runif(N, 0, 20))
-#time <- (1:N-1)%%20+1
-#id <- (1:N-1)%/%20+1
-#y <- id + time + x*sin(x) + rnorm(N, sd = 10)
-#plot(x, y)
-######y = y[r]
-#X = matrix(x)
-#fe_var = factor(id)
-#time_var = time
-#param = matrix(time)
+set.seed(1)
+library(panelNNET)
+N <- 2000
+x <- sort(runif(N, 0, 20))
+time <- (1:N-1)%%20+1
+id <- (1:N-1)%/%20+1
+y <- id + time + x*sin(x) + rnorm(N, sd = 10)
+plot(x, y)
+#####y = y[r]
+X = matrix(x)
+fe_var = factor(id)
+time_var = time
+param = matrix(time)
 
-#lam = .00001
-#maxit = 1000
-#hidden_units = c(10:3)
-#parlist = NULL
-#verbose = TRUE
-#para_plot = TRUE
-#report_interval = 10
-#OLStrick = TRUE
-#save_each_iter = FALSE
-#path = NULL
-#tag = ""
-#gravity = 1.01
-#bias_hlayers = TRUE
-#RMSprop = TRUE
-#convtol = 1e-8
-#activation = 'tanh'
-#doscale = TRUE
-#inference = FALSE
-#batchsize = nrow(X)
-#parapen = rep(1, ncol(param))
-#treatment = NULL
-#start.LR = .01
-#maxstopcounter = 10
-##batchsize = 100
-#useOptim = FALSE
-#optimMethod = 'BFGS'
-#initialization = 'HZRS'
+lam = .00001
+maxit = 1000
+hidden_units = c(10:3)
+parlist = NULL
+verbose = TRUE
+para_plot = TRUE
+report_interval = 10
+OLStrick = TRUE
+save_each_iter = FALSE
+path = NULL
+tag = ""
+gravity = 1.01
+bias_hlayers = TRUE
+RMSprop = TRUE
+convtol = 1e-8
+activation = 'tanh'
+doscale = TRUE
+inference = FALSE
+batchsize = nrow(X)
+parapen = rep(1, ncol(param))
+treatment = NULL
+start.LR = .01
+maxstopcounter = 10
+#batchsize = 100
+useOptim = FALSE
+optimMethod = 'BFGS'
+initialization = 'enforce_normalization'
 
 
 getYhat <- function(pl, skel = attr(pl, 'skeleton'), hlay = NULL){ 
@@ -245,7 +245,6 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
   } else {
     hlayers <- calc_hlayers(parlist)
   }
-  lapply(hlayers, function(x){var(as.numeric(x))})
   #calculate ydm and put it in global...
   if (!is.null(fe_var)){
     ydm <<- demeanlist(y, list(fe_var)) 
@@ -266,49 +265,55 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
     yhat <- getYhat(out$par, hlay = hlayers)
     if (OLStrick == TRUE){
     #First pass..
-      #calculate sum of top-level params
-      constraint <- sum(c(parlist$beta_param*parapen, parlist$beta)^2)
-      #getting implicit regressors depending on whether regression is panel
-      if (!is.null(fe_var)){
-        Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))
-        targ <- ydm
-      } else {
-        Zdm <- hlayers[[length(hlayers)]]
-        targ <- y
-      }
-      #function to find implicit lambda
-      f <- function(lam){
-        bi <- solve(t(Zdm) %*% Zdm + diag(rep(lam, ncol(Zdm)))) %*% t(Zdm) %*% targ
-        (t(bi) %*% bi - constraint)^2
-      }
-      #optimize it
-      o <- optim(par = lam, f = f, method = 'Brent', lower = lam, upper = 1e9)
-      #new lambda
-      newlam <- o$par
-      #New top-level params
-      b <- solve(t(Zdm) %*% Zdm + diag(rep(newlam, ncol(Zdm)))) %*% t(Zdm) %*% targ
-      parlist$beta_param <- b[grepl('param', rownames(b))]
-      parlist$beta <- b[grepl('nodes', rownames(b))]
+#      #calculate sum of top-level params
+#      constraint <- sum(c(parlist$beta_param*parapen, parlist$beta)^2)
+#      #getting implicit regressors depending on whether regression is panel
+#      if (!is.null(fe_var)){
+#        Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))
+#        targ <- ydm
+#      } else {
+#        Zdm <- hlayers[[length(hlayers)]]
+#        targ <- y
+#      }
+#      #function to find implicit lambda
+#      f <- function(lam){
+#        bi <- solve(t(Zdm) %*% Zdm + diag(rep(lam, ncol(Zdm)))) %*% t(Zdm) %*% targ
+#        (t(bi) %*% bi - constraint)^2
+#      }
+#      #optimize it
+#      o <- optim(par = lam, f = f, method = 'Brent', lower = lam, upper = 1e9)
+#      #new lambda
+#      newlam <- o$par
+#      #New top-level params
+#      b <- solve(t(Zdm) %*% Zdm + diag(rep(newlam, ncol(Zdm)))) %*% t(Zdm) %*% targ
+#      parlist$beta_param <- b[grepl('param', rownames(b))]
+#      parlist$beta <- b[grepl('nodes', rownames(b))]
+      parlist <- OLStrick(parlist = parlist, hidden_layers = hlayers, y = y
+        , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
+      )
       #new yhat
       yhat <- getYhat(unlist(parlist), skel = attr(unlist(parlist), 'skeleton'), hlay = hlayers)
       #second pass
-      out <- optim(par = unlist(parlist), fn = lossfun, gr = getgr
-        , control = list(trace  =verbose*6, maxit = maxit)
-        , method = optimMethod, skel = attr(pl, 'skeleton'), parapen = parapen, lam = lam
+#      out <- optim(par = unlist(parlist), fn = lossfun, gr = getgr
+#        , control = list(trace  =verbose*6, maxit = maxit)
+#        , method = optimMethod, skel = attr(pl, 'skeleton'), parapen = parapen, lam = lam
+#      )
+#      parlist <- relist(out$par)  
+#      hlayers <- calc_hlayers(parlist)
+#      constraint <- sum(c(parlist$beta_param*parapen, parlist$beta)^2)
+#      if (!is.null(fe_var)){Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))}
+#      f <- function(lam){#function to 
+#        bi <- solve(t(Zdm) %*% Zdm + diag(rep(lam, ncol(Zdm)))) %*% t(Zdm) %*% targ
+#        (t(bi) %*% bi - constraint)^2
+#      }
+#      o <- optim(par = lam, f = f, method = 'Brent', lower = lam, upper = 1e9)
+#      newlam <- o$par
+#      b <- solve(t(Zdm) %*% Zdm + diag(rep(newlam, ncol(Zdm)))) %*% t(Zdm) %*% targ
+#      parlist$beta_param <- b[grepl('param', rownames(b))]
+#      parlist$beta <- b[grepl('nodes', rownames(b))]
+      parlist <- OLStrick(parlist = parlist, hidden_layers = hlayers, y = y
+        , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
       )
-      parlist <- relist(out$par)  
-      hlayers <- calc_hlayers(parlist)
-      constraint <- sum(c(parlist$beta_param*parapen, parlist$beta)^2)
-      if (!is.null(fe_var)){Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))}
-      f <- function(lam){#function to 
-        bi <- solve(t(Zdm) %*% Zdm + diag(rep(lam, ncol(Zdm)))) %*% t(Zdm) %*% targ
-        (t(bi) %*% bi - constraint)^2
-      }
-      o <- optim(par = lam, f = f, method = 'Brent', lower = lam, upper = 1e9)
-      newlam <- o$par
-      b <- solve(t(Zdm) %*% Zdm + diag(rep(newlam, ncol(Zdm)))) %*% t(Zdm) %*% targ
-      parlist$beta_param <- b[grepl('param', rownames(b))]
-      parlist$beta <- b[grepl('nodes', rownames(b))]
       yhat <- getYhat(unlist(parlist), skel = attr(unlist(parlist), 'skeleton'), hlay = hlayers)
     }
     #calc fixed effects
@@ -436,28 +441,31 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
         hlayers <- calc_hlayers(parlist)
         #OLS trick!
         if (OLStrick == TRUE){
-          constraint <- sum(c(parlist$beta_param*parapen, parlist$beta)^2)
-          #getting implicit regressors depending on whether regression is panel
-          if (!is.null(fe_var)){
-            Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))
-            targ <- ydm
-          } else {
-            Zdm <- hlayers[[length(hlayers)]]
-            targ <- y
-          }
-          #function to find implicit lambda
-          f <- function(lam){
-            bi <- solve(t(Zdm) %*% Zdm + diag(rep(lam, ncol(Zdm)))) %*% t(Zdm) %*% targ
-            (t(bi) %*% bi - constraint)^2
-          }
-          #optimize it
-          o <- optim(par = lam, f = f, method = 'Brent', lower = lam, upper = 1e9)
-          #new lambda
-          newlam <- o$par
-          #New top-level params
-          b <- solve(t(Zdm) %*% Zdm + diag(rep(newlam, ncol(Zdm)))) %*% t(Zdm) %*% targ
-          parlist$beta_param <- b[grepl('param', rownames(b))]
-          parlist$beta <- b[grepl('nodes', rownames(b))]
+#          constraint <- sum(c(parlist$beta_param*parapen, parlist$beta)^2)
+#          #getting implicit regressors depending on whether regression is panel
+#          if (!is.null(fe_var)){
+#            Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))
+#            targ <- ydm
+#          } else {
+#            Zdm <- hlayers[[length(hlayers)]]
+#            targ <- y
+#          }
+#          #function to find implicit lambda
+#          f <- function(lam){
+#            bi <- solve(t(Zdm) %*% Zdm + diag(rep(lam, ncol(Zdm)))) %*% t(Zdm) %*% targ
+#            (t(bi) %*% bi - constraint)^2
+#          }
+#          #optimize it
+#          o <- optim(par = lam, f = f, method = 'Brent', lower = lam, upper = 1e9)
+#          #new lambda
+#          newlam <- o$par
+#          #New top-level params
+#          b <- solve(t(Zdm) %*% Zdm + diag(rep(newlam, ncol(Zdm)))) %*% t(Zdm) %*% targ
+#          parlist$beta_param <- b[grepl('param', rownames(b))]
+#          parlist$beta <- b[grepl('nodes', rownames(b))]
+          parlist <- OLStrick(parlist = parlist, hidden_layers = hlayers, y = y
+            , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
+          )
           pl <- unlist(parlist)
         }
         #update yhat
