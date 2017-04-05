@@ -265,13 +265,13 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
     yhat <- getYhat(out$par, hlay = hlayers)
     if (OLStrick == TRUE){
     #First pass..
-      parlist <- OLStrick(parlist = parlist, hidden_layers = hlayers, y = y
+      parlist <- OLStrick_function(parlist = parlist, hidden_layers = hlayers, y = y
         , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
       )
       #new yhat
       yhat <- getYhat(unlist(parlist), skel = attr(unlist(parlist), 'skeleton'), hlay = hlayers)
       #second pass
-      parlist <- OLStrick(parlist = parlist, hidden_layers = hlayers, y = y
+      parlist <- OLStrick_function(parlist = parlist, hidden_layers = hlayers, y = y
         , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
       )
       yhat <- getYhat(unlist(parlist), skel = attr(unlist(parlist), 'skeleton'), hlay = hlayers)
@@ -405,7 +405,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
 #parlist <- plo
         #OLS trick!
         if (OLStrick == TRUE){
-          parlist <- OLStrick(parlist = parlist, hidden_layers = hlayers, y = y
+          parlist <- OLStrick_function(parlist = parlist, hidden_layers = hlayers, y = y
             , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
           )
         }

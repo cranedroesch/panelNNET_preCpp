@@ -1,6 +1,6 @@
 
 
-OLStrick <- function(parlist, hidden_layers, y, fe_var, lam, parapen, treatment){
+OLStrick_function <- function(parlist, hidden_layers, y, fe_var, lam, parapen, treatment){
 #parlist <- pnn$parlist
 #hidden_layers <- pnn$hidden_layers
 #y = pnn$y
