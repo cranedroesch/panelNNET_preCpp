@@ -2,52 +2,52 @@ panelNNET.est <-
 function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist, verbose, para_plot, report_interval, save_each_iter, path, tag, gravity, convtol, bias_hlayers, RMSprop, start.LR, activation, inference, doscale, treatment, interact_treatment, batchsize, maxstopcounter, OLStrick, useOptim, optimMethod, initialization,  ...){
 
 ##examplearguments for testing
-rm(list=ls())
-gc()
-gc()
-"%ni%" <- Negate("%in%")
+#rm(list=ls())
+#gc()
+#gc()
+#"%ni%" <- Negate("%in%")
 
-set.seed(1)
-library(panelNNET)
-N <- 2000
-x <- sort(runif(N, 0, 20))
-time <- (1:N-1)%%20+1
-id <- (1:N-1)%/%20+1
-y <- id + time + x*sin(x) + rnorm(N, sd = 10)
-plot(x, y)
-#####y = y[r]
-X = matrix(x)
-fe_var = factor(id)
-time_var = time
-param = matrix(time)
+#set.seed(1)
+#library(panelNNET)
+#N <- 2000
+#x <- sort(runif(N, 0, 20))
+#time <- (1:N-1)%%20+1
+#id <- (1:N-1)%/%20+1
+#y <- id + time + x*sin(x) + rnorm(N, sd = 10)
+#plot(x, y)
+######y = y[r]
+#X = matrix(x)
+#fe_var = factor(id)
+#time_var = time
+#param = matrix(time)
 
-lam = .00001
-maxit = 1000
-hidden_units = c(10:3)
-parlist = NULL
-verbose = TRUE
-para_plot = TRUE
-report_interval = 10
-OLStrick = TRUE
-save_each_iter = FALSE
-path = NULL
-tag = ""
-gravity = 1.01
-bias_hlayers = TRUE
-RMSprop = TRUE
-convtol = 1e-8
-activation = 'tanh'
-doscale = TRUE
-inference = FALSE
-batchsize = nrow(X)
-parapen = rep(1, ncol(param))
-treatment = NULL
-start.LR = .01
-maxstopcounter = 10
-#batchsize = 100
-useOptim = FALSE
-optimMethod = 'BFGS'
-initialization = 'enforce_normalization'
+#lam = .00001
+#maxit = 1000
+#hidden_units = c(10:3)
+#parlist = NULL
+#verbose = TRUE
+#para_plot = TRUE
+#report_interval = 10
+#OLStrick = TRUE
+#save_each_iter = FALSE
+#path = NULL
+#tag = ""
+#gravity = 1.01
+#bias_hlayers = TRUE
+#RMSprop = TRUE
+#convtol = 1e-8
+#activation = 'tanh'
+#doscale = TRUE
+#inference = FALSE
+#batchsize = nrow(X)
+#parapen = rep(1, ncol(param))
+#treatment = NULL
+#start.LR = .01
+#maxstopcounter = 10
+##batchsize = 100
+#useOptim = FALSE
+#optimMethod = 'BFGS'
+#initialization = 'enforce_normalization'
 
 
 getYhat <- function(pl, skel = attr(pl, 'skeleton'), hlay = NULL){ 
