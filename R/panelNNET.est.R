@@ -394,6 +394,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
             updates[[i]] <- t(LR * t(grads[[i]]) %*% lay + 2 * lam * t(parlist[[i]]))
           }
         }
+
         #Update parameters from update list
         parlist <- as.relistable(mapply('-', parlist, updates))
         pl <- unlist(parlist)

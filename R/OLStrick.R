@@ -8,7 +8,8 @@ OLStrick <- function(parlist, hidden_layers, y, fe_var, lam, parapen, treatment)
 #lam <- pnn$lam
 #parapen <- pnn$parapen
 #treatment = NULL
-
+#hidden_layers <- hlayers
+#parapen = 0
   constraint <- sum(c(parlist$beta_param*parapen, parlist$beta)^2)
   #getting implicit regressors depending on whether regression is panel
   if (!is.null(fe_var)){
@@ -31,7 +32,7 @@ OLStrick <- function(parlist, hidden_layers, y, fe_var, lam, parapen, treatment)
   f <- function(lam){
     bi <- glmnet(y = targ, x = Zdm, lambda = lam, alpha = 0, intercept = FALSE, penalty.factor = D)
     bi <- as.matrix(coef(bi))[-1,]
-    (t(bi) %*% bi - constraint)^2
+    (t(bi*D) %*% (bi*D) - constraint)^2
   }
   #optimize it
   o <- optim(par = lam, f = f, method = 'Brent', lower = lam, upper = 1e9)
@@ -44,6 +45,7 @@ OLStrick <- function(parlist, hidden_layers, y, fe_var, lam, parapen, treatment)
   parlist$beta <- b[grepl('nodes', rownames(b))]
   return(parlist)
 }
+
 
 
 
