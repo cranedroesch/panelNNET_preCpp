@@ -1,6 +1,14 @@
 
 
 OLStrick <- function(parlist, hidden_layers, y, fe_var, lam, parapen, treatment){
+#parlist <- pnn$parlist
+#hidden_layers <- pnn$hidden_layers
+#y = pnn$y
+#fe_var <- pnn$fe_var
+#lam <- pnn$lam
+#parapen <- pnn$parapen
+#treatment = NULL
+
   constraint <- sum(c(parlist$beta_param*parapen, parlist$beta)^2)
   #getting implicit regressors depending on whether regression is panel
   if (!is.null(fe_var)){
@@ -11,7 +19,7 @@ OLStrick <- function(parlist, hidden_layers, y, fe_var, lam, parapen, treatment)
     targ <- y
   }
   #set up the penalty vector
-  D <- rep(lam, ncol(Zdm))
+  D <- rep(1, ncol(Zdm))
   if (is.null(fe_var)){
     pp <- c(0, parapen) #never penalize the intercept
   } else {
@@ -21,7 +29,8 @@ OLStrick <- function(parlist, hidden_layers, y, fe_var, lam, parapen, treatment)
   D[1:length(pp)] <- D[1:length(pp)]*pp #incorporate parapen into diagonal of covmat
   #function to find implicit lambda
   f <- function(lam){
-    bi <- solve(t(Zdm) %*% Zdm + diag(D)) %*% t(Zdm) %*% targ
+    bi <- glmnet(y = targ, x = Zdm, lambda = lam, alpha = 0, intercept = FALSE, penalty.factor = D)
+    bi <- as.matrix(coef(bi))[-1,]
     (t(bi) %*% bi - constraint)^2
   }
   #optimize it
@@ -29,9 +38,14 @@ OLStrick <- function(parlist, hidden_layers, y, fe_var, lam, parapen, treatment)
   #new lambda
   newlam <- o$par
   #New top-level params
-  D[D!=0] <- newlam
-  b <- solve(t(Zdm) %*% Zdm + diag(D)) %*% t(Zdm) %*% targ
+  br <- glmnet(y = targ, x = Zdm, lambda = newlam, alpha = 0, intercept = FALSE, penalty.factor = D)
+  b <- as.matrix(coef(br))[-1,,drop = FALSE]
   parlist$beta_param <- b[grepl('param', rownames(b))]
   parlist$beta <- b[grepl('nodes', rownames(b))]
   return(parlist)
 }
+
+
+
+
+

@@ -265,52 +265,12 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
     yhat <- getYhat(out$par, hlay = hlayers)
     if (OLStrick == TRUE){
     #First pass..
-#      #calculate sum of top-level params
-#      constraint <- sum(c(parlist$beta_param*parapen, parlist$beta)^2)
-#      #getting implicit regressors depending on whether regression is panel
-#      if (!is.null(fe_var)){
-#        Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))
-#        targ <- ydm
-#      } else {
-#        Zdm <- hlayers[[length(hlayers)]]
-#        targ <- y
-#      }
-#      #function to find implicit lambda
-#      f <- function(lam){
-#        bi <- solve(t(Zdm) %*% Zdm + diag(rep(lam, ncol(Zdm)))) %*% t(Zdm) %*% targ
-#        (t(bi) %*% bi - constraint)^2
-#      }
-#      #optimize it
-#      o <- optim(par = lam, f = f, method = 'Brent', lower = lam, upper = 1e9)
-#      #new lambda
-#      newlam <- o$par
-#      #New top-level params
-#      b <- solve(t(Zdm) %*% Zdm + diag(rep(newlam, ncol(Zdm)))) %*% t(Zdm) %*% targ
-#      parlist$beta_param <- b[grepl('param', rownames(b))]
-#      parlist$beta <- b[grepl('nodes', rownames(b))]
       parlist <- OLStrick(parlist = parlist, hidden_layers = hlayers, y = y
         , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
       )
       #new yhat
       yhat <- getYhat(unlist(parlist), skel = attr(unlist(parlist), 'skeleton'), hlay = hlayers)
       #second pass
-#      out <- optim(par = unlist(parlist), fn = lossfun, gr = getgr
-#        , control = list(trace  =verbose*6, maxit = maxit)
-#        , method = optimMethod, skel = attr(pl, 'skeleton'), parapen = parapen, lam = lam
-#      )
-#      parlist <- relist(out$par)  
-#      hlayers <- calc_hlayers(parlist)
-#      constraint <- sum(c(parlist$beta_param*parapen, parlist$beta)^2)
-#      if (!is.null(fe_var)){Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))}
-#      f <- function(lam){#function to 
-#        bi <- solve(t(Zdm) %*% Zdm + diag(rep(lam, ncol(Zdm)))) %*% t(Zdm) %*% targ
-#        (t(bi) %*% bi - constraint)^2
-#      }
-#      o <- optim(par = lam, f = f, method = 'Brent', lower = lam, upper = 1e9)
-#      newlam <- o$par
-#      b <- solve(t(Zdm) %*% Zdm + diag(rep(newlam, ncol(Zdm)))) %*% t(Zdm) %*% targ
-#      parlist$beta_param <- b[grepl('param', rownames(b))]
-#      parlist$beta <- b[grepl('nodes', rownames(b))]
       parlist <- OLStrick(parlist = parlist, hidden_layers = hlayers, y = y
         , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
       )
@@ -441,33 +401,11 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
         hlayers <- calc_hlayers(parlist)
         #OLS trick!
         if (OLStrick == TRUE){
-#          constraint <- sum(c(parlist$beta_param*parapen, parlist$beta)^2)
-#          #getting implicit regressors depending on whether regression is panel
-#          if (!is.null(fe_var)){
-#            Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))
-#            targ <- ydm
-#          } else {
-#            Zdm <- hlayers[[length(hlayers)]]
-#            targ <- y
-#          }
-#          #function to find implicit lambda
-#          f <- function(lam){
-#            bi <- solve(t(Zdm) %*% Zdm + diag(rep(lam, ncol(Zdm)))) %*% t(Zdm) %*% targ
-#            (t(bi) %*% bi - constraint)^2
-#          }
-#          #optimize it
-#          o <- optim(par = lam, f = f, method = 'Brent', lower = lam, upper = 1e9)
-#          #new lambda
-#          newlam <- o$par
-#          #New top-level params
-#          b <- solve(t(Zdm) %*% Zdm + diag(rep(newlam, ncol(Zdm)))) %*% t(Zdm) %*% targ
-#          parlist$beta_param <- b[grepl('param', rownames(b))]
-#          parlist$beta <- b[grepl('nodes', rownames(b))]
           parlist <- OLStrick(parlist = parlist, hidden_layers = hlayers, y = y
             , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
           )
-          pl <- unlist(parlist)
         }
+        pl <- unlist(parlist)
         #update yhat
         yhat <- getYhat(pl, attr(pl, 'skeleton'), hlay = hlayers)
         mse <- mean((y-yhat)^2)
