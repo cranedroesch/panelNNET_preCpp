@@ -13,23 +13,23 @@ function(obj, option, J = NULL){
         targ <- demeanlist(obj$y, list(obj$fe_var))
       } else {targ = obj$y}
       #OLS trick
-      constraint <- sum(c(parlist$beta_param*parapen, parlist$beta)^2)
+      constraint <- sum(c(obj$parlist$beta_param*obj$parapen, obj$parlist$beta)^2)
       #getting implicit regressors depending on whether regression is panel
-      if (!is.null(fe_var)){
-        Zdm <- demeanlist(hidden_layers[[length(hidden_layers)]], list(fe_var))
-        targ <- demeanlist(y, list(fe_var))
+      if (!is.null(obj$fe_var)){
+        Zdm <- demeanlist(obj$hidden_layers[[length(obj$hidden_layers)]], list(obj$fe_var))
+        targ <- demeanlist(obj$y, list(obj$fe_var))
       } else {
-        Zdm <- hidden_layers[[length(hidden_layers)]]
-        targ <- y
+        Zdm <- hidden_layers[[length(obj$hidden_layers)]]
+        targ <- obj$y
       }
       #set up the penalty vector
       D <- rep(1, ncol(Zdm))
-      if (is.null(fe_var)){
-        pp <- c(0, parapen) #never penalize the intercept
+      if (is.null(obj$fe_var)){
+        pp <- c(0, obj$parapen) #never penalize the intercept
       } else {
-        pp <- parapen #parapen
+        pp <- obj$parapen #parapen
       }
-      if (!is.null(treatment)){pp <- append(pp, 0)}#treatment always follows parametric terms and will not be penalized
+      if (!is.null(obj$treatment)){pp <- append(pp, 0)}#treatment always follows parametric terms and will not be penalized
       D[1:length(pp)] <- D[1:length(pp)]*pp #incorporate parapen into diagonal of covmat
       #function to find implicit lambda
       f <- function(lam){
@@ -99,5 +99,9 @@ function(obj, option, J = NULL){
   }
   return(vcov)
 }
+
+
+
+
 
 
