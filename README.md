@@ -23,7 +23,7 @@ TBD:
 
 10.  Add sanity checks:  that FE input is defined and is a factor, that the parametric penalty multiplier is the same length as the parametric term vector, etc.
 
-11.  Add analytical Jacobian
+11.  Add analytical Jacobian, with parallel computation
 
 12.  Add effective degrees of freedom to summary output
 
