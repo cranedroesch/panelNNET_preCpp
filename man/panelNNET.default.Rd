@@ -189,9 +189,9 @@ This package is in active development.
   N <- 1000
   p <- 20
   X <- as.data.frame(mvrnorm(N, rep(0, p), diag(rep(1, p))))
-  id <- factor(0:(N-1)%%20+1)
+  id <- factor(0:(N-1)\%\%20+1)
   id.eff <- rnorm(nlevels(id), sd = 5)
-  time <- 0:(N - 1)%/%20+1
+  time <- 0:(N - 1)\%/\%20+1
   u <- rnorm(N, sd = 5)
   y <- sin(3*X$V1) - cos(4*X$V2) + 3*tanh((-2*X$V1+X$V2+X$V4)*X$V3) + X$V6/(X$V7+8) + id.eff[id] +
      .5*time - .005*time^2 + u

@@ -16,15 +16,16 @@ Semi-parametric fixed-effects models for panel data, using neural networks
 Function fits fixed effects models in which some variables entering linearly and others entering non-parametrically.  Nonparametric component of the model represented by a feed-forward neural network.  
 }
 \usage{
-panelNNET.default(y, X, hidden_units, fe_var
-  , maxit = 1000, lam = 0, time_var = NULL, param = NULL
+panelNNET.default(  y, X, hidden_units, fe_var
+  , maxit = 100, lam = 0, time_var = NULL, param = NULL
   , parapen = rep(0, ncol(param)), parlist = NULL, verbose = FALSE
+  , para_plot = FALSE, report_interval = 100
   , save_each_iter = FALSE, path = NULL, tag = "", gravity = 1.01
   , convtol = 1e-8, bias_hlayers = TRUE, RMSprop = TRUE, start_LR = .01
-  , activation = 'tanh', inference = TRUE, doscale = TRUE, 
+  , activation = 'tanh', inference = TRUE, doscale = TRUE
   , treatment = NULL, interact_treatment = TRUE, batchsize = nrow(X)
   , maxstopcounter = 10, OLStrick = FALSE, useOptim = FALSE
-  , optimMethod = 'BFGS', ...)
+  , optimMethod = 'BFGS', initialization = 'HZRS', ...)
 }
 
 %- maybe also 'usage' for other objects documented here.
@@ -45,10 +46,10 @@ A factor indicating the cross-sectional unit.  At present only one cross-section
 Maximum number of iterations
 }
   \item{lam}{
-Lambda, the penalty factor 
+Lambda, the penalty (or "weight decay") factor 
 }
   \item{time_var}{
-Numeric vector of the running time variable
+Numeric vector of the time variable
 }
   \item{param}{
 Terms to enter parametrically
@@ -57,37 +58,37 @@ Terms to enter parametrically
 Numeric vector multiplying the penalty terms on the the penalties for the parametric terms.  Defaults to a vector of zeros; parametric terms are unpenalized.  This is useful when inference on these terms is desired.  
 }
   \item{parlist}{
-A list of starting values for the parameters.  Chosen randomly if omitted.  Useful when re-starting an interrupted gradient descent.
+A list of starting values for the parameters.  Chosen randomly if omitted (see the "initialization" argument).  Useful when re-starting an interrupted gradient descent. 
 }
   \item{verbose}{
 If true will print progress to console, and make plots of the algorithm's progress.  May work poorly on windows and/or in RStudio.
 }
   \item{save_each_iter}{
-Should the temporary weights be saved to disk after each iteration?  
+Should the temporary weights be saved to disk after each iteration?  This is deprecated, and will be removed.
 }
   \item{path}{
-Path for the weights to be saved after each iteration.  Ignored if not saving after every iteration.
+Path for the weights to be saved after each iteration.  Ignored if not saving after every iteration.  Deprecated.
 }
   \item{tag}{
-A string to include in the temporary weight files saved to disk.
+A string to include in the temporary weight files saved to disk.  Deprecated.
 }
   \item{gravity}{
 The learning rate will be multiplied by this factor after each step.
 }
   \item{convtol}{
-Convergence tolerance.  When 10 successive iterations fail to improve MSE by this amount, gradient descent exits
+Convergence tolerance.  When <<maxstopcounter>> successive iterations fail to improve MSE by this amount, gradient descent exits
 }
   \item{bias_hlayers}{
-Add bias terms to hidden layers (not top layer).  Currently broken when RMSprop is set to TRUE
+Add bias (i.e. intercept) terms to hidden layers (not top layer)
 }
   \item{RMSprop}{
 Gradient descent by RMSprop.  If FALSE, by "vanilla" gradient descent
 }
   \item{start_LR}{
-The initial learning rate
+The initial learning rate a.k.a. step size
 }
   \item{activation}{
-"tanh", "logistic", or "relu"
+"tanh", "logistic", "relu", or "lrelu" (for "leaky ReLU")
 }
   \item{inference}{
 Should approximate inference be performed?  If so, various forms of covariance matrix will be estimated.
@@ -111,13 +112,16 @@ Size of batches for minibatch gradient descent.  Defaults to nrow(X), which is b
 How many times should the learning rate be halved after an epoch increases MSE, before panelNNET exits?
 }
   \item{OLStrick}{
-Find the closed-form solution on the top layer of the network that minimizes the penalized loss function -- augmenting gradient descent.  May not make sense when using minibatch methods.
+Find the closed-form solution on the top layer of the network that minimizes the penalized loss function -- augmenting gradient descent.  
 }
   \item{useOptim}{
-Logical.  Use R's optim function for gradient descent?
+Logical.  Use R's optim function for gradient descent?  This doesn't work very well with the OLS trick.
 }
   \item{optimMethod}{
 If useOptime == TRUE, an optimizer method.
+}
+  \item{initialization}{
+If "HRZS", the weight initialization scheme proposed by He, Zhang, Ren, and Jian (2015).  If "XG", the weight initialization scheme proposed by Glorot and Bengio (2010).  If "enforce_normalization", uniform random numbers are scaled such that their variance equals one.  Otherwise, draws from a uniform distribution with bounds of -.7 and .7, following recommndations in Hastie, Tibshirani, and Friedman.
 }
 }
 \details{
@@ -153,7 +157,17 @@ in the single-layer case, and generalized in the multi-layer cased.  Parameters 
   \item{activation }{The activation function used}
   \item{parapen }{The factor that multiplies lambda for the penalty terms}
   \item{doscale }{Whether the data was scaled.  Note that the scaling factors can be gotten from the attributes of the returned X and param matrices}
+  \item{treatment}{The user-supplied treatment assignments}
+  \item{interact_treatment}{Logical, user-supplied}
+  \item{batchsize}{User-supplied}
+  \item{usedOptim}{User-supplied}
+  \item{optimMethod}{User-supplied}
+  \item{initialization}{User-supplied}
+  \item{edf}{Effective degrees of freedom.  Only returned if inference set to true.}
+  \item{vcs}{Various sorts of parameter covariance matrix.  Only returned if inference set to true.}}
+  \item{J}{The Jacobian.  Only returned if inference set to true.}
 }
+
 \references{
 Friedman, Jerome, Trevor Hastie, and Robert Tibshirani. The elements of statistical learning. Vol. 1. Springer, Berlin: Springer series in statistics, 2001.
 }
@@ -175,9 +189,9 @@ This package is in active development.
   N <- 1000
   p <- 20
   X <- as.data.frame(mvrnorm(N, rep(0, p), diag(rep(1, p))))
-  id <- factor(0:(N-1)\%\%20+1)
+  id <- factor(0:(N-1)%%20+1)
   id.eff <- rnorm(nlevels(id), sd = 5)
-  time <- 0:(N - 1)\%/\%20+1
+  time <- 0:(N - 1)%/%20+1
   u <- rnorm(N, sd = 5)
   y <- sin(3*X$V1) - cos(4*X$V2) + 3*tanh((-2*X$V1+X$V2+X$V4)*X$V3) + X$V6/(X$V7+8) + id.eff[id] +
      .5*time - .005*time^2 + u
