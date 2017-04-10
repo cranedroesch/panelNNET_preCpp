@@ -556,6 +556,14 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
     #calculate EDF and add to output
     jtj <- crossprod(J)
     ev <- eigen(jtj)$values
+    D <- rep(lam, ncol(J))
+    if (is.null(fe_var)){
+      pp <- c(0, parapen) #never penalize the intercept
+    } else {
+      pp <- parapen #parapen
+    }
+    if (!is.null(treatment)){pp <- append(pp, 0)}#treatment always follows parametric terms and will not be penalized
+    D[1:length(pp)] <- D[1:length(pp)]*pp #incorporate parapen into diagonal of covmat
     output$edf <- sum(ev/(ev+D))
   }
   return(output)
