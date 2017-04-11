@@ -13,6 +13,7 @@ function(x, ...){
     infstrings <- "\nParametric Estimates:\n"  
     #Parameter names and variance estimate labels...
     if (is.null(colnames(x$param))){
+print('aaa')
       if (is.null(x$fe_var)){
         #labs <- c('LTE, homoskedastic vcv', 'LTE, sandwich vcv', 'OLS/ridge, homoskedastic vcv', 'OLS/ridge, sandwich vcv')
         labs <- names(x$vcs)
@@ -22,7 +23,11 @@ function(x, ...){
         labs <- names(x$vcs)
         parnames <- paste0('V', 1:ncol(x$param))
       }
+    } else {
+      labs <- names(x$vcs)
+      parnames <- colnames(x$param)    
     }
+
     if (!is.null(x$treatment)){parnames <- append(parnames, 'treatment')}
     for (i in 1:length(labs)){
       s <- summary_table_element(x$vcs[[i]], parm)
