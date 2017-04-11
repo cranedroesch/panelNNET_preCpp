@@ -1,9 +1,9 @@
 predict.panelNNET <-
 function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, se.fit = FALSE, tauhat = FALSE){
-#obj <- pnn2
-#newX = Z[e,]
-#fe.newX = id[e]
-#new.param = matrix(time[e])
+#obj <- mlist[[13]]
+#newX = Z[v,]
+#fe.newX = id[v]
+#new.param = P[v,]
 #se.fit = TRUE
   if (obj$activation == 'tanh'){
     activ <- tanh
@@ -77,19 +77,24 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
         if (is.null(obj$vcs)){
           stop("No vcov matrices in object.  Can't calculate se's")
         }
-        J <- jacobian(predfun, pvec, obj = obj, newX = newX, fe.newX = fe.newX
-          , new.param = new.param, new.treatment = new.treatment, FEs_to_merge = FEs_to_merge)
-        J <- J[,c(#re-order jacobian so that parametric terms are on the front, followed by top layer.
-            which(grepl('param', names(pvec)))
-          , which(names(pvec) == 'beta_treatment')
-          , which(grepl('beta_treatmentinteractions', names(pvec)))
-          , which(grepl('beta', names(pvec)) & !grepl('param', names(pvec)) & !grepl('treatment', names(pvec)))
-          , which(!grepl('beta', names(pvec)))#no particular order to lower-level parameters
-         )]
+        #predicted pseudovariables
+        if (grepl('Jac', names(obj$vcs))){#only calculate the jacobian of the new obs if you have to
+          J <- jacobian(predfun, pvec, obj = obj, newX = newX, fe.newX = fe.newX
+            , new.param = new.param, new.treatment = new.treatment, FEs_to_merge = FEs_to_merge)
+          J <- J[,c(#re-order jacobian so that parametric terms are on the front, followed by top layer.
+              which(grepl('param', names(pvec)))
+            , which(names(pvec) == 'beta_treatment')
+            , which(grepl('beta_treatmentinteractions', names(pvec)))
+            , which(grepl('beta', names(pvec)) & !grepl('param', names(pvec)) & !grepl('treatment', names(pvec)))
+            , which(!grepl('beta', names(pvec)))#no particular order to lower-level parameters
+          )]
+        }
+        #predicted top-level variables
+        X <- predfun(pvec, obj = obj, newX = newX, fe.newX = fe.newX
+            , new.param = new.param, new.treatment = new.treatment, FEs_to_merge = FEs_to_merge, return_toplayer = TRUE)
         vcnames <- c()
         semat <- foreach(i = 1:length(obj$vcs), .combine = cbind, .errorhandling = 'remove') %do% {
           if (grepl('OLS', names(obj$vcs)[i])){
-            X <- J[, 1:sum(grepl('beta', names(pvec)))]#the Jacobian is ordered so that the top layer is first...
             se <- sqrt(diag(X %*% obj$vcs[[i]] %*% t(X)))
           } else {
             se <- sqrt(diag(J %*% obj$vcs[[i]] %*% t(J)))
@@ -106,9 +111,8 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
 }
 
 
-
 #prediction function, potentially for the Jacobian
-predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, tauhat = FALSE, FEs_to_merge = NULL){
+predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, tauhat = FALSE, FEs_to_merge = NULL, return_toplayer = FALSE){
   if (obj$activation == 'tanh'){
     activ <- tanh
   }
@@ -161,8 +165,11 @@ predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, ne
   if (tauhat == TRUE) {
     taumat <- D[,grepl('tr', colnames(D), ignore.case = TRUE)]
     return(taumat)
-  } else {
-    return(yhat)
   }
+  if (return_toplayer == TRUE){
+    return(D)
+  }
+  #otherwise...
+  return(yhat)
 }
 
