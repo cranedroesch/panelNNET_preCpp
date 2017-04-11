@@ -38,7 +38,7 @@ function(obj, option, J = NULL){
         (t(bi*D) %*% (bi*D) - constraint)^2
       }
       #optimize it
-      o <- optim(par = obj$lam, f = f, method = 'Brent', lower = lam, upper = 1e9)
+      o <- optim(par = obj$lam, f = f, method = 'Brent', lower = obj$lam, upper = 1e9)
       #new lambda
       obj$lam <- o$par
     }
