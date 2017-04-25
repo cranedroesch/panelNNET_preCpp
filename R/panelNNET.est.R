@@ -118,9 +118,12 @@ calc_hlayers <- function(parlist, normalize = FALSE){
 }
 
 calc_grads<- function(plist, hlay = NULL, yhat = NULL, curBat = NULL){
+#plist <- parlist
+#hlay <- yhat <- curBat <- NULL
   if (!is.null(curBat)){CB <- function(x){x[curBat,,drop = FALSE]}} else {CB <- function(x){x}}
   if (is.null(hlay)){hlay <- calc_hlayers(plist)}
   if (is.null(yhat)){yhat <- getYhat(unlist(plist), hlay = hlay)}
+  #empty list of gradients, one for each hidden layer, plus one for
   grads <- vector('list', nlayers+1)
   grads[[length(grads)]] <- getDelta(CB(as.matrix(y)), yhat)
   for (i in (nlayers):1){
@@ -153,8 +156,6 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
   gr <- mapply('+', gr, penalty)
   return(unlist(gr))
 }
-
-
 
   if (doscale == TRUE){
     X <- scale(X)

@@ -19,8 +19,8 @@ function(v){
 
 lrelu_prime <- 
 function(v){
-  v[v<0] <- 0.01
   v[v>=0] <- 1
+  v[v<0] <- 0.01
   v
 }
 
