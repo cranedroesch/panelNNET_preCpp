@@ -50,6 +50,39 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 #initialization = 'enforce_normalization'
 
 
+#y = corn$ycagg
+#X = X
+#hidden_units = g
+#parapen = c(1,1)
+
+#fe_var = corn$reap
+# maxit = 1000
+# lam = lam
+
+# time_var = corn$year
+# param = corn[,c('y','y2')]
+#  verbose = TRUE
+
+# gravity = 1.01
+# convtol = 1e-3
+# activation = 'relu'
+# inference = FALSE
+#  start_LR = .01
+# parlist = pnn$parlist
+# OLStrick = FALSE
+# initialization = 'enforce_normalization'
+#doscale = T  
+#tag = NULL
+#path= NULL
+#bias_hlayers = T
+#treatment = NULL
+#start.LR = .01
+#maxstopcounter = 10
+#useOptim = FALSE
+#optimMethod = 'BFGS'
+#initialization = 'enforce_normalization'
+#batchsize  = ceiling(nrow(corn)/10)
+
 
 getYhat <- function(pl, skel = attr(pl, 'skeleton'), hlay = NULL){ 
 #print((pl))
@@ -241,6 +274,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
     ydm <<- demeanlist(y, list(fe_var)) 
   }
 
+
   ###############
   #Optim approach
   if (useOptim == TRUE){
@@ -285,7 +319,6 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
     grads <- msevec <- NULL
 ##################################
   } else { #if useOptim  == FALSE
-
     #get starting MSE
     yhat <- getYhat(pl, hlay = hlayers)
     mse <- mseold <- mean((y-yhat)^2)
@@ -337,7 +370,6 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
         batchid[batchid == max(batchid)] <- sample(1:(max(batchid) - 1), min(table(batchid)), replace = TRUE)
       }
       for (bat in 1:max(batchid)) {
-#bat = 1
         curBat <- which(batchid == bat)
         #Get updated gradients
         grads <- calc_grads(parlist, lapply(hlayers, function(x){x[curBat,]}), yhat[curBat], curBat = curBat)
@@ -420,7 +452,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
         , unlist(parlist[!grepl('beta', names(parlist))]))^2
       )
       #If loss increases...
-      if (oldpar$loss < loss){
+      if (oldpar$loss <= loss){
         parlist <- oldpar$parlist
         updates <- oldpar$updates
         G2 <- oldpar$G2
