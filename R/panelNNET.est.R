@@ -50,38 +50,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 #initialization = 'enforce_normalization'
 
 
-y = corn$ycagg
-X = X
-hidden_units = g
-parapen = c(1,1)
-
-fe_var = corn$reap
- maxit = 1000
- lam = lam
-
- time_var = corn$year
- param = corn[,c('y','y2')]
-  verbose = TRUE
-
- gravity = 1.01
- convtol = 1e-3
- activation = 'relu'
- inference = FALSE
-  start_LR = .01
- parlist = pl
- OLStrick = FALSE
- initialization = 'enforce_normalization'
-doscale = T  
-tag = NULL
-path= NULL
-bias_hlayers = T
-treatment = NULL
-start.LR = .01
-maxstopcounter = 10
-#batchsize = 100
-useOptim = FALSE
-optimMethod = 'BFGS'
-initialization = 'enforce_normalization'
 
 getYhat <- function(pl, skel = attr(pl, 'skeleton'), hlay = NULL){ 
 #print((pl))
