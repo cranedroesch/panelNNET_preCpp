@@ -29,3 +29,5 @@ TBD:
 
 13.  Write multistart function
 
+14.  Write function to add nodes/layers to a trained network.
+

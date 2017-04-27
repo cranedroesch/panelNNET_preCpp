@@ -50,6 +50,39 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 #initialization = 'enforce_normalization'
 
 
+y = corn$ycagg
+X = X
+hidden_units = g
+parapen = c(1,1)
+
+fe_var = corn$reap
+ maxit = 1000
+ lam = lam
+
+ time_var = corn$year
+ param = corn[,c('y','y2')]
+  verbose = TRUE
+
+ gravity = 1.01
+ convtol = 1e-3
+ activation = 'relu'
+ inference = FALSE
+  start_LR = .01
+ parlist = pl
+ OLStrick = FALSE
+ initialization = 'enforce_normalization'
+doscale = T  
+tag = NULL
+path= NULL
+bias_hlayers = T
+treatment = NULL
+start.LR = .01
+maxstopcounter = 10
+#batchsize = 100
+useOptim = FALSE
+optimMethod = 'BFGS'
+initialization = 'enforce_normalization'
+
 getYhat <- function(pl, skel = attr(pl, 'skeleton'), hlay = NULL){ 
 #print((pl))
 #pl <- parlist
@@ -207,16 +240,6 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
       }
       parlist[[i]] <- matrix(runif((hidden_units[i])*(D+bias_hlayers), -ubounds, ubounds), ncol = hidden_units[i])
     }
-    if (initialization %ni% c('XG', 'HZRS')){
-      ubounds <- .7 #follows ESL recommendaton
-    } else {
-      if (initialization == 'XG'){
-        ubounds <- sqrt(6)/sqrt(hidden_units[length(hidden_units)])
-      }
-      if (initialization == 'HZRS'){
-        ubounds <- 2*sqrt(6)/sqrt(hidden_units[length(hidden_units)])
-      }
-    }
     if (is.null(param)){
       parlist$beta_param <-  NULL
     } else {
@@ -237,15 +260,14 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
     if(is.null(fe_var)){
       parapen <- c(0, parapen)
     }
+    if (initialization == 'enforce_normalization'){
+      hlayers <- calc_hlayers(parlist, normalize = TRUE)
+    }
+  } else { #if a parlist is provided
+    hlayers <- calc_hlayers(parlist)
   }
   parlist <- as.relistable(parlist)
   pl <- unlist(parlist) 
-  #calculate hidden layers
-  if (initialization == 'enforce_normalization'){
-    hlayers <- calc_hlayers(parlist, normalize = TRUE)
-  } else {
-    hlayers <- calc_hlayers(parlist)
-  }
   #calculate ydm and put it in global...
   if (!is.null(fe_var)){
     ydm <<- demeanlist(y, list(fe_var)) 
