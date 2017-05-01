@@ -1,10 +1,10 @@
 predict.panelNNET <-
 function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, se.fit = FALSE, tauhat = FALSE){
-#obj <- mlist[[13]]
-#newX = Z[v,]
-#fe.newX = id[v]
-#new.param = P[v,]
-#se.fit = TRUE
+#obj <- pnn
+#newX = X[te,]
+#fe.newX = corn$reap[te]
+#new.param = as.matrix(corn[te,c('y','y2')])
+#se.fit = FALSE
   if (obj$activation == 'tanh'){
     activ <- tanh
   }
@@ -134,7 +134,7 @@ predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, ne
   }
   for (i in 1:length(obj$hidden_units)){
     if (obj$used_bias == TRUE){D <- cbind(1,D)}
-    D <- activ(D %*% parlist[[i]])
+    D <- activ(as.matrix(D) %*% parlist[[i]])
   } 
   colnames(D) <- paste0('nodes',1:ncol(D))
   if (!is.null(obj$treatment)){

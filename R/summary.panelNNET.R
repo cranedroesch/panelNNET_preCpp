@@ -13,7 +13,6 @@ function(x, ...){
     infstrings <- "\nParametric Estimates:\n"  
     #Parameter names and variance estimate labels...
     if (is.null(colnames(x$param))){
-print('aaa')
       if (is.null(x$fe_var)){
         #labs <- c('LTE, homoskedastic vcv', 'LTE, sandwich vcv', 'OLS/ridge, homoskedastic vcv', 'OLS/ridge, sandwich vcv')
         labs <- names(x$vcs)
