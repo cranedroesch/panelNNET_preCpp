@@ -16,10 +16,18 @@ addnode <- function(obj, inv_activ, layer = 1){
   }
   #get residual
   u <- pnn$y - pnn$yhat
+  #get size of other param vecs
+  parmsize <- mean(apply(obj$parlist[[layer]],2,function(x){sum(x^2)}))
   #fit linear model  
-  m <- lm(inv_activ(u)~x)
+  M <- cbind(1,x)
+  f <- function(L){
+    m <- glmnet(y = inv_activ(u), x = M, intercept = FALSE, lambda = L)
+    (sum(coef(m)^2) - parmsize)^2
+  }
+  o <- optim(f, par = 30, method = 'Brent', lower = 0, upper = 100)
+  m <- glmnet(y = inv_activ(u), x = M, intercept = FALSE, lambda = o$par)
   pl <- pnn$parlist
-  pl[[1]] <- cbind(pl[[1]], coef(m))
+  pl[[1]] <- cbind(pl[[1]], as.numeric(coef(m))[-1])
   pl$beta <- c(pl$beta, 1)
   return(pl)
 }
