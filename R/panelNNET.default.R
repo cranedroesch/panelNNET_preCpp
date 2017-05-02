@@ -8,7 +8,7 @@ function(y, X, hidden_units, fe_var
   , activation = 'tanh', inference = TRUE, doscale = TRUE
   , treatment = NULL, interact_treatment = TRUE, batchsize = nrow(X)
   , maxstopcounter = 10, OLStrick = FALSE, useOptim = FALSE
-  , optimMethod = 'BFGS', initialization = 'HZRS', ...)
+  , optimMethod = 'BFGS', initialization = 'enforce_normalization', dropout_hidden = 1, dropout_input = 1, ...)
 {
   out <- panelNNET.est(y, X, hidden_units, fe_var, maxit, lam
     , time_var, param, parapen, parlist, verbose, para_plot
@@ -17,6 +17,7 @@ function(y, X, hidden_units, fe_var
     , start_LR, activation, inference, doscale 
     , treatment, interact_treatment, batchsize, maxstopcounter
     , OLStrick, useOptim, optimMethod, initialization
+    , dropout_hidden, dropout_input
   )
   out$call = match.call()
   class(out) <- 'panelNNET'

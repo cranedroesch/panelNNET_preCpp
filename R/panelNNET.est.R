@@ -1,196 +1,204 @@
 panelNNET.est <-
-function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist, verbose, para_plot, report_interval, save_each_iter, path, tag, gravity, convtol, bias_hlayers, RMSprop, start.LR, activation, inference, doscale, treatment, interact_treatment, batchsize, maxstopcounter, OLStrick, useOptim, optimMethod, initialization,  ...){
+function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist, verbose, para_plot, report_interval, save_each_iter, path, tag, gravity, convtol, bias_hlayers, RMSprop, start.LR, activation, inference, doscale, treatment, interact_treatment, batchsize, maxstopcounter, OLStrick, useOptim, optimMethod, initialization, dropout_hidden, dropout_input, ...){
 
-##examplearguments for testing
+###examplearguments for testing
 #rm(list=ls())
 #gc()
 #gc()
 #"%ni%" <- Negate("%in%")
 
-#set.seed(1)
 #library(panelNNET)
+#library(mvtnorm)
 #N <- 2000
-#x <- sort(runif(N, 0, 20))
-#time <- (1:N-1)%%20+1
-#id <- (1:N-1)%/%20+1
-#y <- id + time + x*sin(x) + rnorm(N, sd = 10)
-#plot(x, y)
-######y = y[r]
-#X = matrix(x)
-#fe_var = factor(id)
-#time_var = time
-#param = matrix(time)
+#t = 40
+#pz <- 5
+#pid <- N/t
+#id <- (1:N-1) %/% (N/pid) +1
+#time <- 0:(N-1) %% (N/pid) +1
+#set.seed(706)
 
-#lam = .00001
-#maxit = 1000
-#hidden_units = c(10:3)
-#parlist = NULL
+##Each group has its own covariance matrix
+#groupcov <- foreach(i = 1:pid) %do% {
+#  A <- matrix(rnorm(pz^2), pz)
+#  t(A) %*% A
+#}
+##and its own mean
+#groupmean <- foreach(i = 1:pid) %do% {
+#  rnorm(pz, sd  =5)
+#}
+##and it's own effect that is distinct from its covariate distribution
+#id.eff <- as.numeric(id)
+
+##this is the data generated from those distributions
+#Z <- foreach(i = 1:N, .combine = rbind)%do%{
+#  mvrnorm(1, groupmean[[id[i]]], groupcov[[id[i]]])
+#}
+##outcome minus noise
+#y <- time +log(dmvnorm(Z, rep(0, pz), diag(rep(1, pz)))) + id.eff
+##y <- time +Z %*% rnorm(1:pz)
+#u <- rnorm(N, sd = 20)
+#y <- y+u
+#id <- as.factor(id)
+##training and test and validation
+#v <- time>max(time)*.9
+#r <- time %in% time[which(v==FALSE & time %%2)]
+#e <- time %in% time[which(v==FALSE & (time+1) %%2)]
+#P <- matrix(time)
+
+###########################
+#hidden_units <- c(10,10,10)
+#y = y[r]
+#X = Z[r,]
+#fe_var = id[r]
+#maxit = 100
+#lam = .01
+#time_var = time[r]
+#param = P[r,, drop = FALSE]
 #verbose = TRUE
-#para_plot = TRUE
-#report_interval = 10
-#OLStrick = TRUE
-#save_each_iter = FALSE
-#path = NULL
-#tag = ""
 #gravity = 1.01
-#bias_hlayers = TRUE
-#RMSprop = TRUE
-#convtol = 1e-8
-#activation = 'tanh'
-#doscale = TRUE
+#convtol = 1e-3
+#activation = 'lrelu'
 #inference = FALSE
-#batchsize = nrow(X)
-#parapen = rep(1, ncol(param))
-#treatment = NULL
-#start.LR = .01
-#maxstopcounter = 10
-##batchsize = 100
-#useOptim = FALSE
-#optimMethod = 'BFGS'
+#start_LR = .01
+#parlist = NULL
+#OLStrick = TRUE
 #initialization = 'enforce_normalization'
-
-
-#y = corn$ycagg
-#X = X
-#hidden_units = g
-#parapen = c(1,1)
-
-#fe_var = corn$reap
-# maxit = 1000
-# lam = lam
-
-# time_var = corn$year
-# param = corn[,c('y','y2')]
-#  verbose = TRUE
-
-# gravity = 1.01
-# convtol = 1e-3
-# activation = 'relu'
-# inference = FALSE
-#  start_LR = .01
-# parlist = pnn$parlist
-# OLStrick = FALSE
-# initialization = 'enforce_normalization'
-#doscale = T  
-#tag = NULL
-#path= NULL
-#bias_hlayers = T
+#batchsize = ceiling(sum(r)/10)
+#RMSprop = TRUE
+#doscale = TRUE
 #treatment = NULL
-#start.LR = .01
+#para_plot <- useOptim <- save_each_iter <- FALSE
+#tag <- path <- NULL
+#bias_hlayers <- TRUE
+#dropout_hidden = .5
+#dropout_input = .8
+#parapen <- 0
+#start.LR <- .01
 #maxstopcounter = 10
-#useOptim = FALSE
-#optimMethod = 'BFGS'
-#initialization = 'enforce_normalization'
-#batchsize  = ceiling(nrow(corn)/10)
+#report_interval = 10
 
+  ##########
+  #Define internal functions
 
-getYhat <- function(pl, skel = attr(pl, 'skeleton'), hlay = NULL){ 
-#print((pl))
-#pl <- parlist
-#skel = attr(pl, 'skeleton')
-#hlay <- hlayers
-  plist <- relist(pl, skel)
-  #Update hidden layers
-  if (is.null(hlay)){hlay <- calc_hlayers(plist)}
-  #update yhat
-  if (!is.null(fe_var)){
-    Zdm <- demeanlist(hlay[[length(hlay)]], list(fe_var))
-    fe <- (y-ydm) - as.matrix(hlay[[length(hlay)]]-Zdm) %*% as.matrix(c(
-        plist$beta_param, plist$beta_treatment
-      , plist$beta_treatmentinteractions, plist$beta
-    ))
-    yhat <- hlay[[length(hlay)]] %*% c(
-      plist$beta_param, plist$beta_treatment, plist$beta_treatmentinteractions, plist$beta
-    ) + fe    
-  } else {
-    yhat <- hlay[[length(hlay)]] %*% c(plist$beta_param, plist$beta_treatment, plist$beta_treatmentinteractions, plist$beta)
-  }
-  return(yhat)
-}
-
-lossfun <- function(pl, skel, lam, parapen){
-  yhat <- getYhat(pl, skel)
-  mse <- mean((y-yhat)^2)
-  plist <- relist(pl, skel)
-  loss <- mse + lam*sum(c(plist$beta_param*parapen, 0*plist$beta_treatment, plist$beta, plist$beta_treatmentinteractions, unlist(plist[!grepl('beta', names(plist))]))^2)
-  return(loss)
-}
-
-calc_hlayers <- function(parlist, normalize = FALSE){
-  hlayers <- vector('list', nlayers)
-  for (i in 1:nlayers){
-    if (i == 1){D <- X} else {D <- hlayers[[i-1]]}
-    if (bias_hlayers == TRUE){D <- cbind(1, D)}
-    if (normalize == TRUE){
-      hli <- activ(D %*% parlist[[i]])
-      v <- sd(as.numeric(hli))
-      hlayers[[i]] <- hli/v 
+  getYhat <- function(pl, skel = attr(pl, 'skeleton'), hlay = NULL){ 
+  #print((pl))
+  #pl <- parlist
+  #skel = attr(pl, 'skeleton')
+  #hlay <- hlayers
+    plist <- relist(pl, skel)
+    #Update hidden layers
+    if (is.null(hlay)){hlay <- calc_hlayers(plist)}
+    #update yhat
+    if (!is.null(fe_var)){
+      Zdm <- demeanlist(hlay[[length(hlay)]], list(fe_var))
+      fe <- (y-ydm) - as.matrix(hlay[[length(hlay)]]-Zdm) %*% as.matrix(c(
+          plist$beta_param, plist$beta_treatment
+        , plist$beta_treatmentinteractions, plist$beta
+      ))
+      yhat <- hlay[[length(hlay)]] %*% c(
+        plist$beta_param, plist$beta_treatment, plist$beta_treatmentinteractions, plist$beta
+      ) + fe    
     } else {
-      hlayers[[i]] <- activ(D %*% parlist[[i]])
+      yhat <- hlay[[length(hlay)]] %*% c(plist$beta_param, plist$beta_treatment, plist$beta_treatmentinteractions, plist$beta)
     }
+    return(yhat)
   }
-  colnames(hlayers[[i]]) <- paste0('nodes',1:ncol(hlayers[[i]]))
-  if (!is.null(treatment)){
-    #Add treatment interactions
-    if (interact_treatment == TRUE){
-      ints <- sweep(hlayers[[i]], 1, treatment, '*')
-      colnames(ints) <- paste0('TrInts',1:ncol(ints))
-      hlayers[[i]] <- cbind(ints, hlayers[[i]])
+
+  lossfun <- function(pl, skel, lam, parapen){
+    yhat <- getYhat(pl, skel)
+    mse <- mean((y-yhat)^2)
+    plist <- relist(pl, skel)
+    loss <- mse + lam*sum(c(plist$beta_param*parapen, 0*plist$beta_treatment, plist$beta, plist$beta_treatmentinteractions, unlist(plist[!grepl('beta', names(plist))]))^2)
+    return(loss)
+  }
+
+  calc_hlayers <- function(parlist, normalize = FALSE){
+    hlayers <- vector('list', nlayers)
+    for (i in 1:nlayers){
+      if (i == 1){D <- X} else {D <- hlayers[[i-1]]}
+      if (bias_hlayers == TRUE){D <- cbind(1, D)}
+      if (normalize == TRUE){
+        hli <- activ(D %*% parlist[[i]])
+        v <- sd(as.numeric(hli))
+        hlayers[[i]] <- hli/v 
+      } else {
+        hlayers[[i]] <- activ(D %*% parlist[[i]])
+      }
     }
-    #Add treatment dummy
-    hlayers[[i]] <- cbind(treatment, hlayers[[i]])
-    colnames(hlayers[[i]])[1] <- 'treatment'
-  }
-  if (!is.null(param)){#Add parametric terms to top layer
-    hlayers[[i]] <- cbind(param, hlayers[[i]])
-    colnames(hlayers[[i]])[1:ncol(param)] <- paste0('param',1:ncol(param))
-  }
-  if (is.null(fe_var)){
-    hlayers[[i]] <- cbind(1, hlayers[[i]])#add intercept if no FEs
-  }
-  return(hlayers)
-}
-
-calc_grads<- function(plist, hlay = NULL, yhat = NULL, curBat = NULL){
-#plist <- parlist
-#hlay <- yhat <- curBat <- NULL
-  if (!is.null(curBat)){CB <- function(x){x[curBat,,drop = FALSE]}} else {CB <- function(x){x}}
-  if (is.null(hlay)){hlay <- calc_hlayers(plist)}
-  if (is.null(yhat)){yhat <- getYhat(unlist(plist), hlay = hlay)}
-  #empty list of gradients, one for each hidden layer, plus one for
-  grads <- vector('list', nlayers+1)
-  grads[[length(grads)]] <- getDelta(CB(as.matrix(y)), yhat)
-  for (i in (nlayers):1){
-    if (i == nlayers){outer_param = as.matrix(c(plist$beta))} else {outer_param = plist[[i+1]]}
-    if (i == 1){lay = CB(X)} else {lay= hlay[[i-1]]}
-    if (bias_hlayers == TRUE){
-      lay <- cbind(1, lay) #add bias to the hidden layer
-      if (i!=nlayers){outer_param <- outer_param[-1,]}      #remove parameter on upper-layer bias term
+    colnames(hlayers[[i]]) <- paste0('nodes',1:ncol(hlayers[[i]]))
+    if (!is.null(treatment)){
+      #Add treatment interactions
+      if (interact_treatment == TRUE){
+        ints <- sweep(hlayers[[i]], 1, treatment, '*')
+        colnames(ints) <- paste0('TrInts',1:ncol(ints))
+        hlayers[[i]] <- cbind(ints, hlayers[[i]])
+      }
+      #Add treatment dummy
+      hlayers[[i]] <- cbind(treatment, hlayers[[i]])
+      colnames(hlayers[[i]])[1] <- 'treatment'
     }
-    grads[[i]] <- getS(D_layer = lay, inner_param = plist[[i]], outer_deriv = grads[[i+1]], outer_param = outer_param, activation)
+    if (!is.null(param)){#Add parametric terms to top layer
+      hlayers[[i]] <- cbind(param, hlayers[[i]])
+      colnames(hlayers[[i]])[1:ncol(param)] <- paste0('param',1:ncol(param))
+    }
+    if (is.null(fe_var)){
+      hlayers[[i]] <- cbind(1, hlayers[[i]])#add intercept if no FEs
+    }
+    return(hlayers)
   }
-  return(grads)
-}
 
-getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
-  plist <- relist(pl, skel)
-  #calculate hidden layers
-  hlayers <- calc_hlayers(plist)
-  #calculate gradients
-  grads <- calc_grads(plist, hlay = hlayers)
-  gr <- foreach(i = 1:(length(hlayers)+1)) %do% {
-    if (i == 1){D <- X} else {D <- hlayers[[i-1]]}
-    if (bias_hlayers == TRUE & i != length(hlayers)+1){D <- cbind(1, D)}
-      (t(D) %*% grads[[i]])
+  calc_grads<- function(plist, hlay = NULL, yhat = NULL, curBat = NULL, droplist = NULL, dropinp = NULL){
+    #subset the parameters and hidden layers based on the droplist
+    if (!is.null(droplist)){
+      Xd <- X[,dropinp, drop = FALSE]
+      #drop from parameter list emanating from input
+      plist[[1]] <- plist[[1]][c(TRUE,dropinp),droplist[[1]]]
+      #drop from subsequent parameter matrices
+      for (i in 2:nlayers){
+        plist[[i]] <- plist[[i]][c(TRUE, droplist[[i-1]]), droplist[[i]], drop = FALSE]
+      }
+      plist$beta <- plist$beta[droplist[[nlayers]]]
+    } else {Xd <- X}#for use below...  X should be safe given scope, but extra assignment is cheap here
+    if (!is.null(curBat)){CB <- function(x){x[curBat,,drop = FALSE]}} else {CB <- function(x){x}}
+    if (is.null(hlay)){hlay <- calc_hlayers(plist)}
+    if (is.null(yhat)){yhat <- getYhat(unlist(plist), hlay = hlay)}
+    #empty list of gradients, one for each hidden layer, plus one for
+    grads <- vector('list', nlayers+1)
+    grads[[length(grads)]] <- getDelta(CB(as.matrix(y)), yhat)
+    for (i in (nlayers):1){
+      if (i == nlayers){outer_param = as.matrix(c(plist$beta))} else {outer_param = plist[[i+1]]}
+      if (i == 1){lay = CB(Xd)} else {lay= CB(hlay[[i-1]])}
+      if (bias_hlayers == TRUE){
+        lay <- cbind(1, lay) #add bias to the hidden layer
+        if (i != nlayers){outer_param <- outer_param[-1,, drop = FALSE]}      #remove parameter on upper-layer bias term
+      }
+      grads[[i]] <- getS(D_layer = lay, inner_param = plist[[i]], outer_deriv = grads[[i+1]], outer_param = outer_param, activation)
+    }
+    return(grads)
   }
-  plist$beta_param <- plist$beta_param*parapen
-  penalty <- mapply('*', plist, lam*2)
-  penalty$beta_param <- matrix(c(penalty$beta_param, penalty$beta))
-  penalty$beta <- NULL
-  gr <- mapply('+', gr, penalty)
-  return(unlist(gr))
-}
 
+  getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
+    plist <- relist(pl, skel)
+    #calculate hidden layers
+    hlayers <- calc_hlayers(plist)
+    #calculate gradients
+    grads <- calc_grads(plist, hlay = hlayers)
+    gr <- foreach(i = 1:(length(hlayers)+1)) %do% {
+      if (i == 1){D <- X} else {D <- hlayers[[i-1]]}
+      if (bias_hlayers == TRUE & i != length(hlayers)+1){D <- cbind(1, D)}
+        (t(D) %*% grads[[i]])
+    }
+    plist$beta_param <- plist$beta_param*parapen
+    penalty <- mapply('*', plist, lam*2)
+    penalty$beta_param <- matrix(c(penalty$beta_param, penalty$beta))
+    penalty$beta <- NULL
+    gr <- mapply('+', gr, penalty)
+    return(unlist(gr))
+  }
+
+
+  ###########################
+  #start fitting
   if (doscale == TRUE){
     X <- scale(X)
     if (!is.null(param)){
@@ -328,7 +336,7 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
       , unlist(parlist[!grepl('beta', names(parlist))]))^2
     )
     #Calculate gradients.  These aren't the actual gradients, but become the gradients when multiplied by their respective layer.
-    grads <- calc_grads(parlist, hlayers, yhat)
+    grads <- calc_grads(parlist, hlayers, yhat, droplist = NULL, dropinp = NULL)
     #Initialize updates
     updates <- lapply(parlist, function(x){x*0})
     #initialize G2 term for RMSprop
@@ -370,9 +378,41 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
         batchid[batchid == max(batchid)] <- sample(1:(max(batchid) - 1), min(table(batchid)), replace = TRUE)
       }
       for (bat in 1:max(batchid)) {
+#bat = 1
         curBat <- which(batchid == bat)
+        hlay <- hlayers#hlay may have experienced dropout, as distinct from hlayers
+        #if using dropout, generate a droplist
+        if (dropout_hidden < 1){
+          droplist <- lapply(hlayers, function(x){
+            todrop <- as.logical(rbinom(ncol(x), 1, dropout_hidden))
+            if (all(todrop==FALSE)){#ensure that at least one unit is present
+              todrop[sample(1:length(todrop))] <- TRUE
+            }
+            return(todrop)
+          })
+          #remove the parametric terms
+          droplist[[nlayers]] <- droplist[[nlayers]][(ncol(param)+1):length(droplist[[nlayers]])]
+          todrop <- rbinom(ncol(X), 1, dropout_input)
+          if (all(todrop==FALSE)){#ensure that at least one unit is present
+            todrop[sample(1:length(todrop))] <- TRUE
+          }
+          dropinp <- as.logical(todrop)
+          for (i in 1:nlayers){
+            hlay[[i]] <- hlay[[i]][,droplist[[i]], drop = FALSE]
+          }
+          Xd <- X[,dropinp]
+        } else {Xd <- X; droplist = NULL}
         #Get updated gradients
-        grads <- calc_grads(parlist, lapply(hlayers, function(x){x[curBat,]}), yhat[curBat], curBat = curBat)
+        grads <- calc_grads(plist = parlist, hlay = hlay
+          , yhat = yhat[curBat], curBat = curBat, droplist = droplist, dropinp = dropinp)
+        #Pad the gradients with zeros to scale it back to the original size
+        if (dropout_hidden < 1){
+          for (i in 1:(length(grads)-1)){
+            gr <- matrix(rep(0, length(curBat)*length(droplist[[i]])), nrow = length(curBat))
+            gr[,droplist[[i]]] <- grads[[i]]
+            grads[[i]] <- gr
+          }
+        }
         #Calculate updates to parameters based on gradients and learning rates
         if (RMSprop == TRUE){
           newG2 <- foreach(i = 1:(length(hlayers)+1)) %do% {
@@ -424,8 +464,6 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
         pl <- unlist(parlist)
         #Update hidden layers
         hlayers <- calc_hlayers(parlist)
-#plo <- parlist
-#parlist <- plo
         #OLS trick!
         if (OLStrick == TRUE){
           parlist <- OLStrick_function(parlist = parlist, hidden_layers = hlayers, y = y
@@ -436,7 +474,6 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
         #update yhat
         yhat <- getYhat(pl, attr(pl, 'skeleton'), hlay = hlayers)
         mse <- mean((y-yhat)^2)
-#mse
         msevec <- append(msevec, mse)
         loss <- mse + lam*sum(c(parlist$beta_param*parapen
           , 0*parlist$beta_treatment, parlist$beta
@@ -538,8 +575,26 @@ getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
       iter = iter+1
     } #close the while loop
 
-
-    conv <- (iter<maxit)
+    #If trained with dropput, weight the layers by expectations
+    if(dropout_hidden<1){
+      for (i in nlayers:1){
+        if (i == 1){
+          parlist[[i]] <- parlist[[i]] * dropout_input
+        } else {
+          parlist[[i]] <- parlist[[i]] * dropout_hidden
+        }
+      }
+      parlist$beta <- parlist$beta * dropout_hidden
+      if (OLStrick == TRUE){
+        parlist <- OLStrick_function(parlist = parlist, hidden_layers = hlayers, y = y
+          , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
+        )
+      }
+      #redo the hidden layers based on the new parlist
+      hlayers <- calc_hlayers(parlist)
+      yhat <- getYhat(unlist(parlist), hlay = hlayers)
+    }
+    conv <- (iter<maxit)#Did we get convergence?
     if(is.null(fe_var)){
       fe_output <- NULL
     } else {
