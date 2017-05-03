@@ -23,11 +23,10 @@ TBD:
 
 10.  Add sanity checks:  that FE input is defined and is a factor, that the parametric penalty multiplier is the same length as the parametric term vector, etc.
 
-11.  Add analytical Jacobian, with parallel computation
+11.  Add analytical Jacobian
 
 12.  Add effective degrees of freedom to summary output
 
 13.  Write multistart function
 
-14.  Write function to add layers to a trained network.
 
