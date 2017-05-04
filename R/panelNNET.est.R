@@ -370,7 +370,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     #start iterating
     while(iter<maxit & stopcounter < maxstopcounter){
       oldpar <- list(parlist=parlist, hlayers=hlayers, grads=grads
-        , yhat = yhat, mse = mse, mseold = mseold, loss = loss, updates = updates, G2 = G2)
+        , yhat = yhat, mse = mse, mseold = mseold, loss = loss, updates = updates, G2 = G2
+        , msevec = msevec, lossvec = lossvec)
       #Start epoch
       #Assign batches
       batchid <- sample(1:nrow(X)%/%batchsize +1)
@@ -500,6 +501,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         mseold <- oldpar$mseold
         stopcounter <- stopcounter + 1
         loss <- oldpar$loss
+        msevec <- oldpar$msevec
+        lossvec <- oldpar$lossvec
         LR <- LR/2
         if(verbose == TRUE){
           print(paste0("Loss increased.  halving LR.  Stopcounter now at ", stopcounter))
