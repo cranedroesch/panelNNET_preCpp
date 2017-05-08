@@ -1,7 +1,7 @@
 vcov.panelNNET <-
 function(obj, option, J = NULL){
 #obj <- pnn
-#option = 'Jacobian_cluster'
+#option = 'cluster'
   e <- obj$y - obj$yhat
   if (is.null(J)){
     if (grepl('Jacobian', option)){
@@ -74,7 +74,7 @@ function(obj, option, J = NULL){
     G <- length(unique(obj$fe_var))
     meat <- foreach(i = 1:G, .combine = '+')%do%{
       ei <- e[obj$fe_var == unique(obj$fe_var)[i]]
-      Ji <- J[obj$fe_var == unique(obj$fe_var)[i],]
+      Ji <- J[obj$fe_var == unique(obj$fe_var)[i],,drop = FALSE]
       t(Ji) %*% ei %*% t(ei) %*% Ji
     }
     vcov <- G/(G-1)*(length(e) - 1)/(length(e) - edf) * bread %*% meat %*% bread
@@ -92,7 +92,7 @@ function(obj, option, J = NULL){
     G <- length(unique(obj$fe_var))
     meat <- foreach(i = 1:G, .combine = '+')%do%{
       ei <- e[obj$fe_var == unique(obj$fe_var)[i]]
-      Ji <- J[obj$fe_var == unique(obj$fe_var)[i],]
+      Ji <- J[obj$fe_var == unique(obj$fe_var)[i],,drop = FALSE]
       t(Ji) %*% ei %*% t(ei) %*% Ji
     }
     vcov <- G/(G-1)*(length(e) - 1)/(length(e) - edf) * bread %*% meat %*% bread
