@@ -209,10 +209,13 @@ Jacobian.analytical <- function(obj){
     }
     return(Jcol)
   }
+  Jnames <- paste0('l',par.df$lev,'f',par.df$lev.pointer,'t',par.df$upper.lev.pointer)
+  colnames(Jacobian_ab) <- Jnames[!grepl('beta',Jnames)]
   #Bind on the top layer such that the parametric terms are at the front
   toplayer <- obj$hidden_layers[[length(obj$hidden_layers)]]
   scaled_parametric <- toplayer[,grepl('param', colnames(toplayer))]
-  Jacobian <- cbind(scaled_parametric, Jacobian_ab)
+  visible_layer <- toplayer[,grepl('nodes', colnames(toplayer))]
+  Jacobian <- cbind(scaled_parametric, visible_layer, Jacobian_ab)
   return(Jacobian)
 }
 
