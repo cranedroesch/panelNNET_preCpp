@@ -1,6 +1,6 @@
 
 
-Jacobian.panelNNET <- function(obj, numerical = FALSE){
+Jacobian.panelNNET <- function(obj, numerical = FALSE, ...){
   if (numerical == FALSE){
     Jacobian.analytical(obj)
   } else {
