@@ -78,7 +78,8 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
           stop("No vcov matrices in object.  Can't calculate se's")
         }
         #predicted pseudovariables
-        if (grepl('Jac', names(obj$vcs))){#only calculate the jacobian of the new obs if you have to
+        if (any(grepl('Jac', names(obj$vcs)))){#only calculate the jacobian of the new obs if you have to
+          warning("Numerical jacobian calculated.  This should be re-written to be compatible with the predict method.")
           J <- jacobian(predfun, pvec, obj = obj, newX = newX, fe.newX = fe.newX
             , new.param = new.param, new.treatment = new.treatment, FEs_to_merge = FEs_to_merge)
           J <- J[,c(#re-order jacobian so that parametric terms are on the front, followed by top layer.
