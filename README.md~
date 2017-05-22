@@ -31,3 +31,8 @@ TBD:
 
 14.  Build interactive mode, using the keypress package
 
+15.  Write a function to predict from a new dataset that has missing observations.  As arguments it should take distributions from which to draw the missing values.
+
+16.  Code up permutaiton importance function
+
+17.  Speed up OLStrick function
