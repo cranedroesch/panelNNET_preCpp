@@ -1,8 +1,8 @@
 
 
-Jacobian.panelNNET <- function(obj, numerical = FALSE, ...){
+Jacobian.panelNNET <- function(obj, numerical = FALSE, parallel = TRUE, step = 1e-9, ...){
   if (numerical == FALSE){
-    Jacobian.predictmethod(obj)
+    Jacobian.predictmethod(obj = obj, parallel = parallel, step = step)
   } else {
     Jacobian.numerical(obj)
   }
@@ -84,7 +84,7 @@ Jacobian.numerical <- function(obj){
 }
 
 
-Jacobian.predictmethod <- function(obj, parallel = TRUE, step = 1e-9){
+Jacobian.predictmethod <- function(obj, parallel, step){
 #parallel <- TRUE
 #obj <- pnn
 #step = 1e-3
