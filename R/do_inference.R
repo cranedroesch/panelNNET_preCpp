@@ -4,7 +4,7 @@
 do_inference <- function(obj, numerical = FALSE, parallel = TRUE
   , step = 1e-9, J = NULL, verbose = FALSE, OLS_only = FALSE){
   #Compute Jacobian if not supplied and asked-for
-  if (!is.null(J) & OLS_only == FALSE){
+  if (is.null(J) & OLS_only == FALSE){
     J <- Jacobian.panelNNET(obj, parallel, step, numerical)
   }
   #top layer for OLS approximation
@@ -13,17 +13,17 @@ do_inference <- function(obj, numerical = FALSE, parallel = TRUE
   vcs <- list()
   #calculate Jacobian-based vcovs
   if (OLS_only == FALSE){
-    vcs[["vc.JacHomo"]] <- tryCatch(vcov.panelNNET(output, 'Jacobian_homoskedastic', J = J), error = function(e)e, finally = NULL)
-    vcs[["vc.JacSand"]] <- tryCatch(vcov.panelNNET(output, 'Jacobian_sandwich', J = J), error = function(e)e, finally = NULL)    
+    vcs[["vc.JacHomo"]] <- tryCatch(vcov.panelNNET(obj, 'Jacobian_homoskedastic', J = J), error = function(e)e, finally = NULL)
+    vcs[["vc.JacSand"]] <- tryCatch(vcov.panelNNET(obj, 'Jacobian_sandwich', J = J), error = function(e)e, finally = NULL)    
     if (!is.null(obj$fe_var)){
-      vcs[["vc.JacClus"]] <- tryCatch(vcov.panelNNET(output, 'Jacobian_cluster', J = J), error = function(e)e, finally = NULL)
+      vcs[["vc.JacClus"]] <- tryCatch(vcov.panelNNET(obj, 'Jacobian_cluster', J = J), error = function(e)e, finally = NULL)
     }
   } 
   #calculate OLS aproximations
-  vcs[["vc.OLSHomo"]] <- tryCatch(vcov.panelNNET(output, 'OLS', J = X), error = function(e)e, finally = NULL)
-  vcs[["vc.OLSSand"]] <- tryCatch(vcov.panelNNET(output, 'sandwich', J = X), error = function(e)e, finally = NULL)
+  vcs[["vc.OLSHomo"]] <- tryCatch(vcov.panelNNET(obj, 'OLS', J = X), error = function(e)e, finally = NULL)
+  vcs[["vc.OLSSand"]] <- tryCatch(vcov.panelNNET(obj, 'sandwich', J = X), error = function(e)e, finally = NULL)
   if (!is.null(obj$fe_var)){
-    vcs[["vc.OLSClus"]] <- tryCatch(vcov.panelNNET(output, 'cluster', J = X), error = function(e)e, finally = NULL)
+    vcs[["vc.OLSClus"]] <- tryCatch(vcov.panelNNET(obj, 'cluster', J = X), error = function(e)e, finally = NULL)
   }
   obj$vcs <- vcs
   obj$J <- J
