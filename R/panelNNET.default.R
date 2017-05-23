@@ -5,7 +5,7 @@ function(y, X, hidden_units, fe_var
   , para_plot = FALSE, report_interval = 100
   , save_each_iter = FALSE, path = NULL, tag = "", gravity = 1.01
   , convtol = 1e-8, bias_hlayers = TRUE, RMSprop = TRUE, start_LR = .01
-  , activation = 'tanh', inference = TRUE, doscale = TRUE
+  , activation = 'tanh', doscale = TRUE
   , treatment = NULL, interact_treatment = TRUE, batchsize = nrow(X)
   , maxstopcounter = 10, OLStrick = FALSE, useOptim = FALSE
   , optimMethod = 'BFGS', initialization = 'enforce_normalization', dropout_hidden = 1, dropout_input = 1, ...)
@@ -14,7 +14,7 @@ function(y, X, hidden_units, fe_var
     , time_var, param, parapen, parlist, verbose, para_plot
     , report_interval, save_each_iter
     , path, tag, gravity, convtol, bias_hlayers, RMSprop
-    , start_LR, activation, inference, doscale 
+    , start_LR, activation, doscale 
     , treatment, interact_treatment, batchsize, maxstopcounter
     , OLStrick, useOptim, optimMethod, initialization
     , dropout_hidden, dropout_input

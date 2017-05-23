@@ -90,9 +90,6 @@ The initial learning rate a.k.a. step size
   \item{activation}{
 "tanh", "logistic", "relu", or "lrelu" (for "leaky ReLU")
 }
-  \item{inference}{
-Should approximate inference be performed?  If so, various forms of covariance matrix will be estimated.
-}
   \item{doscale}{
 Should the input data be scaled?  Generally it should.
 }
@@ -164,7 +161,7 @@ in the single-layer case, and generalized in the multi-layer cased.  Parameters 
   \item{optimMethod}{User-supplied}
   \item{initialization}{User-supplied}
   \item{edf}{Effective degrees of freedom.  Only returned if inference set to true.}
-  \item{vcs}{Various sorts of parameter covariance matrix.  Only returned if inference set to true.}}
+  \item{vcs}{Various sorts of parameter covariance matrix.  Only returned if the function "do_inference" is run.  For example, output <- do_inference(output)}}
   \item{J}{The Jacobian.  Only returned if inference set to true.}
 }
 

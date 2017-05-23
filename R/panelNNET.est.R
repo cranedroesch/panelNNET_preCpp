@@ -618,35 +618,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     , usedOptim = useOptim, optimMethod = optimMethod
     , initialization = initialization
   )
-  if(inference == TRUE){
-    J <- Jacobian.panelNNET(output)
-    X <- output$hidden_layers[[length(output$hidden_layers)]]
-    vc.JacHomo = tryCatch(vcov.panelNNET(output, 'Jacobian_homoskedastic', J = J), error = function(e)e, finally = NULL)
-    vc.JacSand = tryCatch(vcov.panelNNET(output, 'Jacobian_sandwich', J = J), error = function(e)e, finally = NULL)    
-    vc.OLSHomo = tryCatch(vcov.panelNNET(output, 'OLS', J = X), error = function(e)e, finally = NULL)
-    vc.OLSSand = tryCatch(vcov.panelNNET(output, 'sandwich', J = X), error = function(e)e, finally = NULL)
-    if (!is.null(fe_var)){
-      vc.JacClus = tryCatch(vcov.panelNNET(output, 'Jacobian_cluster', J = J), error = function(e)e, finally = NULL)
-      vc.OLSClus = tryCatch(vcov.panelNNET(output, 'cluster', J = X), error = function(e)e, finally = NULL)
-      vcs <- list(vc.JacHomo = vc.JacHomo, vc.JacSand = vc.JacSand , vc.JacClus = vc.JacClus , vc.OLSHomo = vc.OLSHomo, vc.OLSSand = vc.OLSSand, vc.OLSClus = vc.OLSClus)
-    } else {
-      vcs <- list(vc.JacHomo = vc.JacHomo, vc.JacSand = vc.JacSand, vc.OLSHomo = vc.OLSHomo, vc.OLSSand = vc.OLSSand)
-    }
-    output$vcs <- vcs
-    output$J <- J
-    #calculate EDF and add to output
-    jtj <- crossprod(J)
-    ev <- eigen(jtj)$values
-    D <- rep(lam, ncol(J))
-    if (is.null(fe_var)){
-      pp <- c(0, parapen) #never penalize the intercept
-    } else {
-      pp <- parapen #parapen
-    }
-    if (!is.null(treatment)){pp <- append(pp, 0)}#treatment always follows parametric terms and will not be penalized
-    D[1:length(pp)] <- D[1:length(pp)]*pp #incorporate parapen into diagonal of covmat
-    output$edf <- sum(ev/(ev+D))
-  }
   return(output)
 }
 
