@@ -1,5 +1,5 @@
 panelNNET.est <-
-function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist, verbose, para_plot, report_interval, save_each_iter, path, tag, gravity, convtol, bias_hlayers, RMSprop, start.LR, activation, inference, doscale, treatment, interact_treatment, batchsize, maxstopcounter, OLStrick, useOptim, optimMethod, initialization, dropout_hidden, dropout_input, ...){
+function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist, verbose, para_plot, report_interval, save_each_iter, path, tag, gravity, convtol, bias_hlayers, RMSprop, start.LR, activation, doscale, treatment, interact_treatment, batchsize, maxstopcounter, OLStrick, useOptim, optimMethod, initialization, dropout_hidden, dropout_input, ...){
 
 ###examplearguments for testing
 #rm(list=ls())
@@ -58,7 +58,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 #gravity = 1.01
 #convtol = 1e-3
 #activation = 'lrelu'
-#inference = FALSE
 #start_LR = .01
 #parlist = NULL
 #OLStrick = TRUE
