@@ -1,10 +1,12 @@
 predict.panelNNET <-
-function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, se.fit = FALSE, tauhat = FALSE){
+function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, se.fit = FALSE, tauhat = FALSE, numerical_jacobian = FALSE, parallel_jacobian = FALSE){
 #obj <- pnn
-#newX = X[te,]
-#fe.newX = corn$reap[te]
-#new.param = as.matrix(corn[te,c('y','y2')])
-#se.fit = FALSE
+#newX = Z[e,]
+#fe.newX = id[e]
+#new.param = P[e,, drop = FALSE]
+#se.fit = TRUE
+#parallel_jacobian = TRUE
+#numerical_jacobian = FALSE
   if (obj$activation == 'tanh'){
     activ <- tanh
   }
@@ -42,32 +44,7 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
     } else {FEs_to_merge <- NULL}
     #(predfun is defined below)
     if (tauhat == TRUE){
-      taumat <- predfun(pvec = pvec, obj = obj, newX = newX
-        , fe.newX = fe.newX, new.param = new.param, new.treatment, tauhat = TRUE, FEs_to_merge = FEs_to_merge)
-      tauhat <- taumat %*% c(obj$parlist$beta_treatment, obj$parlist$beta_treatmentinteractions)
-      if (se.fit == TRUE){
-        J <- jacobian(predfun, pvec, obj = obj, newX = newX, fe.newX = fe.newX
-          , new.param = new.param, new.treatment = new.treatment, FEs_to_merge = FEs_to_merge)
-        Tidx <- c(which(names(pvec) == 'beta_treatment'), which(grepl('beta_treatmentinteractions', names(pvec))))
-        J <- J[,Tidx]
-        ni <- c()
-        semat <- foreach(i = 1:length(obj$vcs), .combine = cbind, .errorhandling = 'remove') %do% {
-          if (grepl('OLS', names(obj$vcs)[i])){
-            Txidx = which(grepl('tr', colnames(obj$vcs[[i]]$vc), ignore.case = TRUE))
-            vc <- obj$vcs[[i]]$vc[Txidx, Txidx]
-            se <- sqrt(diag(J %*% vc %*% t(J)))
-          } else {
-            vc <- obj$vcs[[i]]$vc[Tidx, Tidx]
-            se <- sqrt(diag(J %*% vc %*% t(J)))
-          }
-          ni[i] <- names(obj$vcs)[i]
-          return(se)
-        }
-        colnames(semat) <- ni[!is.na(ni)]
-        return(cbind(tauhat, semat))
-      } else {
-        return(tauhat)
-      }
+      stop('HTEs are depricated, and would need major attention to be rebuilt')
     } else { #if tauhat !=TRUE
       yhat <- predfun(pvec = pvec, obj = obj, newX = newX, fe.newX = fe.newX
         , new.param = new.param, new.treatment = NULL, FEs_to_merge = FEs_to_merge)
@@ -79,16 +56,20 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
         }
         #predicted pseudovariables
         if (any(grepl('Jac', names(obj$vcs)))){#only calculate the jacobian of the new obs if you have to
-          warning("Numerical jacobian calculated.  This should be re-written to be compatible with the predict method.")
-          J <- jacobian(predfun, pvec, obj = obj, newX = newX, fe.newX = fe.newX
-            , new.param = new.param, new.treatment = new.treatment, FEs_to_merge = FEs_to_merge)
-          J <- J[,c(#re-order jacobian so that parametric terms are on the front, followed by top layer.
-              which(grepl('param', names(pvec)))
-            , which(names(pvec) == 'beta_treatment')
-            , which(grepl('beta_treatmentinteractions', names(pvec)))
-            , which(grepl('beta', names(pvec)) & !grepl('param', names(pvec)) & !grepl('treatment', names(pvec)))
-            , which(!grepl('beta', names(pvec)))#no particular order to lower-level parameters
-          )]
+          if (numerical_jacobian == FALSE){
+            J <- Jacobian.panelNNET(obj, numerical = FALSE, parallel = parallel_jacobian
+              , step = 1e-9, newX = newX, new.param = new.param, fe.newX = fe.newX)
+          } else {
+            J <- jacobian(predfun, pvec, obj = obj, newX = newX, fe.newX = fe.newX
+              , new.param = new.param, new.treatment = new.treatment, FEs_to_merge = FEs_to_merge)
+            J <- J[,c(#re-order jacobian so that parametric terms are on the front, followed by top layer.
+                which(grepl('param', names(pvec)))
+              , which(names(pvec) == 'beta_treatment')
+              , which(grepl('beta_treatmentinteractions', names(pvec)))
+              , which(grepl('beta', names(pvec)) & !grepl('param', names(pvec)) & !grepl('treatment', names(pvec)))
+              , which(!grepl('beta', names(pvec)))#no particular order to lower-level parameters
+            )]
+          }
         }
         #predicted top-level variables
         X <- predfun(pvec, obj = obj, newX = newX, fe.newX = fe.newX

@@ -1,8 +1,10 @@
 
 
-Jacobian.panelNNET <- function(obj, numerical = FALSE, parallel = TRUE, step = 1e-9, ...){
+Jacobian.panelNNET <- function(obj, numerical = FALSE, parallel = TRUE
+  , step = 1e-9, newX = NULL, new.param = NULL, fe.newX = NULL, ...){
   if (numerical == FALSE){
-    Jacobian.predictmethod(obj = obj, parallel = parallel, step = step)
+    Jacobian.predictmethod(obj = obj, parallel = parallel, step = step
+      , newX = newX, new.param = new.param, fe.newX = fe.newX)
   } else {
     Jacobian.numerical(obj)
   }
@@ -84,10 +86,10 @@ Jacobian.numerical <- function(obj){
 }
 
 
-Jacobian.predictmethod <- function(obj, parallel, step){
+Jacobian.predictmethod <- function(obj, parallel, step, newX, new.param, fe.newX){
 #parallel <- TRUE
 #obj <- pnn
-#step = 1e-3
+#step = 1e-12
   `%fun%` <- ifelse(parallel == TRUE, `%dopar%`, `%do%`)
   pvec <- unlist(obj$parlist)  
   J <- foreach(i = 1:length(pvec), .combine = cbind) %fun% {
@@ -104,14 +106,30 @@ Jacobian.predictmethod <- function(obj, parallel, step){
       , inference = FALSE
       , parlist = relist(pv2), parapen = 0
     )
-
-    dy1 <- (obj1$yhat - obj$yhat)/step
-    dy2 <- (obj$yhat - obj2$yhat)/step
-    dy <- rowMeans(dy1, dy2)
-    dy <- matrix(dy)
-    colnames(dy) = names(pvec)[i]
-    return(dy)
+    #In-sample Jacobian
+    if (is.null(newX)){
+      dy1 <- (obj1$yhat - obj$yhat)/step
+      dy2 <- (obj$yhat - obj2$yhat)/step
+      dy <- rowMeans(dy1, dy2)
+      dy <- matrix(dy)
+      colnames(dy) <- names(pvec)[i]
+      return(dy)
+    } else {
+      #unpeturbed object
+      yhat <- predict(obj, newX = newX, new.param = new.param, fe.newX = fe.newX, se.fit = FALSE)
+      #perturbed object
+      yhat1 <- predict(obj1, newX = newX, new.param = new.param, fe.newX = fe.newX, se.fit = FALSE)
+      yhat2 <- predict(obj2, newX = newX, new.param = new.param, fe.newX = fe.newX, se.fit = FALSE)
+      #forward and backward differences
+      dy1 <- (yhat1 - yhat)/step
+      dy2 <- (yhat - yhat2)/step
+      dy <- rowMeans(cbind(dy1, dy2))
+      dy <- matrix(dy)
+      colnames(dy) <- names(pvec)[i]
+      return(dy)
+    }
   }
+  colnames(J) <- names(unlist(obj$parlist))
   J <- cbind(J[,grepl('beta', colnames(J))], J[,!grepl('beta', colnames(J))])
   return(J)
 }
