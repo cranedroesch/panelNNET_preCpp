@@ -25,12 +25,12 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
     if (!all(unique(fe.newX) %in% unique(obj$fe$fe_var))){
       stop('New data has cross-sectional units not observed in training data')
     }
-    if (tauhat == TRUE){
-      if (is.null(obj$treatment)){
-        stop('no treatment in object')
-      }
-      new.treatment <- rep(1, nrow(newX))
-    }
+#    if (tauhat == TRUE){
+#      if (is.null(obj$treatment)){
+#        stop('no treatment in object')
+#      }
+#      new.treatment <- rep(1, nrow(newX))
+#    }
     #Scale the new data by the scaling rules in the training data
     plist <- as.relistable(obj$parlist)
     pvec <- unlist(plist)
@@ -115,9 +115,11 @@ predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, ne
     }
   }
   for (i in 1:length(obj$hidden_units)){
+print(i)
     if (obj$used_bias == TRUE){D <- cbind(1,D)}
     D <- activ(as.matrix(D) %*% parlist[[i]])
   } 
+
   colnames(D) <- paste0('nodes',1:ncol(D))
 #  if (!is.null(obj$treatment)){
 #    #Add treatment interactions
