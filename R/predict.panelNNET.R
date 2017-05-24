@@ -115,7 +115,6 @@ predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, ne
     }
   }
   for (i in 1:length(obj$hidden_units)){
-print(i)
     if (obj$used_bias == TRUE){D <- cbind(1,D)}
     D <- activ(as.matrix(D) %*% parlist[[i]])
   } 
