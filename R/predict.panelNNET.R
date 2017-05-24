@@ -119,22 +119,25 @@ predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, ne
     D <- activ(as.matrix(D) %*% parlist[[i]])
   } 
   colnames(D) <- paste0('nodes',1:ncol(D))
-  if (!is.null(obj$treatment)){
-    #Add treatment interactions
-    if (obj$interact_treatment == TRUE){
-      ints <- sweep(D, 1, new.treatment, '*')
-      colnames(ints) <- paste0('TrInts',1:ncol(ints))
-      D <- cbind(ints, D)
-    }
-    #Add treatment dummy
-    D <- cbind(new.treatment, D)
-    colnames(D)[1] <- 'treatment'
-  }
+#  if (!is.null(obj$treatment)){
+#    #Add treatment interactions
+#    if (obj$interact_treatment == TRUE){
+#      ints <- sweep(D, 1, new.treatment, '*')
+#      colnames(ints) <- paste0('TrInts',1:ncol(ints))
+#      D <- cbind(ints, D)
+#    }
+#    #Add treatment dummy
+#    D <- cbind(new.treatment, D)
+#    colnames(D)[1] <- 'treatment'
+#  }
   if (!is.null(obj$param)){
     D <- cbind(P, D)
     colnames(D)[1:ncol(new.param)] <- paste0('param',1:ncol(new.param))
   }
   if (is.null(obj$fe_var)){D <- cbind(1, D)}#add intercept if no FEs
+  if (return_toplayer == TRUE){
+    return(D)
+  }
   if (is.null(obj$fe)){
     yhat <- D %*% c(parlist$beta_param, parlist$beta_treatment, parlist$beta_treatmentinteractions, parlist$beta)
   } else {
@@ -147,9 +150,6 @@ predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, ne
   if (tauhat == TRUE) {
     taumat <- D[,grepl('tr', colnames(D), ignore.case = TRUE)]
     return(taumat)
-  }
-  if (return_toplayer == TRUE){
-    return(D)
   }
   #otherwise...
   return(yhat)

@@ -26,9 +26,9 @@ do_inference <- function(obj, numerical = FALSE, parallel = TRUE
     vcs[["vc.OLSClus"]] <- tryCatch(vcov.panelNNET(obj, 'cluster', J = X), error = function(e)e, finally = NULL)
   }
   obj$vcs <- vcs
-  obj$J <- J
   #calculate EDF and add to output
   if (OLS_only == FALSE){
+    obj$J <- J
     jtj <- crossprod(J)
     ev <- eigen(jtj)$values
     D <- rep(obj$lam, ncol(J))
