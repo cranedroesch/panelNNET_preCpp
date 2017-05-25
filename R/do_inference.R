@@ -5,27 +5,11 @@ do_inference <- function(obj, numerical = FALSE, parallel = TRUE
   , step = 1e-9, J = NULL, verbose = FALSE, OLS_only = FALSE){
   #Compute Jacobian if not supplied and asked-for
   if (is.null(J) & OLS_only == FALSE){
+    if (verbose){print("computing Jacobian")}
     J <- Jacobian.panelNNET(obj, parallel, step, numerical)
   }
   #top layer for OLS approximation
   X <- obj$hidden_layers[[length(obj$hidden_layers)]]
-  #empty list of vcovs
-  vcs <- list()
-  #calculate Jacobian-based vcovs
-  if (OLS_only == FALSE){
-    vcs[["vc.JacHomo"]] <- tryCatch(vcov.panelNNET(obj, 'Jacobian_homoskedastic', J = J), error = function(e)e, finally = NULL)
-    vcs[["vc.JacSand"]] <- tryCatch(vcov.panelNNET(obj, 'Jacobian_sandwich', J = J), error = function(e)e, finally = NULL)    
-    if (!is.null(obj$fe_var)){
-      vcs[["vc.JacClus"]] <- tryCatch(vcov.panelNNET(obj, 'Jacobian_cluster', J = J), error = function(e)e, finally = NULL)
-    }
-  } 
-  #calculate OLS aproximations
-  vcs[["vc.OLSHomo"]] <- tryCatch(vcov.panelNNET(obj, 'OLS', J = X), error = function(e)e, finally = NULL)
-  vcs[["vc.OLSSand"]] <- tryCatch(vcov.panelNNET(obj, 'sandwich', J = X), error = function(e)e, finally = NULL)
-  if (!is.null(obj$fe_var)){
-    vcs[["vc.OLSClus"]] <- tryCatch(vcov.panelNNET(obj, 'cluster', J = X), error = function(e)e, finally = NULL)
-  }
-  obj$vcs <- vcs
   #residuals, for sigma
   res <- with(obj, y - yhat)
   #calculate EDF and add to output
@@ -52,15 +36,35 @@ do_inference <- function(obj, numerical = FALSE, parallel = TRUE
   }
   #EDF and sigma for OLS approcimation
   Xdm <- demeanlist(X, list(obj$fe_var))
-  #do SVD
-  svX <- svd(Xdm)
   #de-mean, if fixed effects
   if (is.null(obj$fe_var)){
     Xdm <- X
+    targ <- obj$y
   } else {
     Xdm <- demeanlist(X, list(obj$fe_var))
+    targ <- demeanlist(obj$y, list(obj$fe_var))
   }
+  #get implicit lambda for top level ridge regression
+  if (verbose){print("getting implicit lambda")}
+  D <- rep(1, ncol(Xdm))
+  if (is.null(obj$fe_var)){
+    pp <- c(0, obj$parapen) #never penalize the intercept
+  } else {
+    pp <- obj$parapen #parapen
+  }
+  D[1:length(pp)] <- D[1:length(pp)]*pp #incorporate parapen into diagonal of covmat
+  constraint <- sum(c(obj$parlist$beta_param*obj$parapen, obj$parlist$beta)^2)
+  #function to find implicit lambda
+  f <- function(lam){
+    bi <- glmnet(y = targ, x = Xdm, lambda = lam, alpha = 0, intercept = FALSE, penalty.factor = D, standardize = FALSE)
+    bi <- as.matrix(coef(bi))[-1,]
+    (t(bi*D) %*% (bi*D) - constraint)^2
+  }
+  #optimize it
+  o <- optim(par = obj$lam, f = f, method = 'Brent', lower = obj$lam, upper = 1e9)
+  obj$lam_X <- o$par
   #do SVD
+  if (verbose){print('starting svd')}
   svX <- svd(Xdm)
   D <- rep(obj$lam, ncol(X))
   if (is.null(obj$fe_var)){
@@ -71,6 +75,24 @@ do_inference <- function(obj, numerical = FALSE, parallel = TRUE
   D[1:length(pp)] <- D[1:length(pp)]*pp #incorporate parapen into diagonal of covmat
   obj$edf_X <- sum(svX$d^2/(svX$d^2+D))
   obj$sigma2_X <- sum(res^2)/(nrow(X) - obj$edf_X)
+  #empty list of vcovs
+  vcs <- list()
+  if (verbose){print("getting vcovs")}
+  #calculate Jacobian-based vcovs
+  if (OLS_only == FALSE){
+    vcs[["vc.JacHomo"]] <- tryCatch(vcov.panelNNET(obj, 'Jacobian_homoskedastic', J = J), error = function(e)e, finally = NULL)
+    vcs[["vc.JacSand"]] <- tryCatch(vcov.panelNNET(obj, 'Jacobian_sandwich', J = J), error = function(e)e, finally = NULL)    
+    if (!is.null(obj$fe_var)){
+      vcs[["vc.JacClus"]] <- tryCatch(vcov.panelNNET(obj, 'Jacobian_cluster', J = J), error = function(e)e, finally = NULL)
+    }
+  } 
+  #calculate OLS aproximations
+  vcs[["vc.OLSHomo"]] <- tryCatch(vcov.panelNNET(obj, 'OLS'), error = function(e)e, finally = NULL)
+  vcs[["vc.OLSSand"]] <- tryCatch(vcov.panelNNET(obj, 'sandwich'), error = function(e)e, finally = NULL)
+  if (!is.null(obj$fe_var)){
+    vcs[["vc.OLSClus"]] <- tryCatch(vcov.panelNNET(obj, 'cluster'), error = function(e)e, finally = NULL)
+  }
+  obj$vcs <- vcs
   return(obj)
 }
 
