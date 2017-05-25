@@ -6,13 +6,8 @@ function(obj, option, J = NULL, edf_J = NULL, edf_X = NULL){
   e <- obj$y - obj$yhat
   if (grepl('Jacobian', option)){
     if (is.null(J)){stop('must supply Jacobian if requesting a Jacobian approx')}
-    if (is.null(obj$fe_var)){
-      Jdm <- J
-    } else {
-      Jdm <- demeanlist(J, list(obj$fe_var))
-    }
     #put together penalty factor
-    D <- rep(obj$lam, ncol(Jdm))
+    D <- rep(obj$lam, ncol(J))
     if (is.null(obj$fe_var)){
       pp <- c(0, obj$parapen) #never penalize the intercept
     } else {
@@ -22,13 +17,13 @@ function(obj, option, J = NULL, edf_J = NULL, edf_X = NULL){
     #use the EDF corresponding to the Jacobian approximation
     edf <- obj$edf_J
     #compute "bread"
-    bread <- solve(t(Jdm) %*% Jdm + diag(D))
+    bread <- solve(t(J) %*% J + diag(D))
     if (option == 'Jacobian_homoskedastic'){
       vcov <- sum(e^2)/(length(e) - edf) * bread
     }
     if (option == 'Jacobian_sandwich'){
       meat <- foreach(i = 1:length(e), .combine = '+') %do% {
-        e[i]^2*Jdm[i,] %*% t(Jdm[i,])
+        e[i]^2*J[i,] %*% t(J[i,])
       }
       vcov <- (length(e)-1)/(length(e) - edf) * bread %*% meat %*% bread
     }
@@ -36,7 +31,7 @@ function(obj, option, J = NULL, edf_J = NULL, edf_X = NULL){
       G <- length(unique(obj$fe_var))
       meat <- foreach(i = 1:G, .combine = '+')%do%{
         ei <- e[obj$fe_var == unique(obj$fe_var)[i]]
-        Ji <- Jdm[obj$fe_var == unique(obj$fe_var)[i],,drop = FALSE]
+        Ji <- J[obj$fe_var == unique(obj$fe_var)[i],,drop = FALSE]
         t(Ji) %*% ei %*% t(ei) %*% Ji
       }
       vcov <- G/(G-1)*(length(e) - 1)/(length(e) - edf) * bread %*% meat %*% bread
@@ -45,13 +40,8 @@ function(obj, option, J = NULL, edf_J = NULL, edf_X = NULL){
   } else {
     if (is.null(obj$edf_X)){stop('need to put edf_X in object, probably by runninng "do_inference" function')}
     J <- obj$hidden_layers[[length(obj$hidden_layers)]]
-    if (is.null(obj$fe_var)){
-      Jdm <- J
-    } else {
-      Jdm <- demeanlist(J, list(obj$fe_var))
-    }
     #put together penalty factor
-    D <- rep(obj$lam_X, ncol(Jdm))
+    D <- rep(obj$lam_X, ncol(J))
     if (is.null(obj$fe_var)){
       pp <- c(0, obj$parapen) #never penalize the intercept
     } else {
@@ -61,7 +51,7 @@ function(obj, option, J = NULL, edf_J = NULL, edf_X = NULL){
     #use the EDF corresponding to the Ridge approximation
     edf <- obj$edf_X
     #compute "bread"
-    bread <- solve(t(Jdm) %*% Jdm + diag(D))
+    bread <- solve(t(J) %*% J + diag(D))
     if (option == 'OLS'){
       vcov <- sum(e^2)/(length(e) - edf) * bread
     }

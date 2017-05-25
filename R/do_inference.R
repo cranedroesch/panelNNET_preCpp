@@ -66,7 +66,7 @@ do_inference <- function(obj, numerical = FALSE, parallel = TRUE
   #do SVD
   if (verbose){print('starting svd')}
   svX <- svd(Xdm)
-  D <- rep(obj$lam, ncol(X))
+  D <- rep(obj$lam_X, ncol(X))
   if (is.null(obj$fe_var)){
     pp <- c(0, obj$parapen) #never penalize the intercept
   } else {
