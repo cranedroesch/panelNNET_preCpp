@@ -36,3 +36,5 @@ TBD:
 16.  Code up permutaiton importance function
 
 17.  Speed up OLStrick function
+
+18.  OLStrick function should add top-level implicit lambda to output

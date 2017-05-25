@@ -26,21 +26,51 @@ do_inference <- function(obj, numerical = FALSE, parallel = TRUE
     vcs[["vc.OLSClus"]] <- tryCatch(vcov.panelNNET(obj, 'cluster', J = X), error = function(e)e, finally = NULL)
   }
   obj$vcs <- vcs
+  #residuals, for sigma
+  res <- with(obj, y - yhat)
   #calculate EDF and add to output
   if (OLS_only == FALSE){
-    obj$J <- J
-    jtj <- crossprod(J)
-    ev <- eigen(jtj)$values
+    obj$J <- J #save the jacobian in the object
+    #de-mean, if fixed effects
+    if (is.null(obj$fe_var)){
+      Jdm <- J
+    } else {
+      Jdm <- demeanlist(J, list(obj$fe_var))
+    }
+    #do SVD
+    svJ <- svd(Jdm)
+    #put together diagonal of penalty matrix
     D <- rep(obj$lam, ncol(J))
     if (is.null(obj$fe_var)){
       pp <- c(0, obj$parapen) #never penalize the intercept
     } else {
       pp <- obj$parapen #parapen
     }
-    if (!is.null(obj$treatment)){pp <- append(pp, 0)}#treatment always follows parametric terms and will not be penalized
     D[1:length(pp)] <- D[1:length(pp)]*pp #incorporate parapen into diagonal of covmat
-    obj$edf <- sum(ev/(ev+D))
+    obj$edf_J <- sum(svJ$d^2/(svJ$d^2+D))
+    obj$sigma2_J <- sum(res^2)/(nrow(X) - obj$edf_J)
   }
+  #EDF and sigma for OLS approcimation
+  Xdm <- demeanlist(X, list(obj$fe_var))
+  #do SVD
+  svX <- svd(Xdm)
+  #de-mean, if fixed effects
+  if (is.null(obj$fe_var)){
+    Xdm <- X
+  } else {
+    Xdm <- demeanlist(X, list(obj$fe_var))
+  }
+  #do SVD
+  svX <- svd(Xdm)
+  D <- rep(obj$lam, ncol(X))
+  if (is.null(obj$fe_var)){
+    pp <- c(0, obj$parapen) #never penalize the intercept
+  } else {
+    pp <- obj$parapen #parapen
+  }
+  D[1:length(pp)] <- D[1:length(pp)]*pp #incorporate parapen into diagonal of covmat
+  obj$edf_X <- sum(svX$d^2/(svX$d^2+D))
+  obj$sigma2_X <- sum(res^2)/(nrow(X) - obj$edf_X)
   return(obj)
 }
 
