@@ -90,26 +90,6 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
   }
 }
 
-
-N <- 10000
-P <- 4000
-A <- matrix(rnorm(P^2), P)
-vc <- crossprod(A)
-X <- matrix(rnorm(N*P), ncol = P)
-
-PT <- proc.time()
-semat <- sqrt(diag(X %*% vc %*% t(X)))
-proc.time() - PT
-
-PT <- proc.time()
-seloop <- foreach(i = 1:N, .combine = c)%do% {
-  sqrt(X[i,, drop = FALSE] %*% vc %*% t(X[i,, drop = FALSE]))
-}
-proc.time() - PT
-
-all.equal(semat, seloop)
-
-
 #prediction function, potentially for the Jacobian
 predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, tauhat = FALSE, FEs_to_merge = NULL, return_toplayer = FALSE){
   if (obj$activation == 'tanh'){
