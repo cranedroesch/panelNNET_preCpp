@@ -25,12 +25,6 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
     if (!all(unique(fe.newX) %in% unique(obj$fe$fe_var))){
       stop('New data has cross-sectional units not observed in training data')
     }
-#    if (tauhat == TRUE){
-#      if (is.null(obj$treatment)){
-#        stop('no treatment in object')
-#      }
-#      new.treatment <- rep(1, nrow(newX))
-#    }
     #Scale the new data by the scaling rules in the training data
     plist <- as.relistable(obj$parlist)
     pvec <- unlist(plist)
@@ -77,9 +71,13 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
         vcnames <- c()
         semat <- foreach(i = 1:length(obj$vcs), .combine = cbind, .errorhandling = 'remove') %do% {
           if (grepl('OLS', names(obj$vcs)[i])){
-            se <- sqrt(diag(X %*% obj$vcs[[i]] %*% t(X)))
+            se <- foreach(j = 1:N, .combine = c)%do% {
+              sqrt(X[j,, drop = FALSE] %*% obj$vcs[[i]] %*% t(X[j,, drop = FALSE]))
+            }
           } else {
-            se <- sqrt(diag(J %*% obj$vcs[[i]] %*% t(J)))
+            se <- foreach(j = 1:N, .combine = c)%do% {
+              sqrt(J[j,, drop = FALSE] %*% obj$vcs[[i]] %*% t(J[j,, drop = FALSE]))
+            }
           }
           vcnames[i] <- names(obj$vcs)[i]
           return(matrix(se))
@@ -91,6 +89,25 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
     }
   }
 }
+
+
+N <- 10000
+P <- 4000
+A <- matrix(rnorm(P^2), P)
+vc <- crossprod(A)
+X <- matrix(rnorm(N*P), ncol = P)
+
+PT <- proc.time()
+semat <- sqrt(diag(X %*% vc %*% t(X)))
+proc.time() - PT
+
+PT <- proc.time()
+seloop <- foreach(i = 1:N, .combine = c)%do% {
+  sqrt(X[i,, drop = FALSE] %*% vc %*% t(X[i,, drop = FALSE]))
+}
+proc.time() - PT
+
+all.equal(semat, seloop)
 
 
 #prediction function, potentially for the Jacobian
@@ -120,17 +137,6 @@ predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, ne
   } 
 
   colnames(D) <- paste0('nodes',1:ncol(D))
-#  if (!is.null(obj$treatment)){
-#    #Add treatment interactions
-#    if (obj$interact_treatment == TRUE){
-#      ints <- sweep(D, 1, new.treatment, '*')
-#      colnames(ints) <- paste0('TrInts',1:ncol(ints))
-#      D <- cbind(ints, D)
-#    }
-#    #Add treatment dummy
-#    D <- cbind(new.treatment, D)
-#    colnames(D)[1] <- 'treatment'
-#  }
   if (!is.null(obj$param)){
     D <- cbind(P, D)
     colnames(D)[1:ncol(new.param)] <- paste0('param',1:ncol(new.param))
