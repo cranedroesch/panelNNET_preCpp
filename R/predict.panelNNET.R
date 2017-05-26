@@ -71,11 +71,11 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
         vcnames <- c()
         semat <- foreach(i = 1:length(obj$vcs), .combine = cbind, .errorhandling = 'remove') %do% {
           if (grepl('OLS', names(obj$vcs)[i])){
-            se <- foreach(j = 1:N, .combine = c)%do% {
+            se <- foreach(j = 1:nrow(X), .combine = c)%do% {
               sqrt(X[j,, drop = FALSE] %*% obj$vcs[[i]] %*% t(X[j,, drop = FALSE]))
             }
           } else {
-            se <- foreach(j = 1:N, .combine = c)%do% {
+            se <- foreach(j = 1:nrow(J), .combine = c)%do% {
               sqrt(J[j,, drop = FALSE] %*% obj$vcs[[i]] %*% t(J[j,, drop = FALSE]))
             }
           }
