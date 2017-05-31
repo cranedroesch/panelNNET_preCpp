@@ -53,16 +53,20 @@ do_inference <- function(obj, numerical = FALSE, parallel = TRUE
     pp <- obj$parapen #parapen
   }
   D[1:length(pp)] <- D[1:length(pp)]*pp #incorporate parapen into diagonal of covmat
-  constraint <- sum(c(obj$parlist$beta_param*obj$parapen, obj$parlist$beta)^2)
-  #function to find implicit lambda
-  f <- function(lam){
-    bi <- glmnet(y = targ, x = Xdm, lambda = lam, alpha = 0, intercept = FALSE, penalty.factor = D, standardize = FALSE)
-    bi <- as.matrix(coef(bi))[-1,]
-    (t(bi*D) %*% (bi*D) - constraint)^2
+  if (obj$lam > 0) {
+    constraint <- sum(c(obj$parlist$beta_param*obj$parapen, obj$parlist$beta)^2)
+    #function to find implicit lambda
+    f <- function(lam){
+      bi <- glmnet(y = targ, x = Xdm, lambda = lam, alpha = 0, intercept = FALSE, penalty.factor = D, standardize = FALSE)
+      bi <- as.matrix(coef(bi))[-1,]
+      (t(bi*D) %*% (bi*D) - constraint)^2
+    }
+    #optimize it
+    o <- optim(par = obj$lam, f = f, method = 'Brent', lower = obj$lam, upper = 1e9)
+    obj$lam_X <- o$par
+  } else {
+    obj$lam_X <- 0
   }
-  #optimize it
-  o <- optim(par = obj$lam, f = f, method = 'Brent', lower = obj$lam, upper = 1e9)
-  obj$lam_X <- o$par
   #do SVD
   if (verbose){print('starting svd')}
   svX <- svd(Xdm)

@@ -23,18 +23,17 @@ TBD:
 
 10.  Add sanity checks:  that FE input is defined and is a factor, that the parametric penalty multiplier is the same length as the parametric term vector, etc.
 
-11.  Add analytical Jacobian
+11.  Add effective degrees of freedom to summary output
 
-12.  Add effective degrees of freedom to summary output
+12.  Write multistart function
 
-13.  Write multistart function
+13.  Build interactive mode, using the keypress package
 
-14.  Build interactive mode, using the keypress package
+14.  Write a function to predict from a new dataset that has missing observations.  As arguments it should take distributions from which to draw the missing values.
 
-15.  Write a function to predict from a new dataset that has missing observations.  As arguments it should take distributions from which to draw the missing values.
+15.  Code up permutaiton importance function
 
-16.  Code up permutaiton importance function
+16.  Speed up OLStrick function
 
-17.  Speed up OLStrick function
+17.  Write a vignette
 
-18.  OLStrick function should add top-level implicit lambda to output
