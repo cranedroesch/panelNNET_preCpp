@@ -1,80 +1,79 @@
 panelNNET.est <-
-function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist, verbose, para_plot, report_interval, save_each_iter, path, tag, gravity, convtol, bias_hlayers, RMSprop, start.LR, activation, doscale, treatment, interact_treatment, batchsize, maxstopcounter, OLStrick, useOptim, optimMethod, initialization, dropout_hidden, dropout_input, ...){
+function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist, verbose, para_plot, report_interval, save_each_iter
+         , path, tag, gravity, convtol, bias_hlayers, RMSprop, start.LR, activation, doscale, treatment, interact_treatment
+         , batchsize, maxstopcounter, OLStrick, useOptim, optimMethod, initialization, dropout_hidden, dropout_input, ...){
 
-###examplearguments for testing
-#rm(list=ls())
-#gc()
-#gc()
-#"%ni%" <- Negate("%in%")
-
-#library(panelNNET)
-#library(mvtnorm)
-#N <- 2000
-#t = 40
-#pz <- 5
-#pid <- N/t
-#id <- (1:N-1) %/% (N/pid) +1
-#time <- 0:(N-1) %% (N/pid) +1
-#set.seed(706)
-
-##Each group has its own covariance matrix
-#groupcov <- foreach(i = 1:pid) %do% {
+# ###examplearguments for testing
+# rm(list=ls())
+# gc()
+# gc()
+# "%ni%" <- Negate("%in%")
+# library(panelNNET)
+# library(mvtnorm)
+# N <- 2000
+# t = 40
+# pz <- 5
+# pid <- N/t
+# id <- (1:N-1) %/% (N/pid) +1
+# time <- 0:(N-1) %% (N/pid) +1
+# set.seed(706)
+# #Each group has its own covariance matrix
+# groupcov <- foreach(i = 1:pid) %do% {
 #  A <- matrix(rnorm(pz^2), pz)
 #  t(A) %*% A
-#}
-##and its own mean
-#groupmean <- foreach(i = 1:pid) %do% {
+# }
+# #and its own mean
+# groupmean <- foreach(i = 1:pid) %do% {
 #  rnorm(pz, sd  =5)
-#}
-##and it's own effect that is distinct from its covariate distribution
-#id.eff <- as.numeric(id)
-
-##this is the data generated from those distributions
-#Z <- foreach(i = 1:N, .combine = rbind)%do%{
+# }
+# #and it's own effect that is distinct from its covariate distribution
+# id.eff <- as.numeric(id)
+# #this is the data generated from those distributions
+# Z <- foreach(i = 1:N, .combine = rbind)%do%{
 #  mvrnorm(1, groupmean[[id[i]]], groupcov[[id[i]]])
-#}
-##outcome minus noise
-#y <- time +log(dmvnorm(Z, rep(0, pz), diag(rep(1, pz)))) + id.eff
-##y <- time +Z %*% rnorm(1:pz)
-#u <- rnorm(N, sd = 20)
-#y <- y+u
-#id <- as.factor(id)
-##training and test and validation
-#v <- time>max(time)*.9
-#r <- time %in% time[which(v==FALSE & time %%2)]
-#e <- time %in% time[which(v==FALSE & (time+1) %%2)]
-#P <- matrix(time)
-
-###########################
-#hidden_units <- c(10,10,10)
-#y = y[r]
-#X = Z[r,]
-#fe_var = id[r]
-#maxit = 100
-#lam = .01
-#time_var = time[r]
-#param = P[r,, drop = FALSE]
-#verbose = TRUE
-#gravity = 1.01
-#convtol = 1e-3
-#activation = 'lrelu'
-#start_LR = .01
-#parlist = NULL
-#OLStrick = TRUE
-#initialization = 'enforce_normalization'
-#batchsize = ceiling(sum(r)/10)
-#RMSprop = TRUE
-#doscale = TRUE
-#treatment = NULL
-#para_plot <- useOptim <- save_each_iter <- FALSE
-#tag <- path <- NULL
-#bias_hlayers <- TRUE
-#dropout_hidden = .5
-#dropout_input = .8
-#parapen <- 0
-#start.LR <- .01
-#maxstopcounter = 10
-#report_interval = 10
+# }
+# #outcome minus noise
+# y <- time +log(dmvnorm(Z, rep(0, pz), diag(rep(1, pz)))) + id.eff
+# #y <- time +Z %*% rnorm(1:pz)
+# u <- rnorm(N, sd = 20)
+# y <- y+u
+# id <- as.factor(id)
+# #training and test and validation
+# v <- time>max(time)*.9
+# r <- time %in% time[which(v==FALSE & time %%2)]
+# e <- time %in% time[which(v==FALSE & (time+1) %%2)]
+# P <- matrix(time)
+# 
+# ###########################
+# hidden_units <- c(2, 10, 4, 17)
+# y = y[r]
+# X = Z[r,]
+# fe_var = id[r]
+# maxit = 100
+# lam = .01
+# time_var = time[r]
+# param = P[r,, drop = FALSE]
+# verbose = TRUE
+# gravity = 1.01
+# convtol = 1e-3
+# activation = 'lrelu'
+# start_LR = .01
+# parlist = NULL
+# OLStrick = TRUE
+# initialization = 'enforce_normalization'
+# batchsize = ceiling(sum(r)/10)
+# RMSprop = TRUE
+# doscale = TRUE
+# treatment = NULL
+# para_plot <- useOptim <- save_each_iter <- FALSE
+# tag <- path <- NULL
+# bias_hlayers <- TRUE
+# dropout_hidden = 1
+# dropout_input = 1
+# parapen <- 0
+# start.LR <- .01
+# maxstopcounter = 10
+# report_interval = 10
 
   ##########
   #Define internal functions
@@ -198,6 +197,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 
   ###########################
   #start fitting
+  print("hello this is my awesome branch and I am learning how to use github!!")
   if (doscale == TRUE){
     X <- scale(X)
     if (!is.null(param)){
@@ -220,6 +220,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     activ <- lrelu
     activ_prime <- lrelu_prime
   }
+  #note to ZS:  remove all reference to "path" and tag
   if (!is.null(path)){
     fi <- list.files(path, pattern = tag)
     if(length(fi) > 1){stop('borked tags!')}
@@ -284,6 +285,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 
   ###############
   #Optim approach
+  #note to ZS:  remove all traces of optim approach
   if (useOptim == TRUE){
     #start optimizer
     out <- optim(par = pl, fn = lossfun, gr = getgr
@@ -367,7 +369,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     }
     ###############
     #start iterating
-    while(iter<maxit & stopcounter < maxstopcounter){
+    while(iter < maxit & stopcounter < maxstopcounter){
       oldpar <- list(parlist=parlist, hlayers=hlayers, grads=grads
         , yhat = yhat, mse = mse, mseold = mseold, loss = loss, updates = updates, G2 = G2
         , msevec = msevec, lossvec = lossvec)
@@ -378,7 +380,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         batchid[batchid == max(batchid)] <- sample(1:(max(batchid) - 1), min(table(batchid)), replace = TRUE)
       }
       for (bat in 1:max(batchid)) {
-#bat = 1
+# bat = 1
         curBat <- which(batchid == bat)
         hlay <- hlayers#hlay may have experienced dropout, as distinct from hlayers
         #if using dropout, generate a droplist
@@ -469,8 +471,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
           parlist <- OLStrick_function(parlist = parlist, hidden_layers = hlayers, y = y
             , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
           )
+          pl <- unlist(parlist)
         }
-        pl <- unlist(parlist)
         #update yhat
         yhat <- getYhat(pl, attr(pl, 'skeleton'), hlay = hlayers)
         mse <- mean((y-yhat)^2)
