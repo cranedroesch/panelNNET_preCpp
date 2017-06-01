@@ -197,7 +197,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 
   ###########################
   #start fitting
-  print("hello this is my awesome branch and I am learning how to use github!!")
   if (doscale == TRUE){
     X <- scale(X)
     if (!is.null(param)){
