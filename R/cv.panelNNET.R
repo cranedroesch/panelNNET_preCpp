@@ -57,8 +57,8 @@ function(obj, folds = NULL, nfolds = 10, parallel = TRUE, type = 'OLS', J = NULL
       bi <- solve(t(Zdm) %*% Zdm + diag(rep(lam, ncol(Zdm)))) %*% t(Zdm) %*% targ
       (t(bi) %*% bi - constraint)^2
     }
-    #optimize it
-    o <- optim(par = obj$lam+1, f = f, method = 'Brent', lower = obj$lam, upper = 1e9)
+    #optimize_it 
+    o <- optim(par = obj$lam+1, f = f, method = 'Brent', lower = obj$lam, upper = le9)
     #new lambda
     newlam <- o$par
   }
@@ -88,7 +88,6 @@ function(obj, folds = NULL, nfolds = 10, parallel = TRUE, type = 'OLS', J = NULL
         , time_var = obj$time[obj$time_var %in% tr], param = obj$param[obj$time_var %in% tr,, drop = FALSE],  verbose = FALSE
         , convtol = obj$convtol, activation = obj$activation, inference = FALSE
         , parlist = pl
-        , useOptim = obj$usedOptim, optimMethod = obj$optimMethod
       )
       p <- predict(optpass, newX = obj$X[obj$time_var %in% te,]
         , fe.newX = obj$fe_var[obj$time_var %in% te]
