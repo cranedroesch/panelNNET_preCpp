@@ -1,7 +1,9 @@
 panelNNET.est <-
-function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist, verbose, para_plot, report_interval, save_each_iter
-         , path, tag, gravity, convtol, bias_hlayers, RMSprop, start.LR, activation, doscale, treatment, interact_treatment
-         , batchsize, maxstopcounter, OLStrick, useOptim, optimMethod, initialization, dropout_hidden, dropout_input, ...){
+function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist
+         , verbose, para_plot, report_interval, gravity, convtol, bias_hlayers, RMSprop
+         , start.LR, activation, doscale, treatment, interact_treatment
+         , batchsize, maxstopcounter, OLStrick, initialization, dropout_hidden
+         , dropout_input, ...){
 
 ###examplearguments for testing
 rm(list=ls())
@@ -45,7 +47,7 @@ e <- time %in% time[which(v==FALSE & (time+1) %%2)]
 P <- matrix(time)
 
 ###########################
-hidden_units <- c(2, 10, 4, 17)
+hidden_units <- c(2, 10)
 y = y[r]
 X = Z[r,]
 fe_var = id[r]
@@ -65,8 +67,8 @@ batchsize = ceiling(sum(r)/10)
 RMSprop = TRUE
 doscale = TRUE
 treatment = NULL
-para_plot <- useOptim <- save_each_iter <- FALSE
-tag <- path <- NULL
+para_plot <- FALSE
+interact_treatment = TRUE
 bias_hlayers <- TRUE
 dropout_hidden = 1
 dropout_input = 1
@@ -219,17 +221,7 @@ report_interval = 10
     activ <- lrelu
     activ_prime <- lrelu_prime
   }
-  #note to ZS:  remove all reference to "path" and tag
-  if (!is.null(path)){
-    fi <- list.files(path, pattern = tag)
-    if(length(fi) > 1){stop('borked tags!')}
-    if(length(fi) == 1){
-      fn <- paste0(path, '/', fi)
-      fn <- gsub('//', '/', fn)#be careful about double slashes...
-      parlist <- load_obj(fn)
-      print('picked up where left off!')
-    }
-  }
+
   nlayers <- length(hidden_units)
   #get starting weights, either randomly or from a specified parlist
   if (is.null(parlist)){#random starting weights
@@ -280,54 +272,8 @@ report_interval = 10
   if (!is.null(fe_var)){
     ydm <<- demeanlist(y, list(fe_var)) 
   }
-
-
-  ###############
-  #Optim approach
-  #note to ZS:  remove all traces of optim approach
-  if (useOptim == TRUE){
-    #start optimizer
-    out <- optim(par = pl, fn = lossfun, gr = getgr
-      , control = list(trace  =verbose*6, maxit = maxit)
-      , method = optimMethod, skel = attr(pl, 'skeleton'), parapen = parapen, lam = lam
-    )
-    parlist <- relist(out$par)  
-    #Update hidden layers
-    hlayers <- calc_hlayers(parlist)
-    #update yhat
-    yhat <- getYhat(out$par, hlay = hlayers)
-    if (OLStrick == TRUE){
-    #First pass..
-      parlist <- OLStrick_function(parlist = parlist, hidden_layers = hlayers, y = y
-        , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
-      )
-      #new yhat
-      yhat <- getYhat(unlist(parlist), skel = attr(unlist(parlist), 'skeleton'), hlay = hlayers)
-      #second pass
-      parlist <- OLStrick_function(parlist = parlist, hidden_layers = hlayers, y = y
-        , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
-      )
-      yhat <- getYhat(unlist(parlist), skel = attr(unlist(parlist), 'skeleton'), hlay = hlayers)
-    }
-    #calc fixed effects
-    if (!is.null(fe_var)){
-      Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))
-      fe <- (y-ydm) - as.matrix(hlayers[[length(hlayers)]]-Zdm) %*% as.matrix(c(
-          parlist$beta_param, parlist$beta_treatment
-        , parlist$beta_treatmentinteractions, parlist$beta
-      ))
-      fe_output <- data.frame(fe_var, fe)
-    } else {
-      fe_output <- NULL
-    }
-    #pars for output
-    mse <- mean((y-yhat)^2)
-    conv <- out$convergence == 0
-    loss <- out$value
-    grads <- msevec <- NULL
-##################################
-  } else { #if useOptim  == FALSE
-    #get starting MSE
+  #####################################
+  #####################################
     yhat <- getYhat(pl, hlay = hlayers)
     mse <- mseold <- mean((y-yhat)^2)
     loss <- mse + lam*sum(c(parlist$beta_param*parapen
@@ -345,7 +291,7 @@ report_interval = 10
       G2 <- lapply(parlist, function(x){x*0})
       #squashing all of the numeric list elements into a matrix/vector
       betas <- matrix(unlist(G2[grepl('beta', names(G2))]))
-      G2 <- G2[!grepl('beta', names(G2))]    
+      G2 <- G2[!grepl('beta', names(G2))]
       G2[[length(G2)+1]] <- betas
     }
     LRvec <- LR <- start.LR#starting LR
@@ -364,8 +310,8 @@ report_interval = 10
         } else { #if not, just take their absolute values
           return(x)
         }
-      })
-    }
+    })
+#    }
     ###############
     #start iterating
     while(iter < maxit & stopcounter < maxstopcounter){
@@ -614,10 +560,8 @@ report_interval = 10
     , X = X, y = y, param = param, fe_var = fe_var, hidden_units = hidden_units, maxit = maxit
     , used_bias = bias_hlayers, final_improvement = D, msevec = msevec, RMSprop = RMSprop, convtol = convtol
     , grads = grads, activation = activation, parapen = parapen, doscale = doscale, treatment = treatment
-    , interact_treatment = interact_treatment, batchsize = batchsize
-    , usedOptim = useOptim, optimMethod = optimMethod
-    , initialization = initialization
-  )
+    , interact_treatment = interact_treatment, batchsize = batchsize, 
+    , initialization = initialization)
   return(output)
 }
 
