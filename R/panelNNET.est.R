@@ -577,14 +577,14 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     }
     conv <- (iter<maxit)#Did we get convergence?
     if(is.null(fe_var)){
-      fe_output <- data.frame(fe_var, fe)
+      fe_output <- NULL
     } else {
       Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))
       fe <- (y-ydm) - as.matrix(hlayers[[length(hlayers)]]-Zdm) %*% as.matrix(c(
           parlist$beta_param, parlist$beta_treatment
         , parlist$beta_treatmentinteractions, parlist$beta
       ))
-      fe_output <- NULL
+      fe_output <- dataframe(fe_var, fe)
     }
   } #ifelse optim or not
   output <- list(yhat = yhat, parlist = parlist, hidden_layers = hlayers
