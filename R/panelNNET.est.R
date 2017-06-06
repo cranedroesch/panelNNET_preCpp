@@ -341,8 +341,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
           return(c(q, mu = mu))
         } else { #if not, just take their absolute values
           return(x)
-        }
-    })
+        return(x)
+      })
 #    }
     ###############
     #start iterating
@@ -586,8 +586,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       ))
       fe_output <- dataframe(fe_var, fe)
     }
-  }
-  #ifelse optim or not
+  }#ifelse optim or not
   output <- list(yhat = yhat, parlist = parlist, hidden_layers = hlayers
     , fe = fe_output, converged = conv, mse = mse, loss = loss, lam = lam, time_var = time_var
     , X = X, y = y, param = param, fe_var = fe_var, hidden_units = hidden_units, maxit = maxit
