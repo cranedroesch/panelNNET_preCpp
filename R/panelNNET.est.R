@@ -584,7 +584,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
           parlist$beta_param, parlist$beta_treatment
         , parlist$beta_treatmentinteractions, parlist$beta
       ))
-      fe_output <- data.frame(fe_var, fe)
+      fe_output <- NULL
     }
   } #ifelse optim or not
   output <- list(yhat = yhat, parlist = parlist, hidden_layers = hlayers
