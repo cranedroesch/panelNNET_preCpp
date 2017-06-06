@@ -498,7 +498,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       if (verbose == TRUE & iter %% report_interval == 0){
         writeLines(paste0(
             "*******************************************\n"
-          , tag, "\n"
           , 'Lambda = ',lam, "\n"
           , "Hidden units -> ",paste(hidden_units, collapse = ' '), "\n"
           , " Batch size is ", batchsize, " \n"
@@ -551,7 +550,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         }
       }
     }
-    iter = iter+1
+    iter <- iter+1
   } #close the while loop
 
   #If trained with dropput, weight the layers by expectations
