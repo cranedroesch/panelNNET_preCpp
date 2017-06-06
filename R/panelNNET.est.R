@@ -48,35 +48,35 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 # # 
 # ###########################
 
-# hidden_units <- c(2, 10)
-# y = y[r]
-# X = Z[r,]
-# fe_var = id[r]
-# maxit = 100
-# lam = .01
-# time_var = time[r]
-# param = P[r,, drop = FALSE]
-# verbose = TRUE
-# gravity = 1.01
-# convtol = 1e-3
-# activation = 'lrelu'
-# start_LR = .01
-# parlist = NULL
-# OLStrick = TRUE
-# initialization = 'enforce_normalization'
-# batchsize = ceiling(sum(r)/10)
-# RMSprop = TRUE
-# doscale = TRUE
-# treatment = NULL
-# para_plot <- FALSE
-# interact_treatment = TRUE
-# bias_hlayers <- TRUE
-# dropout_hidden = 1
-# dropout_input = 1
-# parapen <- 0
-# start.LR <- .01
-# maxstopcounter = 10
-# report_interval = 10
+hidden_units <- c(2, 10)
+y = y[r]
+X = Z[r,]
+fe_var = id[r]
+maxit = 100
+lam = .01
+time_var = time[r]
+param = P[r,, drop = FALSE]
+verbose = TRUE
+gravity = 1.01
+convtol = 1e-3
+activation = 'lrelu'
+start_LR = .01
+parlist = NULL
+OLStrick = TRUE
+initialization = 'enforce_normalization'
+batchsize = ceiling(sum(r)/10)
+RMSprop = TRUE
+doscale = TRUE
+treatment = NULL
+para_plot <- FALSE
+interact_treatment = TRUE
+bias_hlayers <- TRUE
+dropout_hidden = 1
+dropout_input = 1
+parapen <- 0
+start.LR <- .01
+maxstopcounter = 10
+report_interval = 10
 
 # y=  y[r]
 # X = Z[r,]
