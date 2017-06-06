@@ -161,7 +161,7 @@ in the single-layer case, and generalized in the multi-layer cased.  Parameters 
   \item{optimMethod}{User-supplied}
   \item{initialization}{User-supplied}
   \item{edf}{Effective degrees of freedom.  Only returned if inference set to true.}
-  \item{vcs}{Various sorts of parameter covariance matrix.  Only returned if inference set to true.}}
+  \item{vcs}{Various sorts of parameter covariance matrix.  Only returned if the function "do_inference" is run.  For example, output <- do_inference(output)}}
   \item{J}{The Jacobian.  Only returned if inference set to true.}
 }
 

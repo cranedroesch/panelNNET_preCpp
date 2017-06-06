@@ -63,15 +63,6 @@ A list of starting values for the parameters.  Chosen randomly if omitted (see t
   \item{verbose}{
 If true will print progress to console, and make plots of the algorithm's progress.  May work poorly on windows and/or in RStudio.
 }
-  \item{save_each_iter}{
-Should the temporary weights be saved to disk after each iteration?  This is deprecated, and will be removed.
-}
-  \item{path}{
-Path for the weights to be saved after each iteration.  Ignored if not saving after every iteration.  Deprecated.
-}
-  \item{tag}{
-A string to include in the temporary weight files saved to disk.  Deprecated.
-}
   \item{gravity}{
 The learning rate will be multiplied by this factor after each step.
 }
