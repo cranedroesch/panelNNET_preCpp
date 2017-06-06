@@ -5,7 +5,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
          , batchsize, maxstopcounter, OLStrick, initialization, dropout_hidden
          , dropout_input, ...){
 
-# ###examplearguments for testing
+###examplearguments for testing
 # rm(list=ls())
 # gc()
 # gc()
@@ -34,7 +34,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 # Z <- foreach(i = 1:N, .combine = rbind)%do%{
 #  mvrnorm(1, groupmean[[id[i]]], groupcov[[id[i]]])
 # }
-# #outcome minus noise
+# # #outcome minus noise
 # y <- time +log(dmvnorm(Z, rep(0, pz), diag(rep(1, pz)))) + id.eff
 # #y <- time +Z %*% rnorm(1:pz)
 # u <- rnorm(N, sd = 20)
@@ -45,8 +45,9 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 # r <- time %in% time[which(v==FALSE & time %%2)]
 # e <- time %in% time[which(v==FALSE & (time+1) %%2)]
 # P <- matrix(time)
-# 
+# # 
 # ###########################
+
 # hidden_units <- c(2, 10)
 # y = y[r]
 # X = Z[r,]
@@ -576,7 +577,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     }
     conv <- (iter<maxit)#Did we get convergence?
     if(is.null(fe_var)){
-      fe_output <- NULL
+      fe_output <- NULL <- data.frame(fe_var, fe)
     } else {
       Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))
       fe <- (y-ydm) - as.matrix(hlayers[[length(hlayers)]]-Zdm) %*% as.matrix(c(
