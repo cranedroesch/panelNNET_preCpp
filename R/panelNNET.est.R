@@ -488,9 +488,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       }
     } else {
       LRvec[iter+1] <- LR <- LR*gravity      #gravity...
-      if (save_each_iter == TRUE){
-        save(parlist, file = paste0(path, '/pnnet_int_out_',tag,'_'))  #Save the intermediate output locally
-      }
       D <- oldpar$loss - loss
       if (D<convtol){
         stopcounter <- stopcounter +1
