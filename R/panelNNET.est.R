@@ -577,7 +577,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     }
     conv <- (iter<maxit)#Did we get convergence?
     if(is.null(fe_var)){
-      fe_output <- NULL <- data.frame(fe_var, fe)
+      fe_output <- data.frame(fe_var, fe)
     } else {
       Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))
       fe <- (y-ydm) - as.matrix(hlayers[[length(hlayers)]]-Zdm) %*% as.matrix(c(
