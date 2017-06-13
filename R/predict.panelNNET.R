@@ -5,8 +5,7 @@
 predict.panelNNET <-
 function(obj, newX = NULL, fe.newX = NULL, new.param = NULL
          , new.treatment = NULL, se.fit = FALSE, tauhat = FALSE
-         , numerical_jacobian = FALSE, parallel_jacobian = FALSE
-         , ){
+         , numerical_jacobian = FALSE, parallel_jacobian = FALSE){
 
   
   
