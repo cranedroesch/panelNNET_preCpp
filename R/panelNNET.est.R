@@ -676,7 +676,7 @@ report_interval = 10
         
         }
         
-        if (para_plot == TRUE & (is.null(test_set))){#additional plots if plotting parameter evolution
+        if (para_plot == TRUE){#additional plots if plotting parameter evolution
           par(mfrow = c(ceiling(length(parlist)/2)+3,2))
         } else {
           par(mfrow = c(3,2))
@@ -688,10 +688,11 @@ report_interval = 10
         plot(msevec[(1+(iter)*max(batchid)):length(msevec)], type = 'l', ylab = 'mse', main = 'Current epoch')
         plot(lossvec, type = 'l', main = 'all epochs')
         plot(lossvec[(1+(iter)*max(batchid)):length(lossvec)], type = 'l', ylab = 'loss', main = 'Current epoch')
-        if (para_plot == TRUE & (!is.null(test_set))){
+#        if (para_plot == TRUE & (!is.null(test_set))){
 #        plot(mse_predict, type = 'l', main = 'all epochs')
 #        plot(mse_predict[(1+(iter)*max(batchid)):length(mse_predict)], type = 'l', ylab = 'mse_pred', main = 'Current epoch')
-        }
+#        }
+        
         if (para_plot == TRUE){
           #update para plot list
           for (lay in 1:length(para_plot_list)){
@@ -716,7 +717,7 @@ report_interval = 10
               abline(h = 0, lty = 2)
             }
           }
-      
+        }
       } # this closes verbose command 
     } # closes gravity command 
       iter <- iter+1
