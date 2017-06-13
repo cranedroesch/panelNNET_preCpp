@@ -1,12 +1,43 @@
+
+
+
+
 predict.panelNNET <-
-function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, se.fit = FALSE, tauhat = FALSE, numerical_jacobian = FALSE, parallel_jacobian = FALSE){
+function(obj, newX = NULL, fe.newX = NULL, new.param = NULL
+         , new.treatment = NULL, se.fit = FALSE, tauhat = FALSE
+         , numerical_jacobian = FALSE, parallel_jacobian = FALSE
+         , ){
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+#rm(list=ls()) 
 #obj <- pnn
 #newX = Z[e,]
 #fe.newX = id[e]
 #new.param = P[e,, drop = FALSE]
-#se.fit = TRUE
+#se.fit = FALSE
 #parallel_jacobian = TRUE
 #numerical_jacobian = FALSE
+  
+
+
+
+
+
+
+
+
+
+
   if (obj$activation == 'tanh'){
     activ <- tanh
   }
@@ -26,7 +57,7 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
       stop('New data has cross-sectional units not observed in training data')
     }
     #Scale the new data by the scaling rules in the training data
-    plist <- as.relistable(obj$parlist)
+    plist <- as.relistable(obj$parlist) # pull out from list 
     pvec <- unlist(plist)
     #prepare fe's in advance...
     if (!is.null(obj$fe)){
@@ -90,6 +121,21 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
   }
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #prediction function, potentially for the Jacobian
 predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, tauhat = FALSE, FEs_to_merge = NULL, return_toplayer = FALSE){
   if (obj$activation == 'tanh'){
@@ -104,7 +150,9 @@ predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, ne
   if (obj$activation == 'lrelu'){
     activ <- lrelu
   }
+  
   parlist <- relist(pvec)
+  
   if (obj$doscale == TRUE){
     D <- sweep(sweep(newX, 2, STATS = attr(obj$X, "scaled:center"), FUN = '-'), 2, STATS = attr(obj$X, "scaled:scale"), FUN = '/')
     if (!is.null(obj$param)){
@@ -121,6 +169,7 @@ predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, ne
     D <- cbind(P, D)
     colnames(D)[1:ncol(new.param)] <- paste0('param',1:ncol(new.param))
   }
+  
   if (is.null(obj$fe_var)){D <- cbind(1, D)}#add intercept if no FEs
   if (return_toplayer == TRUE){
     return(D)
@@ -141,4 +190,35 @@ predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, ne
   #otherwise...
   return(yhat)
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

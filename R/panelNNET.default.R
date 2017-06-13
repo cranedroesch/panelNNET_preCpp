@@ -7,7 +7,8 @@ function(y, X, hidden_units, fe_var
   , activation = 'tanh', doscale = TRUE
   , treatment = NULL, interact_treatment = TRUE, batchsize = nrow(X)
   , maxstopcounter = 10, OLStrick = FALSE, initialization = 'enforce_normalization'
-  , dropout_hidden = 1, dropout_input = 1, test_set = NULL ...)
+  , dropout_hidden = 1, dropout_input = 1, real_time_predict = TRUE,
+  , test_set = NULL, ...)
 {
   out <- panelNNET.est(y, X, hidden_units, fe_var, maxit, lam
     , time_var, param, parapen, parlist, verbose, para_plot

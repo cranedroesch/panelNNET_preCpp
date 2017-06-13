@@ -77,8 +77,8 @@ hidden_units <- g
 y = y[r]
 X = Z[r,]
 fe_var = id[r]
-maxit = 500
-lam = .01
+maxit = 700
+lam = .001
 time_var = time[r] #test time
 param = P[r,, drop = FALSE]
 verbose = TRUE
@@ -676,7 +676,7 @@ report_interval = 10
         
         }
         
-        if (para_plot == TRUE){#additional plots if plotting parameter evolution
+        if (para_plot == TRUE & (is.null(test_set))){#additional plots if plotting parameter evolution
           par(mfrow = c(ceiling(length(parlist)/2)+3,2))
         } else {
           par(mfrow = c(3,2))
@@ -716,10 +716,10 @@ report_interval = 10
               abline(h = 0, lty = 2)
             }
           }
-        }
+      
       } # this closes verbose command 
     } # closes gravity command 
-    iter <- iter+1
+      iter <- iter+1
   } #close the while loop
 
 
