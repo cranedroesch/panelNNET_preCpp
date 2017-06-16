@@ -8,102 +8,102 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 
   
 # #example arguments for testing
-
-rm(list=ls())
-gc()
-gc()
-"%ni%" <- Negate("%in%")
-library(panelNNET)
-library(mvtnorm)
-
-N <- 2000
-t = 40
-pz <- 5
-pid <- N/t
-id <- (1:N-1) %/% (N/pid) +1
-time <- 0:(N-1) %% (N/pid) +1
-set.seed(706)
+# 
+# rm(list=ls())
+# gc()
+# gc()
+# "%ni%" <- Negate("%in%")
+# library(panelNNET)
+# library(mvtnorm)
+# 
+# N <- 2000
+# t = 40
+# pz <- 5
+# pid <- N/t
+# id <- (1:N-1) %/% (N/pid) +1
+# time <- 0:(N-1) %% (N/pid) +1
+# set.seed(706)
 
 
 
 #Each group has its own covariance matrix
-groupcov <- foreach(i = 1:pid) %do% {
- A <- matrix(rnorm(pz^2), pz)
- t(A) %*% A
-}
-
-
-#and its own mean
-groupmean <- foreach(i = 1:pid) %do% {
- rnorm(pz, sd  =5)
-}
-
-#and it's own effect that is distinct from its covariate distribution
-id.eff <- as.numeric(id)
-#this is the data generated from those distributions
-Z <- foreach(i = 1:N, .combine = rbind)%do%{
- mvrnorm(1, groupmean[[id[i]]], groupcov[[id[i]]])
-}
-
-# #outcome minus noise
-y <- time +log(dmvnorm(Z, rep(0, pz), diag(rep(1, pz)))) + id.eff
-
-
-
-#y <- time +Z %*% rnorm(1:pz)
-u <- rnorm(N, sd = 20)
-y <- y+u
-id <- as.factor(id)
-
-
-
-#training and test and validation
-v <- time>max(time)*.9
-r <- time %in% time[which(v==FALSE & time %%2)]
-e <- time %in% time[which(v==FALSE & (time+1) %%2)]
-P <- matrix(time)
-
-#test_set
-test_set <- list(y_test = y[e], x_test = Z[e,], fe_test = id[e], test_params = P[e, , drop = FALSE])
-#test_set = NULL
-
-#test_y <- test_set$y_test
-#test_x <- test_set$x_test
-#test_fe <- test_set$fe_test
-#test_params <- test_set$test_params
-
-
-###################################
-g = c(7)
-hidden_units <- g
-y = y[r]
-X = Z[r,]
-fe_var = id[r]
-maxit = 200
-lam = .01
-time_var = time[r] #test time
-param = P[r,, drop = FALSE]
-verbose = TRUE
-gravity = 1.01
-convtol = 1e-3
-activation = 'lrelu'
-start_LR = .01
-parlist = NULL
-OLStrick = FALSE
-initialization = 'enforce_normalization'
-batchsize = nrow(X)
-RMSprop = TRUE
-doscale = TRUE
-treatment = NULL
-para_plot <- TRUE
-interact_treatment = FALSE
-bias_hlayers <- TRUE
-dropout_hidden = 1
-dropout_input = 1
-parapen <- 0
-start.LR <- .01
-maxstopcounter = 10
-report_interval = 10
+# groupcov <- foreach(i = 1:pid) %do% {
+#  A <- matrix(rnorm(pz^2), pz)
+#  t(A) %*% A
+# }
+# 
+# 
+# #and its own mean
+# groupmean <- foreach(i = 1:pid) %do% {
+#  rnorm(pz, sd  =5)
+# }
+# 
+# #and it's own effect that is distinct from its covariate distribution
+# id.eff <- as.numeric(id)
+# #this is the data generated from those distributions
+# Z <- foreach(i = 1:N, .combine = rbind)%do%{
+#  mvrnorm(1, groupmean[[id[i]]], groupcov[[id[i]]])
+# }
+# 
+# # #outcome minus noise
+# y <- time +log(dmvnorm(Z, rep(0, pz), diag(rep(1, pz)))) + id.eff
+# 
+# 
+# 
+# #y <- time +Z %*% rnorm(1:pz)
+# u <- rnorm(N, sd = 20)
+# y <- y+u
+# id <- as.factor(id)
+# 
+# 
+# 
+# #training and test and validation
+# v <- time>max(time)*.9
+# r <- time %in% time[which(v==FALSE & time %%2)]
+# e <- time %in% time[which(v==FALSE & (time+1) %%2)]
+# P <- matrix(time)
+# 
+# #test_set
+# test_set <- list(y_test = y[e], x_test = Z[e,], fe_test = id[e], test_params = P[e, , drop = FALSE])
+# #test_set = NULL
+# 
+# #test_y <- test_set$y_test
+# #test_x <- test_set$x_test
+# #test_fe <- test_set$fe_test
+# #test_params <- test_set$test_params
+# 
+# 
+# ###################################
+# g = c(7)
+# hidden_units <- g
+# y = y[r]
+# X = Z[r,]
+# fe_var = id[r]
+# maxit = 200
+# lam = .01
+# time_var = time[r] #test time
+# param = P[r,, drop = FALSE]
+# verbose = TRUE
+# gravity = 1.01
+# convtol = 1e-3
+# activation = 'lrelu'
+# start_LR = .01
+# parlist = NULL
+# OLStrick = FALSE
+# initialization = 'enforce_normalization'
+# batchsize = nrow(X)
+# RMSprop = TRUE
+# doscale = TRUE
+# treatment = NULL
+# para_plot <- TRUE
+# interact_treatment = FALSE
+# bias_hlayers <- TRUE
+# dropout_hidden = 1
+# dropout_input = 1
+# parapen <- 0
+# start.LR <- .01
+# maxstopcounter = 10
+# report_interval = 10
 
 
 
