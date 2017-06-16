@@ -64,7 +64,6 @@ e <- time %in% time[which(v==FALSE & (time+1) %%2)]
 P <- matrix(time)
 
 #test_set
-
 test_set <- list(y_test = y[e], x_test = Z[e,], fe_test = id[e], test_params = P[e, , drop = FALSE])
 #test_set = NULL
 
@@ -105,8 +104,6 @@ parapen <- 0
 start.LR <- .01
 maxstopcounter = 10
 report_interval = 10
-
-
 
 
 
@@ -184,13 +181,6 @@ report_interval = 10
 
 
   
-  
-  
-  
-  
-  
-  
-  
     calc_grads<- function(plist, hlay = NULL, yhat = NULL, curBat = NULL, droplist = NULL, dropinp = NULL){
     #subset the parameters and hidden layers based on the droplist
     if (!is.null(droplist)){
@@ -242,16 +232,6 @@ report_interval = 10
 
   
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   ###########################
   #start fitting
   if (doscale == TRUE){
@@ -281,24 +261,7 @@ report_interval = 10
 
   
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+
   #get starting weights, either randomly or from a specified parlist
   if (is.null(parlist)){#random starting weights
     parlist <- vector('list', nlayers)
@@ -354,18 +317,6 @@ report_interval = 10
   
   
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   #start setup
   #get starting mse
   yhat <- getYhat(pl, hlay = hlayers)
@@ -407,17 +358,6 @@ report_interval = 10
       }
     })
   }
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   
   
   
@@ -555,13 +495,7 @@ report_interval = 10
       , unlist(parlist[!grepl('beta', names(parlist))]))^2
     )
     
-    
-    
-    
-    
-    
-    
-    
+
     
     #If loss increases...
     if (oldpar$loss <= loss){
@@ -633,7 +567,7 @@ report_interval = 10
         plot(y, yhat, col = rgb(1,0,0,.5), pch = 19, main = 'in-sample performance')
         abline(0,1)
         plot(LRvec, type = 'b', main = 'learning rate history')
-        plot(msevec, type = 'l', ylim = c(-200+max(msevec), 200+max(mse_prvec)), main = 'all epochs')
+        plot(msevec, type = 'l', ylim = range(c(msevec, mse_prvec)), main = 'all epochs')
         lines(mse_prvec, type = 'l', col="green")
         plot(msevec[(1+(iter)*max(batchid)):length(msevec)], type = 'l', ylab = 'mse', main = 'Current epoch')
         plot(lossvec, type = 'l', main = 'all epochs')
