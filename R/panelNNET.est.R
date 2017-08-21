@@ -299,19 +299,10 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         oldG2 <- lapply(G2, function(x){.9*x})
         G2 <- mapply('+', newG2, oldG2)
         uB <- LR/sqrt(G2[[length(G2)]]+1e-10) *
-          t(as.matrix(t(grads[[length(grads)]]) %*% hlayers[[length(hlayers)]][curBat,]) + 
-          LR*as.matrix(2*lam*c(parlist$beta_param*parapen#penalty/weight decay...
-            , 0*parlist$beta_treatment, parlist$beta
-            , parlist$beta_treatmentinteractions)
-          )#Treatment is always unpenalized
+          t(t(grads[[length(grads)]]) %*% hlayers[[length(hlayers)]][curBat,] + 
+          LR*2*lam*c(parlist$beta_param*parapen, parlist$beta))
         updates$beta_param <- uB[1:length(parlist$beta_param)]
         updates$beta <- uB[grepl('nodes', rownames(uB))]
-        if (!is.null(treatment)){
-          updates$beta_treatment <- uB[rownames(uB) == 'treatment']
-          if (interact_treatment == TRUE){
-            updates$beta_treatmentinteractions <- uB[grepl('TrInts', rownames(uB))]
-          }
-        }
         for(i in nlayers:1){
           if(i == 1){lay = X[curBat,]} else {lay = hlayers[[i-1]][curBat,]}
           if(bias_hlayers == TRUE){lay <- cbind(1,lay)}
@@ -319,15 +310,9 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         }
       } else { #if RMSprop == FALSE
         uB <- LR * t(t(grads[[length(grads)]]) %*% hlayers[[length(hlayers)]][curBat,] +
-          2*lam*c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta, parlist$beta_treatmentinteractions))
+          2*lam*c(parlist$beta_param*parapen, parlist$beta))
         updates$beta_param <- uB[1:length(parlist$beta_param)]
         updates$beta <- uB[grepl('nodes', rownames(uB))]
-        if (!is.null(treatment)){
-          updates$beta_treatment <- uB[rownames(uB) == 'treatment']
-          if (interact_treatment == TRUE){
-            updates$beta_treatmentinteractions <- uB[grepl('TrInts', rownames(uB))]
-          }
-        }
         for(i in nlayers:1){
           if(i == 1){lay = X[curBat,]} else {lay = hlayers[[i-1]][curBat,]}
           if(bias_hlayers == TRUE){lay <- cbind(1,lay)}
