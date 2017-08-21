@@ -27,7 +27,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 # report_interval = 10
 # test_set = list(y_test = y[v], x_test = Z[v,], fe_test = id[v], test_params = P[v, , drop = FALSE])
 # bias_hlayers <- TRUE
-# batchsize = nrow(X)  
+# batchsize = nrow(X)
 # dropout_hidden <- dropout_input <- 1
 # para_plot <- FALSE
 # treatment <- NULL
@@ -136,9 +136,9 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   ###########################
   #start fitting
   if (doscale == TRUE){
-    X <- scale(X)
+    X <- Matrix(scale(X))
     if (!is.null(param)){
-      param <- scale(param)
+      param <- Matrix(scale(param))
     }
   }
   if (activation == 'tanh'){
@@ -157,7 +157,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     activ <- lrelu
     activ_prime <- lrelu_prime
   }
-
   nlayers <- length(hidden_units)
   #get starting weights, either randomly or from a specified parlist
   if (is.null(parlist)){#random starting weights
