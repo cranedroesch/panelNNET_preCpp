@@ -208,7 +208,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   } else { #if a parlist is provided
     hlayers <- calc_hlayers(parlist)
   }
-HL <<- hlayers
   parlist <- as.relistable(parlist)
   pl <- unlist(parlist) 
   #calculate ydm and put it in global...
@@ -218,7 +217,8 @@ HL <<- hlayers
   #####################################
   #start setup
   #get starting mse
-  yhat <- getYhat(pl, hlay = hlayers)
+  print("A")
+  yhat <<- getYhat(pl, hlay = hlayers)
 
   mse <- mseold <- mean((y-yhat)^2)
   loss <- mse + lam*sum(c(parlist$beta_param*parapen
