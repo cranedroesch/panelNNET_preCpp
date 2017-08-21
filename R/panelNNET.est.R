@@ -416,6 +416,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
           #predicted_mse
           mse_test <- mean((pr_within-test_set$y_test)^2)
           msetestvec[iter] <- mse_test
+print(msetestvec)
         }
         writeLines(paste0(
           "*******************************************\n"
