@@ -3,9 +3,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
          , verbose, para_plot, report_interval, gravity, convtol, bias_hlayers, RMSprop
          , start.LR, activation, doscale, treatment, interact_treatment
          , batchsize, maxstopcounter, OLStrick, initialization, dropout_hidden
-         , dropout_input, ...){
+         , dropout_input, test_set, ...){
 
- 
   ##########
   #Define internal functions
 
@@ -106,26 +105,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     return(grads)
   }
 
-  getgr <- function(pl, skel = attr(pl, 'skeleton'), lam, parapen){
-    plist <- relist(pl, skel)
-    #calculate hidden layers
-    hlayers <- calc_hlayers(plist)
-    #calculate gradients
-    grads <- calc_grads(plist, hlay = hlayers)
-    gr <- foreach(i = 1:(length(hlayers)+1)) %do% {
-      if (i == 1){D <- X} else {D <- hlayers[[i-1]]}
-      if (bias_hlayers == TRUE & i != length(hlayers)+1){D <- cbind(1, D)}
-        (t(D) %*% grads[[i]])
-    }
-    plist$beta_param <- plist$beta_param*parapen
-    penalty <- mapply('*', plist, lam*2)
-    penalty$beta_param <- matrix(c(penalty$beta_param, penalty$beta))
-    penalty$beta <- NULL
-    gr <- mapply('+', gr, penalty)
-    return(unlist(gr))
-  }
-
-
+  
   ###########################
   #start fitting
   if (doscale == TRUE){
@@ -202,8 +182,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     ydm <<- demeanlist(y, list(fe_var)) 
   }
   #####################################
-  #####################################
   #start setup
+  #get starting mse
   yhat <- getYhat(pl, hlay = hlayers)
   mse <- mseold <- mean((y-yhat)^2)
   loss <- mse + lam*sum(c(parlist$beta_param*parapen
@@ -254,8 +234,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     if (min(table(batchid))<(batchsize/2)){#Deal with orphan batches
       batchid[batchid == max(batchid)] <- sample(1:(max(batchid) - 1), min(table(batchid)), replace = TRUE)
     }
-    for (bat in 1:max(batchid)) {
-# bat = 1
+    for (bat in 1:max(batchid)) { #run minibatch 
       curBat <- which(batchid == bat)
       hlay <- hlayers#hlay may have experienced dropout, as distinct from hlayers
       #if using dropout, generate a droplist
@@ -335,7 +314,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
           updates[[i]] <- t(LR * t(grads[[i]]) %*% lay + 2 * lam * t(parlist[[i]]))
         }
       }
-
       #Update parameters from update list
       parlist <- as.relistable(mapply('-', parlist, updates))
       pl <- unlist(parlist)
@@ -357,44 +335,64 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         , parlist$beta_treatmentinteractions
         , unlist(parlist[!grepl('beta', names(parlist))]))^2)
       lossvec <- append(lossvec, loss)
-    }
-    #Finished epoch.  Assess whether MSE has increased and revert if so
-    mse <- mean((y-yhat)^2)
-    loss <- mse + lam*sum(c(parlist$beta_param*parapen
-      , 0*parlist$beta_treatment, parlist$beta
-      , parlist$beta_treatmentinteractions
-      , unlist(parlist[!grepl('beta', names(parlist))]))^2
-    )
-    #If loss increases...
-    if (oldpar$loss <= loss){
-      parlist <- oldpar$parlist
-      updates <- oldpar$updates
-      G2 <- oldpar$G2
-      hlayers <- oldpar$hlayers
-      grads <- oldpar$grads
-      yhat <- oldpar$yhat
-      mse <- oldpar$mse
-      mseold <- oldpar$mseold
-      stopcounter <- stopcounter + 1
-      loss <- oldpar$loss
-      msevec <- oldpar$msevec
-      lossvec <- oldpar$lossvec
-      LR <- LR/2
-      if(verbose == TRUE){
-        print(paste0("Loss increased.  halving LR.  Stopcounter now at ", stopcounter))
+      if (!is.null(test_set)){ 
+        #we create a fitted prediction object with test set objects
+        Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))
+        fe <- (y-ydm) - as.matrix(hlayers[[length(hlayers)]]-Zdm) %*%
+              as.matrix(c(parlist$beta_param, 
+                          parlist$beta_treatment, 
+                          parlist$beta_treatmentinteractions, 
+                          parlist$beta))
+        fe_output <- data.frame(fe_var, fe)
+        pr_test <- list(parlist = parlist, yhat = yhat, activation = activation, fe = fe_output
+                        , fe_var = fe_var, X = X, doscale = doscale, param = param, fe_var = fe_var
+                        , hidden_units = hidden_units, used_bias = bias_hlayers) 
+        pr_within <- predict.panelNNET(pr_test, 
+                                       newX = test_set$x_test, 
+                                       fe.newX = test_set$fe_test, 
+                                       new.param = test_set$test_params, 
+                                       se.fit = FALSE)
+        #predicted_mse
+        mse_predict <- mean((pr_within-y)^2)
+        mse_op <- list(mse_predict=mse_predict)
       }
-    } else {
-      LRvec[iter+1] <- LR <- LR*gravity      #gravity...
-      D <- oldpar$loss - loss
-      if (D<convtol){
-        stopcounter <- stopcounter +1
-        if(verbose == TRUE){print(paste('slowing!  Stopcounter now at ', stopcounter))}
-      }else{
-        stopcounter <-0
+      #Finished epoch.  Assess whether MSE has increased and revert if so
+      mse <- mean((y-yhat)^2)
+      loss <- mse + lam*sum(c(parlist$beta_param*parapen
+        , 0*parlist$beta_treatment, parlist$beta
+        , parlist$beta_treatmentinteractions
+        , unlist(parlist[!grepl('beta', names(parlist))]))^2
+      )
+      #If loss increases...
+      if (oldpar$loss <= loss){
+        parlist <- oldpar$parlist
+        updates <- oldpar$updates
+        G2 <- oldpar$G2
+        hlayers <- oldpar$hlayers
+        grads <- oldpar$grads
+        yhat <- oldpar$yhat
+        mse <- oldpar$mse
+        mse_predict <- mse_op$mse_predict
+        stopcounter <- stopcounter + 1
+        loss <- oldpar$loss
+        msevec <- oldpar$msevec
+        lossvec <- oldpar$lossvec
+        LR <- LR/2
+        if(verbose == TRUE){
+          print(paste0("Loss increased.  halving LR.  Stopcounter now at ", stopcounter))
+        }
+      } else {
+        LRvec[iter+1] <- LR <- LR*gravity      #gravity...
+        D <- oldpar$loss - loss
+        if (D<convtol){
+          stopcounter <- stopcounter +1
+          if(verbose == TRUE){print(paste('slowing!  Stopcounter now at ', stopcounter))}
+        }else{
+          stopcounter <-0
       }
-      if (verbose == TRUE & iter %% report_interval == 0){
+      if  (verbose == TRUE & iter %% report_interval == 0 & (!is.null(test_set))){
         writeLines(paste0(
-            "*******************************************\n"
+          "*******************************************\n"
           , 'Lambda = ',lam, "\n"
           , "Hidden units -> ",paste(hidden_units, collapse = ' '), "\n"
           , " Batch size is ", batchsize, " \n"
@@ -406,20 +404,40 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
           , "loss is ",loss, "\n"
           , "last loss was ", oldpar$loss, "\n"
           , "difference is ", oldpar$loss - loss, "\n"
+          , "Predicted MSE ", mse_predict, "\n"
+          , "*******************************************\n"  
+        ))
+      }
+      if (verbose == TRUE & iter %% report_interval == 0 & (is.null(test_set))){
+        writeLines(paste0(
+          "*******************************************\n"
+          , 'Lambda = ',lam, "\n"
+          , "Hidden units -> ",paste(hidden_units, collapse = ' '), "\n"
+          , " Batch size is ", batchsize, " \n"
+          , " Completed ", iter, " epochs. \n"
+          , " Completed ", bat, " batches in current epoch. \n"
+          , "mse is ",mse, "\n"
+          , "last mse was ", oldpar$mse, "\n"
+          , "difference is ", oldpar$mse - mse, "\n"
+          , "loss is ",loss, "\n"
+          , "last loss was ", oldpar$loss, "\n"
+          , "difference is ", oldpar$loss - loss, "\n"
+          , "no training set provided\n"
           , "*******************************************\n"
         ))
-        if (para_plot == TRUE){#additional plots if plotting parameter evolution
-          par(mfrow = c(ceiling(length(parlist)/2)+3,2))
-        } else {
-          par(mfrow = c(3,2))
-        }
-        plot(y, yhat, col = rgb(1,0,0,.5), pch = 19, main = 'in-sample performance')
-        abline(0,1)
-        plot(LRvec, type = 'b', main = 'learning rate history')
-        plot(msevec, type = 'l', main = 'all epochs')
-        plot(msevec[(1+(iter)*max(batchid)):length(msevec)], type = 'l', ylab = 'mse', main = 'Current epoch')
-        plot(lossvec, type = 'l', main = 'all epochs')
-        plot(lossvec[(1+(iter)*max(batchid)):length(lossvec)], type = 'l', ylab = 'loss', main = 'Current epoch')
+      }
+      if (para_plot == TRUE){#additional plots if plotting parameter evolution
+        par(mfrow = c(ceiling(length(parlist)/2)+3,2))
+      } else {
+        par(mfrow = c(3,2))
+      }
+      plot(y, yhat, col = rgb(1,0,0,.5), pch = 19, main = 'in-sample performance')
+      abline(0,1)
+      plot(LRvec, type = 'b', main = 'learning rate history')
+      plot(msevec, type = 'l', main = 'all epochs')
+      plot(msevec[(1+(iter)*max(batchid)):length(msevec)], type = 'l', ylab = 'mse', main = 'Current epoch')
+      plot(lossvec, type = 'l', main = 'all epochs')
+      plot(lossvec[(1+(iter)*max(batchid)):length(lossvec)], type = 'l', ylab = 'loss', main = 'Current epoch')
         if (para_plot == TRUE){
           #update para plot list
           for (lay in 1:length(para_plot_list)){
@@ -445,11 +463,10 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
             }
           }
         }
-      }
-    }
+      } # this closes verbose command 
+    } # closes gravity command 
     iter <- iter+1
-  } #close the while loop
-
+  } #closes the while loop
   #If trained with dropput, weight the layers by expectations
   if(dropout_hidden<1){
     for (i in nlayers:1){
@@ -486,7 +503,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     , used_bias = bias_hlayers, final_improvement = D, msevec = msevec, RMSprop = RMSprop, convtol = convtol
     , grads = grads, activation = activation, parapen = parapen, doscale = doscale, treatment = treatment
     , interact_treatment = interact_treatment, batchsize = batchsize, initialization = initialization)
-  return(output)
+  return(output) # list 
 }
+
 
 
