@@ -1,6 +1,6 @@
 panelNNET.est <-
 function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist
-         , verbose, para_plot, report_interval, gravity, convtol, bias_hlayers, RMSprop
+         , verbose, report_interval, gravity, convtol, bias_hlayers, RMSprop
          , start.LR, activation, doscale, treatment, interact_treatment
          , batchsize, maxstopcounter, OLStrick, initialization, dropout_hidden
          , dropout_input, test_set, ...){
@@ -235,20 +235,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   D <- 1e6
   stopcounter <- iter <- 0
   msevec <- lossvec <- msetestvec <- c()
-  #initialize list for plotting parameters during training
-  if (para_plot == TRUE){
-    para_plot_list <- lapply(parlist, function(x){
-      x <- as.matrix(as.numeric(unlist(x)))
-      l <- length(x)
-      if (l > 30){ #if many parameters in a layer, take their quantiles and their mean
-        q <- quantile(x, probs = seq(.05, .95, by = .1))
-        mu = mean(x)
-        return(c(q, mu = mu))
-      } else { #if not, just take their absolute values
-        return(x)
-      }
-    })
-  }
   ###############
   #start iterating
   while(iter < maxit & stopcounter < maxstopcounter){
@@ -395,7 +381,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         }else{
           stopcounter <-0
       }
-      if  (verbose == TRUE & iter %% report_interval == 0 & (!is.null(test_set))){
+      if  (verbose == TRUE & iter %% report_interval == 0){
         if (!is.null(test_set)){ 
           #we create a fitted prediction object with test set objects
           Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))
@@ -416,7 +402,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
           #predicted_mse
           mse_test <- mean((pr_within-test_set$y_test)^2)
           msetestvec[iter] <- mse_test
-        }
+        } else {mse_test <- NA}
         writeLines(paste0(
           "*******************************************\n"
           , 'Lambda = ',lam, "\n"
@@ -433,63 +419,15 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
           , "Testset MSE ", mse_test, "\n"
           , "*******************************************\n"  
         ))
-      }
-      if (verbose == TRUE & iter %% report_interval == 0 & (is.null(test_set))){
-        writeLines(paste0(
-          "*******************************************\n"
-          , 'Lambda = ',lam, "\n"
-          , "Hidden units -> ",paste(hidden_units, collapse = ' '), "\n"
-          , " Batch size is ", batchsize, " \n"
-          , " Completed ", iter, " epochs. \n"
-          , " Completed ", bat, " batches in current epoch. \n"
-          , "mse is ",mse, "\n"
-          , "last mse was ", oldpar$mse, "\n"
-          , "difference is ", oldpar$mse - mse, "\n"
-          , "loss is ",loss, "\n"
-          , "last loss was ", oldpar$loss, "\n"
-          , "difference is ", oldpar$loss - loss, "\n"
-          , "no training set provided\n"
-          , "*******************************************\n"
-        ))
-      }
-      if (para_plot == TRUE){#additional plots if plotting parameter evolution
-        par(mfrow = c(ceiling(length(parlist)/2)+3,2))
-      } else {
         par(mfrow = c(3,2))
-      }
-      plot(y, yhat, col = rgb(1,0,0,.5), pch = 19, main = 'in-sample performance')
-      abline(0,1)
-      plot(LRvec, type = 'b', main = 'learning rate history')
-      plot(msevec, type = 'l', main = 'all epochs', ylim = range(c(msevec, msetestvec), na.rm = TRUE))
-      points(msetestvec,col = "blue", pch = 19)
-      plot(msevec[(1+(iter)*max(batchid)):length(msevec)], type = 'l', ylab = 'mse', main = 'Current epoch')
-      plot(lossvec, type = 'l', main = 'all epochs')
-      plot(lossvec[(1+(iter)*max(batchid)):length(lossvec)], type = 'l', ylab = 'loss', main = 'Current epoch')
-        if (para_plot == TRUE){
-          #update para plot list
-          for (lay in 1:length(para_plot_list)){
-            x <- as.matrix(as.numeric(parlist[[lay]]))
-            l <- length(x)
-            if (l > 30){
-              q <- quantile(x, probs = seq(.05, .95, by = .1))
-              mu = mean(x)
-              para_plot_list[[lay]] <- cbind(para_plot_list[[lay]], c(q, mu = mu))
-      
-              plot(para_plot_list[[lay]]['mu',], ylim = range(para_plot_list[[lay]])
-                , type = 'l', col = 'red', main = names(parlist)[[lay]], ylab = 'weights'
-              )
-              apply(para_plot_list[[lay]][-nrow(para_plot_list[[lay]]),], 1, lines, col = 'black')
-              abline(h = 0, lty = 2)
-            } else {
-              para_plot_list[[lay]] <- cbind(para_plot_list[[lay]], x)
-              plot(apply(para_plot_list[[lay]], 2, mean), ylim = range(para_plot_list[[lay]])
-                , type = 'l', col = 'red', main = names(parlist)[[lay]], ylab = 'weights'
-              )
-              apply(para_plot_list[[lay]], 1, lines, col = 'grey')
-              abline(h = 0, lty = 2)
-            }
-          }
-        }
+        plot(y, yhat, col = rgb(1,0,0,.5), pch = 19, main = 'in-sample performance')
+        abline(0,1)
+        plot(LRvec, type = 'b', main = 'learning rate history')
+        plot(msevec, type = 'l', main = 'all epochs', ylim = range(c(msevec, msetestvec), na.rm = TRUE))
+        points(msetestvec,col = "blue", pch = 19)
+        plot(msevec[(1+(iter)*max(batchid)):length(msevec)], type = 'l', ylab = 'mse', main = 'Current epoch')
+        plot(lossvec, type = 'l', main = 'all epochs')
+        plot(lossvec[(1+(iter)*max(batchid)):length(lossvec)], type = 'l', ylab = 'loss', main = 'Current epoch')
       } # this closes verbose command 
     } # closes gravity command 
     iter <- iter+1
