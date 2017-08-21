@@ -416,7 +416,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
           #predicted_mse
           mse_test <- mean((pr_within-test_set$y_test)^2)
           msetestvec[iter] <- mse_test
-print(msetestvec)
         }
         writeLines(paste0(
           "*******************************************\n"
@@ -462,7 +461,7 @@ print(msetestvec)
       abline(0,1)
       plot(LRvec, type = 'b', main = 'learning rate history')
       plot(msevec, type = 'l', main = 'all epochs', ylim = range(c(msevec, msetestvec), na.rm = TRUE))
-      lines(msetestvec, type = "l",col = "blue")
+      points(msetestvec,col = "blue", pch = 19)
       plot(msevec[(1+(iter)*max(batchid)):length(msevec)], type = 'l', ylab = 'mse', main = 'Current epoch')
       plot(lossvec, type = 'l', main = 'all epochs')
       plot(lossvec[(1+(iter)*max(batchid)):length(lossvec)], type = 'l', ylab = 'loss', main = 'Current epoch')
