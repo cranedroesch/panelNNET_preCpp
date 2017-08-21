@@ -45,7 +45,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     if (is.null(hlay)){hlay <- calc_hlayers(plist)}
     #update yhat
     if (!is.null(fe_var)){
-      Zdm <- demeanlist(hlay[[length(hlay)]], list(fe_var))
+      Zdm <- demeanlist(as.matrix(hlay[[length(hlay)]]), list(fe_var))
+      Zdm <- Matrix(Zdm) # coerce back to sparse matrix after prev line
       fe <- (y-ydm) - as.matrix(hlay[[length(hlay)]]-Zdm) %*% as.matrix(c(
           plist$beta_param, plist$beta_treatment
         , plist$beta_treatmentinteractions, plist$beta
@@ -385,7 +386,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       if  (verbose == TRUE & iter %% report_interval == 0){
         if (!is.null(test_set)){ 
           #we create a fitted prediction object with test set objects
-          Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))
+          Zdm <- demeanlist(as.matrix(hlayers[[length(hlayers)]]), list(fe_var))
+          Zdm <- Matrix(Zdm) #coerce back
           fe <- (y-ydm) - as.matrix(hlayers[[length(hlayers)]]-Zdm) %*%
             as.matrix(c(parlist$beta_param, 
                         parlist$beta_treatment, 
@@ -456,7 +458,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   if(is.null(fe_var)){
     fe_output <- NULL
   } else {
-    Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))
+    Zdm <- demeanlist(as.matric(hlayers[[length(hlayers)]]), list(fe_var))
+    Zdm <- Matrix(Zdm)
     fe <- (y-ydm) - as.matrix(hlayers[[length(hlayers)]]-Zdm) %*% as.matrix(c(
         parlist$beta_param, parlist$beta_treatment
       , parlist$beta_treatmentinteractions, parlist$beta
