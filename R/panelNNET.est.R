@@ -305,7 +305,7 @@ curBat <<- curBat
 parlist <<- parlist
 LR <<- LR
         uB <- LR/sqrt(G2[[length(G2)]]+1e-10) *
-          t(as.matrix(t(grads[[length(grads)]]) %*% hlayers[[length(hlayers)]][curBat,] + 
+          t(as.matrix(t(as.matrix(grads[[length(grads)]])) %*% hlayers[[length(hlayers)]][curBat,] + 
           LR*2*lam*c(parlist$beta_param*parapen, parlist$beta)))
         updates$beta_param <- uB[1:length(parlist$beta_param)]
         updates$beta <- uB[grepl('nodes', rownames(uB))]
