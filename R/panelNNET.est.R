@@ -217,10 +217,11 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   #####################################
   #start setup
   #get starting mse
-  print("A")
-  yhat <<- getYhat(pl, hlay = hlayers)
+
+  yhat <- getYhat(pl, hlay = hlayers)
 
   mse <- mseold <- mean((y-yhat)^2)
+  print(mse)
   loss <- mse + lam*sum(c(parlist$beta_param*parapen
     , 0*parlist$beta_treatment, parlist$beta
     , parlist$beta_treatmentinteractions
