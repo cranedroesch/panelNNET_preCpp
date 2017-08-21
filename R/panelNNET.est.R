@@ -291,8 +291,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       #Calculate updates to parameters based on gradients and learning rates
       grads <- lapply(grads, as.matrix) #convert back to normal matrix from Matrix class.
       hlayers <- lapply(hlayers, as.matrix) #convert back to normal matrix from Matrix class.
-print(lapply(grads, class))
-print(lapply(hlayers, class))
       if (RMSprop == TRUE){
         newG2 <- foreach(i = 1:(length(hlayers)+1)) %do% {
           print(i)
@@ -308,7 +306,7 @@ print(lapply(hlayers, class))
         updates$beta_param <- uB[1:length(parlist$beta_param)]
         updates$beta <- uB[grepl('nodes', rownames(uB))]
         for(i in nlayers:1){
-          if(i == 1){lay = X[curBat,]} else {lay = hlayers[[i-1]][curBat,]}
+          if(i == 1){lay = as.matrix(X)[curBat,]} else {lay = hlayers[[i-1]][curBat,]}
           if(bias_hlayers == TRUE){lay <- cbind(1,lay)}
           updates[[i]] <- LR/sqrt(G2[[i]]+1e-10) * t(t(grads[[i]]) %*% lay) + LR*t(2 * lam * t(parlist[[i]]))
         }
