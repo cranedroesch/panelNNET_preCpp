@@ -295,16 +295,13 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       #Calculate updates to parameters based on gradients and learning rates
       if (RMSprop == TRUE){
         print("E")
-out <<- list()
-grads <<- grads
         newG2 <- foreach(i = 1:(length(hlayers)+1)) %do% {
           print(i)
           if (i == 1){D <- X[curBat,]} else {D <- hlayers[[i-1]][curBat,]}
           if (bias_hlayers == TRUE & i != length(hlayers)+1){D <- cbind(1, D)}
-print(class(D))
-out[[i]]$D <<- D
-            .1*(t(D) %*% grads[[i]])^2
-            
+            oo <- .1*(t(D) %*% grads[[i]])^2
+            print(oo)
+            oo
         }
         print("F")
         oldG2 <- lapply(G2, function(x){.9*x})
