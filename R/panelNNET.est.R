@@ -292,7 +292,7 @@ CC <<- as.matrix(c(
         newG2 <- foreach(i = 1:(length(hlayers)+1)) %do% {
           if (i == 1){D <- X[curBat,]} else {D <- hlayers[[i-1]][curBat,]}
           if (bias_hlayers == TRUE & i != length(hlayers)+1){D <- cbind(1, D)}
-          out <- list(D, grads[[i]])
+          out <<- list(D, grads[[i]])
             .1*(t(D) %*% grads[[i]])^2
         }
         oldG2 <- lapply(G2, function(x){.9*x})
