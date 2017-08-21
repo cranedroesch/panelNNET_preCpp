@@ -4,10 +4,12 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
          , start.LR, activation, doscale, treatment, interact_treatment
          , batchsize, maxstopcounter, OLStrick, initialization, dropout_hidden
          , dropout_input, test_set, ...){
-
+# oldy <- y
+#   
 # y <- y[r]
+# 
 # X <- Z[r,]
-# hidden_units = arch
+# hidden_units = c(3, 2)
 # fe_var = id[r]
 # maxit = 1000
 # lam = lam
@@ -32,6 +34,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 # para_plot <- FALSE
 # treatment <- NULL
 # start.LR <- .01
+# maxstopcounter <- 1000
   ##########
   #Define internal functions
 
@@ -46,13 +49,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     if (!is.null(fe_var)){
       Zdm <- demeanlist(as.matrix(hlay[[length(hlay)]]), list(fe_var))
       # Zdm <- Matrix(Zdm) # coerce back to sparse matrix after prev line
-A <<-(y-ydm)
-B <<- as.matrix(hlay[[length(hlay)]]-Zdm)
-CC <<- as.matrix(c(
-  plist$beta_param, plist$beta_treatment
-  , plist$beta_treatmentinteractions, plist$beta
-))
-      fe <- (y-ydm) - as.matrix(hlay[[length(hlay)]]-Zdm) %*% as.matrix(c(
+      fe <- (y-ydm) - (as.matrix(hlay[[length(hlay)]])-Zdm) %*% as.matrix(c(
           plist$beta_param, plist$beta_treatment
         , plist$beta_treatmentinteractions, plist$beta
       ))
@@ -69,7 +66,11 @@ CC <<- as.matrix(c(
     yhat <- getYhat(pl, skel)
     mse <- mean((y-yhat)^2)
     plist <- relist(pl, skel)
-    loss <- mse + lam*sum(c(plist$beta_param*parapen, 0*plist$beta_treatment, plist$beta, plist$beta_treatmentinteractions, unlist(plist[!grepl('beta', names(plist))]))^2)
+    loss <- mse + lam*sum(c(plist$beta_param*parapen, 
+                            0*plist$beta_treatment, 
+                            plist$beta, 
+                            plist$beta_treatmentinteractions, 
+                            unlist(plist[!grepl('beta', names(plist))]))^2)
     return(loss)
   }
 
@@ -217,6 +218,7 @@ CC <<- as.matrix(c(
   #start setup
   #get starting mse
   yhat <- getYhat(pl, hlay = hlayers)
+
   mse <- mseold <- mean((y-yhat)^2)
   loss <- mse + lam*sum(c(parlist$beta_param*parapen
     , 0*parlist$beta_treatment, parlist$beta
@@ -292,7 +294,6 @@ CC <<- as.matrix(c(
         newG2 <- foreach(i = 1:(length(hlayers)+1)) %do% {
           if (i == 1){D <- X[curBat,]} else {D <- hlayers[[i-1]][curBat,]}
           if (bias_hlayers == TRUE & i != length(hlayers)+1){D <- cbind(1, D)}
-          out <<- list(D, grads[[i]])
             .1*(t(D) %*% grads[[i]])^2
         }
         oldG2 <- lapply(G2, function(x){.9*x})
@@ -346,7 +347,10 @@ CC <<- as.matrix(c(
         pl <- unlist(parlist)
       }
       #update yhat
+      print("B")
       yhat <- getYhat(pl, attr(pl, 'skeleton'), hlay = lapply(hlayers, as.matrix))
+      print("C")
+      
       mse <- mean((y-yhat)^2)
       msevec <- append(msevec, mse)
       loss <- mse + lam*sum(c(parlist$beta_param*parapen
@@ -464,7 +468,7 @@ CC <<- as.matrix(c(
   if(is.null(fe_var)){
     fe_output <- NULL
   } else {
-    Zdm <- demeanlist(as.matric(hlayers[[length(hlayers)]]), list(fe_var))
+    Zdm <- demeanlist(as.matrix(hlayers[[length(hlayers)]]), list(fe_var))
     Zdm <- Matrix(Zdm)
     fe <- (y-ydm) - as.matrix(hlayers[[length(hlayers)]]-Zdm) %*% as.matrix(c(
         parlist$beta_param, parlist$beta_treatment
