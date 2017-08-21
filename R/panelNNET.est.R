@@ -293,7 +293,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       hlayers <- lapply(hlayers, as.matrix) #convert back to normal matrix from Matrix class.
       if (RMSprop == TRUE){
         newG2 <- foreach(i = 1:(length(hlayers)+1)) %do% {
-          print(i)
           if (i == 1){D <- as.matrix(X)[curBat,]} else {D <- hlayers[[i-1]][curBat,]}
           if (bias_hlayers == TRUE & i != length(hlayers)+1){D <- cbind(1, D)}
           return(.1*(t(as.matrix(D)) %*% grads[[i]])^2)
@@ -334,10 +333,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         pl <- unlist(parlist)
       }
       #update yhat
-      print("B")
       yhat <- getYhat(pl, attr(pl, 'skeleton'), hlay = lapply(hlayers, as.matrix))
-      print("C")
-      
       mse <- mean((y-yhat)^2)
       msevec <- append(msevec, mse)
       loss <- mse + lam*sum(c(parlist$beta_param*parapen
