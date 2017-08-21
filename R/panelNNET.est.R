@@ -348,38 +348,40 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         , parlist$beta_treatmentinteractions
         , unlist(parlist[!grepl('beta', names(parlist))]))^2)
       lossvec <- append(lossvec, loss)
-      #Finished epoch.  Assess whether MSE has increased and revert if so
-      mse <- mean((y-yhat)^2)
-      loss <- mse + lam*sum(c(parlist$beta_param*parapen
-        , 0*parlist$beta_treatment, parlist$beta
-        , parlist$beta_treatmentinteractions
-        , unlist(parlist[!grepl('beta', names(parlist))]))^2
-      )
-      #If loss increases...
-      if (oldpar$loss <= loss){
-        parlist <- oldpar$parlist
-        updates <- oldpar$updates
-        G2 <- oldpar$G2
-        hlayers <- oldpar$hlayers
-        grads <- oldpar$grads
-        yhat <- oldpar$yhat
-        mse <- oldpar$mse
-        stopcounter <- stopcounter + 1
-        loss <- oldpar$loss
-        msevec <- oldpar$msevec
-        lossvec <- oldpar$lossvec
-        LR <- LR/2
-        if(verbose == TRUE){
-          print(paste0("Loss increased.  halving LR.  Stopcounter now at ", stopcounter))
-        }
-      } else {
-        LRvec[iter+1] <- LR <- LR*gravity      #gravity...
-        D <- oldpar$loss - loss
-        if (D<convtol){
-          stopcounter <- stopcounter +1
-          if(verbose == TRUE){print(paste('slowing!  Stopcounter now at ', stopcounter))}
-        }else{
-          stopcounter <-0
+    } #finishes epoch
+
+    #Finished epoch.  Assess whether MSE has increased and revert if so
+    mse <- mean((y-yhat)^2)
+    loss <- mse + lam*sum(c(parlist$beta_param*parapen
+      , 0*parlist$beta_treatment, parlist$beta
+      , parlist$beta_treatmentinteractions
+      , unlist(parlist[!grepl('beta', names(parlist))]))^2
+    )
+    #If loss increases...
+    if (oldpar$loss <= loss){
+      parlist <- oldpar$parlist
+      updates <- oldpar$updates
+      G2 <- oldpar$G2
+      hlayers <- oldpar$hlayers
+      grads <- oldpar$grads
+      yhat <- oldpar$yhat
+      mse <- oldpar$mse
+      stopcounter <- stopcounter + 1
+      loss <- oldpar$loss
+      msevec <- oldpar$msevec
+      lossvec <- oldpar$lossvec
+      LR <- LR/2
+      if(verbose == TRUE){
+        print(paste0("Loss increased.  halving LR.  Stopcounter now at ", stopcounter))
+      }
+    } else { #if loss doesn't increase
+      LRvec[iter+1] <- LR <- LR*gravity      #gravity...
+      D <- oldpar$loss - loss
+      if (D<convtol){
+        stopcounter <- stopcounter +1
+        if(verbose == TRUE){print(paste('slowing!  Stopcounter now at ', stopcounter))}
+      } else { #reset stopcounter if not slowing per convergence tolerance
+        stopcounter <-0
       }
       if  (verbose == TRUE & iter %% report_interval == 0){
         if (!is.null(test_set)){ 
@@ -428,8 +430,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         plot(msevec[(1+(iter)*max(batchid)):length(msevec)], type = 'l', ylab = 'mse', main = 'Current epoch')
         plot(lossvec, type = 'l', main = 'all epochs')
         plot(lossvec[(1+(iter)*max(batchid)):length(lossvec)], type = 'l', ylab = 'loss', main = 'Current epoch')
-      } # this closes verbose command 
-    } # closes gravity command 
+      } # fi verbose 
+    } # fi if loss increases 
     iter <- iter+1
   } #closes the while loop
   #If trained with dropput, weight the layers by expectations
