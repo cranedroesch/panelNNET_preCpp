@@ -219,7 +219,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   #get starting mse
 
   yhat <- as.numeric(getYhat(pl, hlay = hlayers))
-
+out <<- list(y, yhat)
   mse <- mseold <- mean((y-yhat)^2)
   print(mse)
   loss <- mse + lam*sum(c(parlist$beta_param*parapen
