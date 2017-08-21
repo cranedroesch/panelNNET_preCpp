@@ -217,7 +217,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   #####################################
   #start setup
   #get starting mse
-  print("A")
   yhat <- as.numeric(getYhat(pl, hlay = hlayers))
   mse <- mseold <- mean((y-yhat)^2)
   loss <- mse + lam*sum(c(parlist$beta_param*parapen
@@ -227,7 +226,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   )
   #Calculate gradients.  These aren't the actual gradients, but become the gradients when multiplied by their respective layer.
   grads <- calc_grads(parlist, hlayers, yhat, droplist = NULL, dropinp = NULL)
-  print("B")
   #Initialize updates
   updates <- lapply(parlist, function(x){x*0})
   #initialize G2 term for RMSprop
@@ -239,7 +237,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     G2 <- G2[!grepl('beta', names(G2))]
     G2[[length(G2)+1]] <- betas
   }
-  print("C")
   LRvec <- LR <- start.LR#starting LR
   D <- 1e6
   stopcounter <- iter <- 0
@@ -281,7 +278,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         Xd <- X[,dropinp]
       } else {Xd <- X; droplist = NULL}
       #Get updated gradients
-      print("D")
       grads <- calc_grads(plist = parlist, hlay = hlay
         , yhat = yhat[curBat], curBat = curBat, droplist = droplist, dropinp = dropinp)
       #Pad the gradients with zeros to scale it back to the original size
@@ -294,21 +290,16 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       }
       #Calculate updates to parameters based on gradients and learning rates
       if (RMSprop == TRUE){
-        print("E")
         newG2 <- foreach(i = 1:(length(hlayers)+1)) %do% {
           print(i)
           if (i == 1){D <- X[curBat,]} else {D <- hlayers[[i-1]][curBat,]}
-          print("a")
           if (bias_hlayers == TRUE & i != length(hlayers)+1){D <- cbind(1, D)}
-          print("b")
-          
           return(.1*(t(as.matrix(D)) %*% grads[[i]])^2)
         }
-        print("F")
         oldG2 <- lapply(G2, function(x){.9*x})
         G2 <- mapply('+', newG2, oldG2)
         uB <- LR/sqrt(G2[[length(G2)]]+1e-10) *
-          t(t(grads[[length(grads)]]) %*% hlayers[[length(hlayers)]][curBat,]) + 
+          t(as.matrix(t(grads[[length(grads)]]) %*% hlayers[[length(hlayers)]][curBat,]) + 
           LR*as.matrix(2*lam*c(parlist$beta_param*parapen#penalty/weight decay...
             , 0*parlist$beta_treatment, parlist$beta
             , parlist$beta_treatmentinteractions)
