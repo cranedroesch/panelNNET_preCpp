@@ -298,12 +298,12 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         }
         oldG2 <- lapply(G2, function(x){.9*x})
         G2 <- mapply('+', newG2, oldG2)
-G2 <<- G2
-grads <<- grads
-hlayers <<- hlayers
-curBat <<- curBat
-parlist <<- parlist
-LR <<- LR
+# G2 <<- G2
+# grads <<- grads
+# hlayers <<- hlayers
+# curBat <<- curBat
+# parlist <<- parlist
+# LR <<- LR
         uB <- LR/sqrt(G2[[length(G2)]]+1e-10) *
           t(as.matrix(t(as.matrix(grads[[length(grads)]])) %*% hlayers[[length(hlayers)]][curBat,] + 
           LR*2*lam*c(parlist$beta_param*parapen, parlist$beta)))
