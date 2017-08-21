@@ -203,7 +203,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       parapen <- c(0, parapen)
     }
     if (initialization == 'enforce_normalization'){
-      hlayers <- calc_hlayers(parlist, normalize = TRUE)
+      hlayers <<- calc_hlayers(parlist, normalize = TRUE)
     }
   } else { #if a parlist is provided
     hlayers <<- calc_hlayers(parlist)
