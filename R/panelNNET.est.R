@@ -217,6 +217,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   #####################################
   #start setup
   #get starting mse
+  print("A")
   yhat <- as.numeric(getYhat(pl, hlay = hlayers))
   mse <- mseold <- mean((y-yhat)^2)
   loss <- mse + lam*sum(c(parlist$beta_param*parapen
@@ -226,6 +227,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   )
   #Calculate gradients.  These aren't the actual gradients, but become the gradients when multiplied by their respective layer.
   grads <- calc_grads(parlist, hlayers, yhat, droplist = NULL, dropinp = NULL)
+  print("B")
   #Initialize updates
   updates <- lapply(parlist, function(x){x*0})
   #initialize G2 term for RMSprop
@@ -237,6 +239,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     G2 <- G2[!grepl('beta', names(G2))]
     G2[[length(G2)+1]] <- betas
   }
+  print("C")
   LRvec <- LR <- start.LR#starting LR
   D <- 1e6
   stopcounter <- iter <- 0
@@ -278,6 +281,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         Xd <- X[,dropinp]
       } else {Xd <- X; droplist = NULL}
       #Get updated gradients
+      print("D")
       grads <- calc_grads(plist = parlist, hlay = hlay
         , yhat = yhat[curBat], curBat = curBat, droplist = droplist, dropinp = dropinp)
       #Pad the gradients with zeros to scale it back to the original size
