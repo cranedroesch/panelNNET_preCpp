@@ -234,7 +234,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   LRvec <- LR <- start.LR#starting LR
   D <- 1e6
   stopcounter <- iter <- 0
-  msevec <- lossvec <- c()
+  msevec <- lossvec <- msetestvec <- c()
   #initialize list for plotting parameters during training
   if (para_plot == TRUE){
     para_plot_list <- lapply(parlist, function(x){
@@ -362,26 +362,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         , parlist$beta_treatmentinteractions
         , unlist(parlist[!grepl('beta', names(parlist))]))^2)
       lossvec <- append(lossvec, loss)
-      if (!is.null(test_set)){ 
-        #we create a fitted prediction object with test set objects
-        Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))
-        fe <- (y-ydm) - as.matrix(hlayers[[length(hlayers)]]-Zdm) %*%
-              as.matrix(c(parlist$beta_param, 
-                          parlist$beta_treatment, 
-                          parlist$beta_treatmentinteractions, 
-                          parlist$beta))
-        fe_output <- data.frame(fe_var, fe)
-        pr_test <- list(parlist = parlist, yhat = yhat, activation = activation, fe = fe_output
-                        , fe_var = fe_var, X = X, doscale = doscale, param = param, fe_var = fe_var
-                        , hidden_units = hidden_units, used_bias = bias_hlayers) 
-        pr_within <- predict.panelNNET(pr_test, 
-                                       newX = test_set$x_test, 
-                                       fe.newX = test_set$fe_test, 
-                                       new.param = test_set$test_params, 
-                                       se.fit = FALSE)
-        #predicted_mse
-        mse_test <- mean((pr_within-test_set$y_test)^2)
-      }
       #Finished epoch.  Assess whether MSE has increased and revert if so
       mse <- mean((y-yhat)^2)
       loss <- mse + lam*sum(c(parlist$beta_param*parapen
@@ -416,6 +396,27 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
           stopcounter <-0
       }
       if  (verbose == TRUE & iter %% report_interval == 0 & (!is.null(test_set))){
+        if (!is.null(test_set)){ 
+          #we create a fitted prediction object with test set objects
+          Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))
+          fe <- (y-ydm) - as.matrix(hlayers[[length(hlayers)]]-Zdm) %*%
+            as.matrix(c(parlist$beta_param, 
+                        parlist$beta_treatment, 
+                        parlist$beta_treatmentinteractions, 
+                        parlist$beta))
+          fe_output <- data.frame(fe_var, fe)
+          pr_test <- list(parlist = parlist, yhat = yhat, activation = activation, fe = fe_output
+                          , fe_var = fe_var, X = X, doscale = doscale, param = param, fe_var = fe_var
+                          , hidden_units = hidden_units, used_bias = bias_hlayers) 
+          pr_within <- predict.panelNNET(pr_test, 
+                                         newX = test_set$x_test, 
+                                         fe.newX = test_set$fe_test, 
+                                         new.param = test_set$test_params, 
+                                         se.fit = FALSE)
+          #predicted_mse
+          mse_test <- mean((pr_within-test_set$y_test)^2)
+          msetestvec[iter] <- mse_test
+        }
         writeLines(paste0(
           "*******************************************\n"
           , 'Lambda = ',lam, "\n"
@@ -459,7 +460,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       plot(y, yhat, col = rgb(1,0,0,.5), pch = 19, main = 'in-sample performance')
       abline(0,1)
       plot(LRvec, type = 'b', main = 'learning rate history')
-      plot(msevec, type = 'l', main = 'all epochs')
+      plot(msevec, type = 'l', main = 'all epochs', ylim = range(c(msevec, msetestvec), na.rm = TRUE))
+      lines(msetestvec, type = "l",col = "blue")
       plot(msevec[(1+(iter)*max(batchid)):length(msevec)], type = 'l', ylab = 'mse', main = 'Current epoch')
       plot(lossvec, type = 'l', main = 'all epochs')
       plot(lossvec[(1+(iter)*max(batchid)):length(lossvec)], type = 'l', ylab = 'loss', main = 'Current epoch')
