@@ -291,6 +291,9 @@ CC <<- as.matrix(c(
       if (RMSprop == TRUE){
         newG2 <- foreach(i = 1:(length(hlayers)+1)) %do% {
           if (i == 1){D <- X[curBat,]} else {D <- hlayers[[i-1]][curBat,]}
+          print(i)
+          print(dim(D))
+          print(class(D))
           if (bias_hlayers == TRUE & i != length(hlayers)+1){D <- cbind(1, D)}
             .1*(t(D) %*% grads[[i]])^2
         }
