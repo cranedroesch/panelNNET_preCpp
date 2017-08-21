@@ -5,33 +5,33 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
          , batchsize, maxstopcounter, OLStrick, initialization, dropout_hidden
          , dropout_input, test_set, ...){
 
-y <- y[r]
-X <- Z[r,]
-hidden_units = arch
-fe_var = id[r]
-maxit = 1000
-lam = lam
-time_var = time[r]
-param = P[r,]
-RMSprop = TRUE
-convtol = 1e-6
-activation = 'relu'
-doscale = TRUE
-inference = FALSE
-parapen = rep(1, ncol(P))#penalize the time trends
-gravity = 1.01
-OLStrick = FALSE
-initialization = 'enforce_normalization'
-parlist = NULL
-verbose = TRUE
-report_interval = 10
-test_set = list(y_test = y[v], x_test = Z[v,], fe_test = id[v], test_params = P[v, , drop = FALSE])
-bias_hlayers <- TRUE
-batchsize = nrow(X)  
-dropout_hidden <- dropout_input <- 1
-para_plot <- FALSE
-treatment <- NULL
-start.LR <- .01
+# y <- y[r]
+# X <- Z[r,]
+# hidden_units = arch
+# fe_var = id[r]
+# maxit = 1000
+# lam = lam
+# time_var = time[r]
+# param = P[r,]
+# RMSprop = TRUE
+# convtol = 1e-6
+# activation = 'relu'
+# doscale = TRUE
+# inference = FALSE
+# parapen = rep(1, ncol(P))#penalize the time trends
+# gravity = 1.01
+# OLStrick = FALSE
+# initialization = 'enforce_normalization'
+# parlist = NULL
+# verbose = TRUE
+# report_interval = 10
+# test_set = list(y_test = y[v], x_test = Z[v,], fe_test = id[v], test_params = P[v, , drop = FALSE])
+# bias_hlayers <- TRUE
+# batchsize = nrow(X)  
+# dropout_hidden <- dropout_input <- 1
+# para_plot <- FALSE
+# treatment <- NULL
+# start.LR <- .01
   ##########
   #Define internal functions
 
