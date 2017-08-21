@@ -143,7 +143,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   ###########################
   #start fitting
   if (doscale == TRUE){
-    X <- Matrix(scale(X))
+    X <<- Matrix(scale(X))
     if (!is.null(param)){
       param <- Matrix(scale(param))
     }
