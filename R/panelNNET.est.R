@@ -301,7 +301,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
           print("a")
           if (bias_hlayers == TRUE & i != length(hlayers)+1){D <- cbind(1, D)}
           print("b")
-          return(.1*(t(D) %*% grads[[i]])^2)
+          
+          return(.1*(t(as.matrix(D)) %*% grads[[i]])^2)
         }
         print("F")
         oldG2 <- lapply(G2, function(x){.9*x})
