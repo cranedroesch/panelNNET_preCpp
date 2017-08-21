@@ -217,20 +217,17 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   #####################################
   #start setup
   #get starting mse
-
   yhat <- as.numeric(getYhat(pl, hlay = hlayers))
-out <<- list(y, yhat)
   mse <- mseold <- mean((y-yhat)^2)
-  print(mse)
   loss <- mse + lam*sum(c(parlist$beta_param*parapen
     , 0*parlist$beta_treatment, parlist$beta
     , parlist$beta_treatmentinteractions
     , unlist(parlist[!grepl('beta', names(parlist))]))^2
   )
   #Calculate gradients.  These aren't the actual gradients, but become the gradients when multiplied by their respective layer.
-  grads <- calc_grads(parlist, hlayers, yhat, droplist = NULL, dropinp = NULL)
+  grads <<- calc_grads(parlist, hlayers, yhat, droplist = NULL, dropinp = NULL)
   #Initialize updates
-  updates <- lapply(parlist, function(x){x*0})
+  updates <<- lapply(parlist, function(x){x*0})
   #initialize G2 term for RMSprop
   if (RMSprop == TRUE){
     #Prior gradients are zero at first iteration...
@@ -258,7 +255,7 @@ out <<- list(y, yhat)
     }
     for (bat in 1:max(batchid)) { #run minibatch 
       curBat <- which(batchid == bat)
-      hlay <- hlayers#hlay may have experienced dropout, as distinct from hlayers
+      hlay <<- hlayers#hlay may have experienced dropout, as distinct from hlayers
       #if using dropout, generate a droplist
       if (dropout_hidden < 1){
         droplist <- lapply(hlayers, function(x){
@@ -281,7 +278,7 @@ out <<- list(y, yhat)
         Xd <- X[,dropinp]
       } else {Xd <- X; droplist = NULL}
       #Get updated gradients
-      grads <- calc_grads(plist = parlist, hlay = hlay
+      grads <<- calc_grads(plist = parlist, hlay = hlay
         , yhat = yhat[curBat], curBat = curBat, droplist = droplist, dropinp = dropinp)
       #Pad the gradients with zeros to scale it back to the original size
       if (dropout_hidden < 1){
