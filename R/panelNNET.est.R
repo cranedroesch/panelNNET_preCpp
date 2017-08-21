@@ -208,6 +208,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   } else { #if a parlist is provided
     hlayers <- calc_hlayers(parlist)
   }
+HL <<- hlayers
   parlist <- as.relistable(parlist)
   pl <- unlist(parlist) 
   #calculate ydm and put it in global...
@@ -291,7 +292,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       }
       #Calculate updates to parameters based on gradients and learning rates
       if (RMSprop == TRUE){
-        out <<- list(X, hlayers, grads)
         newG2 <- foreach(i = 1:(length(hlayers)+1)) %do% {
           if (i == 1){D <- X[curBat,]} else {D <- hlayers[[i-1]][curBat,]}
           if (bias_hlayers == TRUE & i != length(hlayers)+1){D <- cbind(1, D)}
