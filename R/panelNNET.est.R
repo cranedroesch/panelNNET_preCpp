@@ -218,7 +218,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   #start setup
   #get starting mse
 
-  yhat <- getYhat(pl, hlay = hlayers)
+  yhat <- as.numeric(getYhat(pl, hlay = hlayers))
 
   mse <- mseold <- mean((y-yhat)^2)
   print(mse)
