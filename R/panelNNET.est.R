@@ -398,7 +398,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         grads <- oldpar$grads
         yhat <- oldpar$yhat
         mse <- oldpar$mse
-        mse_predict <- mse_test
         stopcounter <- stopcounter + 1
         loss <- oldpar$loss
         msevec <- oldpar$msevec
@@ -430,7 +429,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
           , "loss is ",loss, "\n"
           , "last loss was ", oldpar$loss, "\n"
           , "difference is ", oldpar$loss - loss, "\n"
-          , "Predicted MSE ", mse_predict, "\n"
+          , "Testset MSE ", mse_test, "\n"
           , "*******************************************\n"  
         ))
       }
