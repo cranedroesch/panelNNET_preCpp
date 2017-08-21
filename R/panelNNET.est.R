@@ -36,17 +36,22 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   #Define internal functions
 
   getYhat <- function(pl, skel = attr(pl, 'skeleton'), hlay = NULL){ 
-  #print((pl))
-  #pl <- parlist
-  #skel = attr(pl, 'skeleton')
-  #hlay <- hlayers
+  # pl <- parlist
+  # skel = attr(pl, 'skeleton')
+  # hlay <- hlayers
     plist <- relist(pl, skel)
     #Update hidden layers
     if (is.null(hlay)){hlay <- calc_hlayers(plist)}
     #update yhat
     if (!is.null(fe_var)){
       Zdm <- demeanlist(as.matrix(hlay[[length(hlay)]]), list(fe_var))
-      Zdm <- Matrix(Zdm) # coerce back to sparse matrix after prev line
+      # Zdm <- Matrix(Zdm) # coerce back to sparse matrix after prev line
+A <<-(y-ydm)
+B <<- as.matrix(hlay[[length(hlay)]]-Zdm)
+CC <<- as.matrix(c(
+  plist$beta_param, plist$beta_treatment
+  , plist$beta_treatmentinteractions, plist$beta
+))
       fe <- (y-ydm) - as.matrix(hlay[[length(hlay)]]-Zdm) %*% as.matrix(c(
           plist$beta_param, plist$beta_treatment
         , plist$beta_treatmentinteractions, plist$beta
@@ -340,7 +345,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         pl <- unlist(parlist)
       }
       #update yhat
-      yhat <- getYhat(pl, attr(pl, 'skeleton'), hlay = hlayers)
+      yhat <- getYhat(pl, attr(pl, 'skeleton'), hlay = lapply(hlayers, as.matrix))
       mse <- mean((y-yhat)^2)
       msevec <- append(msevec, mse)
       loss <- mse + lam*sum(c(parlist$beta_param*parapen
