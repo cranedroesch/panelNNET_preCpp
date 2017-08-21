@@ -206,7 +206,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       hlayers <- calc_hlayers(parlist, normalize = TRUE)
     }
   } else { #if a parlist is provided
-    hlayers <- calc_hlayers(parlist)
+    hlayers <<- calc_hlayers(parlist)
   }
   parlist <- as.relistable(parlist)
   pl <- unlist(parlist) 
@@ -290,7 +290,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       }
       #Calculate updates to parameters based on gradients and learning rates
       if (RMSprop == TRUE){
-        newG2 <- foreach(i = 1:(length(hlayers)+1)) %do% {
+        newG2 <<- foreach(i = 1:(length(hlayers)+1)) %do% {
           if (i == 1){D <- X[curBat,]} else {D <- hlayers[[i-1]][curBat,]}
           if (bias_hlayers == TRUE & i != length(hlayers)+1){D <- cbind(1, D)}
             .1*(t(D) %*% grads[[i]])^2
