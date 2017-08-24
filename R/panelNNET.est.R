@@ -366,8 +366,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       #OLS trick!
       if (OLStrick == TRUE){
         parlist <- OLStrick_function(parlist = parlist, hidden_layers = hlayers, y = y
-          , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
-        )
+          , fe_var = fe_var, lam = lam, parapen = parapen)
         pl <- unlist(parlist)
       }
       #update yhat
@@ -489,8 +488,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     , fe = fe_output, converged = conv, mse = mse, loss = loss, lam = lam, time_var = time_var
     , X = X, y = y, param = param, fe_var = fe_var, hidden_units = hidden_units, maxit = maxit
     , used_bias = bias_hlayers, final_improvement = D, msevec = msevec, RMSprop = RMSprop, convtol = convtol
-    , grads = grads, activation = activation, parapen = parapen, doscale = doscale, treatment = treatment
-    , interact_treatment = interact_treatment, batchsize = batchsize, initialization = initialization, convolutional = convolutional)
+    , grads = grads, activation = activation, parapen = parapen, doscale = doscale, batchsize = batchsize, initialization = initialization, convolutional = convolutional)
   return(output) # list 
 }
 
