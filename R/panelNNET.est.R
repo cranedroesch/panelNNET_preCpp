@@ -188,7 +188,9 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   if (!is.null(convolutional)){
     #make the convolutional masking matrix if using conv nets
     # Suppressing warnings about coercing to NAs
+    print("a")
     convMask <- suppressWarnings(makeMask(X, convolutional$topology, convolutional$span, convolutional$step))
+    print("b")
     # store the number of time-varying variables
     N_TV_layers <- sum(colnames(convMask) %in% convolutional$topology)
     # For each convolutional "column", initialize the single parameter vector that will be shared among columns
