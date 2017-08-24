@@ -8,7 +8,7 @@ function(y, X, hidden_units, fe_var
   , batchsize = nrow(X)
   , maxstopcounter = 10, OLStrick = FALSE, initialization = 'enforce_normalization'
   , dropout_hidden = 1, dropout_input = 1, test_set = NULL
-  , convolutional = NULL...)
+  , convolutional = NULL, ...)
 {
   out <- panelNNET.est(y, X, hidden_units, fe_var, maxit, lam
     , time_var, param, parapen, parlist, verbose
