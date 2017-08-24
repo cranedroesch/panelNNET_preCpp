@@ -7,36 +7,6 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL
          , new.treatment = NULL, se.fit = FALSE, tauhat = FALSE
          , numerical_jacobian = FALSE, parallel_jacobian = FALSE){
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-#rm(list=ls()) 
-#obj <- pnn
-#newX = Z[e,]
-#fe.newX = id[e]
-#new.param = P[e,, drop = FALSE]
-#se.fit = FALSE
-#parallel_jacobian = TRUE
-#numerical_jacobian = FALSE
-  
-
-
-
-
-
-
-
-
-
-
   if (obj$activation == 'tanh'){
     activ <- tanh
   }
@@ -120,21 +90,6 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #prediction function, potentially for the Jacobian
 predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, tauhat = FALSE, FEs_to_merge = NULL, return_toplayer = FALSE){
   if (obj$activation == 'tanh'){
@@ -149,9 +104,7 @@ predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, ne
   if (obj$activation == 'lrelu'){
     activ <- lrelu
   }
-  
   parlist <- relist(pvec)
-  
   if (obj$doscale == TRUE){
     D <- sweep(sweep(newX, 2, STATS = attr(obj$X, "scaled:center"), FUN = '-'), 2, STATS = attr(obj$X, "scaled:scale"), FUN = '/')
     if (!is.null(obj$param)){

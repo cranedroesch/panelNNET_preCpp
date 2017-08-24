@@ -7,7 +7,8 @@ function(y, X, hidden_units, fe_var
   , activation = 'tanh', doscale = TRUE
   , treatment = NULL, interact_treatment = TRUE, batchsize = nrow(X)
   , maxstopcounter = 10, OLStrick = FALSE, initialization = 'enforce_normalization'
-  , dropout_hidden = 1, dropout_input = 1, test_set = NULL, ...)
+  , dropout_hidden = 1, dropout_input = 1, test_set = NULL
+  , convolutional = NULL...)
 {
   out <- panelNNET.est(y, X, hidden_units, fe_var, maxit, lam
     , time_var, param, parapen, parlist, verbose
@@ -15,7 +16,7 @@ function(y, X, hidden_units, fe_var
     , start_LR, activation, doscale 
     , treatment, interact_treatment, batchsize, maxstopcounter
     , OLStrick, initialization, dropout_hidden, dropout_input
-    , test_set
+    , test_set, convolutional
   )
   out$call = match.call()
   class(out) <- 'panelNNET'

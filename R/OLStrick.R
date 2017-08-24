@@ -13,7 +13,7 @@ OLStrick_function <- function(parlist, hidden_layers, y, fe_var, lam, parapen, t
   constraint <- sum(c(parlist$beta_param*parapen, parlist$beta)^2)
   #getting implicit regressors depending on whether regression is panel
   if (!is.null(fe_var)){
-    Zdm <- demeanlist(hidden_layers[[length(hidden_layers)]], list(fe_var))
+    Zdm <- demeanlist(as.matrix(hidden_layers[[length(hidden_layers)]]), list(fe_var))
     targ <- demeanlist(y, list(fe_var))
   } else {
     Zdm <- hidden_layers[[length(hidden_layers)]]
