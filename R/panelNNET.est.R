@@ -490,7 +490,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     , X = X, y = y, param = param, fe_var = fe_var, hidden_units = hidden_units, maxit = maxit
     , used_bias = bias_hlayers, final_improvement = D, msevec = msevec, RMSprop = RMSprop, convtol = convtol
     , grads = grads, activation = activation, parapen = parapen, doscale = doscale, treatment = treatment
-    , interact_treatment = interact_treatment, batchsize = batchsize, initialization = initialization)
+    , interact_treatment = interact_treatment, batchsize = batchsize, initialization = initialization, convolutional = convolutional)
   return(output) # list 
 }
 
