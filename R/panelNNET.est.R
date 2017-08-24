@@ -22,7 +22,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 # parapen = rep(1, ncol(P))#penalize the time trends
 # gravity = 1.01
 # OLStrick = FALSE
-# initialization = 'enforce_normalization'
 # parlist = NULL
 # verbose = TRUE
 # report_interval = 10
@@ -230,7 +229,9 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     # vector of parameters at the top layer
     parlist$beta <- runif(hidden_units[i], -ubounds, ubounds)
     # add convolutional layer on the bottom
-    parlist <- c(convParMat, parlist)
+    if (!is.null(convolutional)){
+      parlist <- c(convParMat, parlist)
+    }
     # parameters on parametric terms
     if (is.null(param)){
       parlist$beta_param <-  NULL
