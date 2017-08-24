@@ -4,7 +4,7 @@
 
 predict.panelNNET <-
 function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, se.fit = FALSE
-         , numerical_jacobian = FALSE, parallel_jacobian = FALSE){
+         , numerical_jacobian = FALSE, parallel_jacobian = FALSE, convolutional = NULL){
 # obj = pr_test
 # newX = test_set$x_test
 # fe.newX = test_set$fe_test
@@ -88,7 +88,8 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, se.fit = FALSE
 }
 
 #prediction function, potentially for the Jacobian
-predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL, FEs_to_merge = NULL, return_toplayer = FALSE){
+predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL,
+                    FEs_to_merge = NULL, return_toplayer = FALSE, convolutional = NULL){
   if (obj$activation == 'tanh'){
     activ <- tanh
   }
@@ -108,10 +109,23 @@ predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL, F
       P <- sweep(sweep(new.param, 2, STATS = attr(obj$param, "scaled:center"), FUN = '-'), 2, STATS = attr(obj$param, "scaled:scale"), FUN = '/')
     }
   }
-  for (i in 1:length(obj$hidden_layers)){
-    if (obj$used_bias == TRUE){D <- cbind(1,D)}
-    D <- activ(as.matrix(D) %*% parlist[[i]])
-  } 
+  # for (i in 1:length(obj$hidden_layers)){
+  #   if (obj$used_bias == TRUE){D <- cbind(1,D)}
+  #   D <- activ(as.matrix(D) %*% parlist[[i]])
+  # } 
+  
+  for (i in 1:(nlayers + !is.null(convolutional))){
+    if (bias_hlayers == TRUE){D <- cbind(1, D)}
+    # make sure that the time-invariant variables pass through the convolutional layer without being activated
+    if (is.null(convolutional) | i > 1){
+      D <- activ(D %*% parlist[[i]])        
+    } else {
+      HL <- D %*% parlist[[i]]
+      HL[,1:(N_TV_layers * convolutional$Nconv)] <- activ(HL[,1:(N_TV_layers * convolutional$Nconv)])
+      D <- HL
+    }
+  }
+  
   colnames(D) <- paste0('nodes',1:ncol(D))
   if (!is.null(obj$param)){
     D <- cbind(P, D)
@@ -135,7 +149,30 @@ predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL, F
 }
 
 
-
+# calc_hlayers <- function(parlist){
+#   hlayers <- vector('list', nlayers)
+#   for (i in 1:(nlayers + !is.null(convolutional))){
+#     if (i == 1){D <- X} else {D <- hlayers[[i-1]]}
+#     if (bias_hlayers == TRUE){D <- cbind(1, D)}
+#     # make sure that the time-invariant variables pass through the convolutional layer without being activated
+#     if (is.null(convolutional) | i > 1){
+#       hlayers[[i]] <- activ(D %*% parlist[[i]])        
+#     } else {
+#       HL <- D %*% parlist[[i]]
+#       HL[,1:(N_TV_layers * convolutional$Nconv)] <- activ(HL[,1:(N_TV_layers * convolutional$Nconv)])
+#       hlayers[[i]] <- HL
+#     }
+#   }
+#   colnames(hlayers[[i]]) <- paste0('nodes',1:ncol(hlayers[[i]]))
+#   if (!is.null(param)){#Add parametric terms to top layer
+#     hlayers[[i]] <- cbind(param, hlayers[[i]])
+#     colnames(hlayers[[i]])[1:ncol(param)] <- paste0('param',1:ncol(param))
+#   }
+#   if (is.null(fe_var)){#add intercept if no FEs
+#     hlayers[[i]] <- cbind(1, hlayers[[i]])
+#   }
+#   return(hlayers)
+# }
 
 
 
