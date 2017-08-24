@@ -24,7 +24,6 @@ OLStrick_function <- function(parlist, hidden_layers, y, fe_var, lam, parapen){
   } else {
     pp <- parapen #parapen
   }
-  if (!is.null(treatment)){pp <- append(pp, 0)}#treatment always follows parametric terms and will not be penalized
   D[1:length(pp)] <- D[1:length(pp)]*pp #incorporate parapen into diagonal of covmat
   #function to find implicit lambda
   f <- function(lam){
