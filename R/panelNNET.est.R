@@ -8,7 +8,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 # oldy <- y
 # y <- y[r]
 # X <- Z[r,]
-# hidden_units = c(3, 2)
+# hidden_units = c(15:10)
 # fe_var = id[r]
 # maxit = 1000
 # lam = lam
@@ -36,7 +36,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 # start.LR <- .01
 # maxstopcounter <- 1000
 # convolutional <- list(topology = as.numeric(sapply(strsplit(colnames(X), "_"), function(x){x[2]})),
-#                       span = 10, 
+#                       span = 10,
 #                       step = 4,
 #                       Nconv = 5,
 #                       weightSharing = TRUE)
@@ -188,9 +188,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   if (!is.null(convolutional)){
     #make the convolutional masking matrix if using conv nets
     # Suppressing warnings about coercing to NAs
-    print("a")
     convMask <- suppressWarnings(makeMask(X, convolutional$topology, convolutional$span, convolutional$step))
-    print("b")
     # store the number of time-varying variables
     N_TV_layers <- sum(colnames(convMask) %in% convolutional$topology)
     # For each convolutional "column", initialize the single parameter vector that will be shared among columns
