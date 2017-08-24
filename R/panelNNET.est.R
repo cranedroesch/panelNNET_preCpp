@@ -1,7 +1,7 @@
 panelNNET.est <-
 function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist
          , verbose, report_interval, gravity, convtol, bias_hlayers, RMSprop
-         , start.LR, activation, doscale, treatment, interact_treatment
+         , start.LR, activation, doscale
          , batchsize, maxstopcounter, OLStrick, initialization, dropout_hidden
          , dropout_input, test_set, convolutional, ...){
 
