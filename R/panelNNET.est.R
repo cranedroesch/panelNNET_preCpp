@@ -115,7 +115,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         lay <- cbind(1, lay) #add bias to the hidden layer
         if (i != NL){outer_param <- outer_param[-1,, drop = FALSE]}      #remove parameter on upper-layer bias term
       }
-      grad_stubs[[i]] <- activ_prime(lay %*% plist[[i]]) * grad_stubs[[i+1]] %*% t(outer_param)
+      grad_stubs[[i]] <- activ_prime(lay %*% plist[[i]]) * grad_stubs[[i+1]] %*% Matrix::t(outer_param)
     }
     #multiply the gradient stubs by their respective layers to get the actual gradients
     for (i in 1:length(grad_stubs)){
@@ -123,9 +123,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       if (bias_hlayers == TRUE & i != length(grad_stubs)){
         lay <- cbind(1, lay) #add bias to the hidden layer
       }
-print(class(lay))
-print(dim(lay))
-LL <<- lay
       grads[[i]] <- Matrix::t(lay) %*% grad_stubs[[i]]
     }
     #process the gradients for the convolutional layers
