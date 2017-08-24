@@ -126,7 +126,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 print(class(lay))
 print(dim(lay))
 LL <<- lay
-      grads[[i]] <- t(lay) %*% grad_stubs[[i]]
+      grads[[i]] <- Matrix::t(lay) %*% grad_stubs[[i]]
     }
     #process the gradients for the convolutional layers
     if (!is.null(convolutional)){
