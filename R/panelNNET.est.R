@@ -4,11 +4,11 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
          , start.LR, activation, doscale
          , batchsize, maxstopcounter, OLStrick, initialization, dropout_hidden
          , dropout_input, test_set, convolutional, ...){
-# 
+
 # oldy <- y
 # y <- y[r]
 # X <- Z[r,]
-# hidden_units = c(15:10)
+# hidden_units = c(5:2)
 # fe_var = id[r]
 # maxit = 1000
 # lam = lam
@@ -34,7 +34,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 # para_plot <- FALSE
 # treatment <- NULL
 # start.LR <- .01
-# maxstopcounter <- 1000
+# maxstopcounter <- 10
 # convolutional <- list(topology = as.numeric(sapply(strsplit(colnames(X), "_"), function(x){x[2]})),
 #                       span = 10,
 #                       step = 4,
