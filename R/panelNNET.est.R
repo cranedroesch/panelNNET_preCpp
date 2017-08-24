@@ -337,19 +337,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         for(i in NL:1){
           updates[[i]] <- LR/sqrt(G2[[i]]+1e-10) * grads[[i]]
         }
-        # Old version below.  Fairly sure this is wrong.  Why did I put the LR in twice?  And what is the parlist doing there?
-        # #updates to beta
-        # uB <- LR/sqrt(G2[[length(G2)]]+1e-10) *
-        #         t(t(grads[[length(grads)]]) + 
-        #         LR*2*lam*c(parlist$beta_param*parapen, parlist$beta))
-        # updates$beta_param <- uB[1:length(parlist$beta_param)]
-        # updates$beta <- uB[grepl('nodes', rownames(uB))]
-        # for(i in nlayers:1){
-        #   if(i == 1){lay = as.matrix(X)[curBat,]} else {lay = hlayers[[i-1]][curBat,]}
-        #   if(bias_hlayers == TRUE){lay <- cbind(1,lay)}
-        #   updates[[i]] <- LR/sqrt(G2[[i]]+1e-10) * t(t(grads[[i]]) %*% lay) + LR*t(2 * lam * t(parlist[[i]]))
-        #   updates[[i]] <- LR/sqrt(G2[[i]]+1e-10) * grads[[i]] + LR * 2 * lam * parlist[[i]]
-        # }
       } else { #if RMSprop == FALSE
         uB <- LR * grads[[length(grads)]]
         updates$beta_param <- uB[1:length(parlist$beta_param)]
@@ -425,7 +412,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
                                          se.fit = FALSE)
           #predicted_mse
           mse_test <- mean((pr_within-test_set$y_test)^2)
-          msetestvec[iter] <- mse_test
+          msetestvec[length(msevec)] <- mse_test
         } else {mse_test <- NA}
         writeLines(paste0(
           "*******************************************\n"
