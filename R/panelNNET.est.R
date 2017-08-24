@@ -4,7 +4,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
          , start.LR, activation, doscale
          , batchsize, maxstopcounter, OLStrick, initialization, dropout_hidden
          , dropout_input, test_set, convolutional, ...){
-
+# 
 # oldy <- y
 # y <- y[r]
 # X <- Z[r,]
@@ -26,7 +26,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 # parlist = NULL
 # verbose = TRUE
 # report_interval = 10
-# # test_set = list(y_test = y[v], x_test = Z[v,], fe_test = id[v], test_params = P[v, , drop = FALSE])
+# test_set = list(y_test = y[v], x_test = Z[v,], fe_test = id[v], test_params = P[v, , drop = FALSE])
 # test_set <- NULL
 # bias_hlayers <- TRUE
 # batchsize = nrow(X)
@@ -417,7 +417,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
           fe_output <- data.frame(fe_var, fe)
           pr_test <- list(parlist = parlist, yhat = yhat, activation = activation, fe = fe_output
                           , fe_var = fe_var, X = X, doscale = doscale, param = param, fe_var = fe_var
-                          , hidden_units = hidden_units, used_bias = bias_hlayers) 
+                          , hidden_units = hidden_units, used_bias = bias_hlayers, hidden_layers = hlayers) 
           pr_within <- predict.panelNNET(pr_test, 
                                          newX = test_set$x_test, 
                                          fe.newX = test_set$fe_test, 
