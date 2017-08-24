@@ -123,6 +123,9 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       if (bias_hlayers == TRUE & i != length(grad_stubs)){
         lay <- cbind(1, lay) #add bias to the hidden layer
       }
+print(class(lay))
+print(dim(lay))
+LL <<- lay
       grads[[i]] <- t(lay) %*% grad_stubs[[i]]
     }
     #process the gradients for the convolutional layers
