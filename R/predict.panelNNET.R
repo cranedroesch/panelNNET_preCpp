@@ -114,8 +114,8 @@ predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL,
   #   D <- activ(as.matrix(D) %*% parlist[[i]])
   # } 
   
-  for (i in 1:(nlayers + !is.null(convolutional))){
-    if (bias_hlayers == TRUE){D <- cbind(1, D)}
+  for (i in 1:length(obj$hidden_layers)){
+  if (bias_hlayers == TRUE){D <- cbind(1, D)}
     # make sure that the time-invariant variables pass through the convolutional layer without being activated
     if (is.null(convolutional) | i > 1){
       D <- activ(D %*% parlist[[i]])        
