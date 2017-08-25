@@ -103,12 +103,13 @@ predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL,
     activ <- lrelu
   }
   if (obj$doscale == TRUE){
-    dd <<- D <- sweep(sweep(newX, 2, STATS = attr(obj$X, "scaled:center"), FUN = '-'), 2, STATS = attr(obj$X, "scaled:scale"), FUN = '/')
+    D <- sweep(sweep(newX, 2, STATS = attr(obj$X, "scaled:center"), FUN = '-'), 2, STATS = attr(obj$X, "scaled:scale"), FUN = '/')
     if (!is.null(obj$param)){
       P <- sweep(sweep(new.param, 2, STATS = attr(obj$param, "scaled:center"), FUN = '-'), 2, STATS = attr(obj$param, "scaled:scale"), FUN = '/')
     }
   }
-
+  ff <<- D 
+  
   # for (i in 1:length(obj$hidden_layers)){
   # if (obj$used_bias == TRUE){D <- cbind(1, D)}
   #   # make sure that the time-invariant variables pass through the convolutional layer without being activated
