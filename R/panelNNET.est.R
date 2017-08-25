@@ -25,7 +25,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 # parlist = NULL
 # verbose = TRUE
 # report_interval = 10
-# test_set = list(y_test = y[v], x_test = Z[v,], fe_test = id[v], test_params = P[v, , drop = FALSE])
+# test_set = list(y_test = oldy[r], x_test = Z[r,], fe_test = id[r], test_params = P[r, , drop = FALSE])
 # test_set <- NULL
 # bias_hlayers <- TRUE
 # batchsize = nrow(X)
@@ -39,6 +39,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 #                       step = 4,
 #                       Nconv = 5,
 #                       weightSharing = TRUE)
+# initialization = "HZRS"
   ##########
   #Define internal functions
   getYhat <- function(pl, hlay = NULL){ 
@@ -411,6 +412,11 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
                                          fe.newX = test_set$fe_test, 
                                          new.param = test_set$test_params, 
                                          se.fit = FALSE)
+print("a")
+print(all.equal((pr_within, yhat)))
+print("b")
+print(all.equal((pr_within, test_set$y_test)))
+          
           #predicted_mse
           mse_test <- mean((pr_within-test_set$y_test)^2)
           msetestvec[length(msevec)] <- mse_test
