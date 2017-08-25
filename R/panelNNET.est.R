@@ -3,7 +3,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
          , verbose, report_interval, gravity, convtol, bias_hlayers, RMSprop
          , start.LR, activation, doscale
          , batchsize, maxstopcounter, OLStrick, initialization, dropout_hidden
-         , dropout_input, test_set, convolutional, ...){
+         , dropout_input, convolutional, ...){
 
 # oldy <- y
 # y <- y[r]
@@ -44,7 +44,13 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   #Define internal functions
   getYhat <- function(pl, hlay = NULL){ 
     #Update hidden layers
-    if (is.null(hlay)){hlay <- calc_hlayers(pl, X = X, param = param, fe_var = fe_var, nlayers = nlayers, convolutional = convolutional, activ = activation)}
+    if (is.null(hlay)){hlay <- calc_hlayers(pl,
+                                            X = X,
+                                            param = param,
+                                            fe_var = fe_var,
+                                            nlayers = nlayers,
+                                            convolutional = convolutional,
+                                            activ = activation)}
     #update yhat
     if (!is.null(fe_var)){
       Zdm <- demeanlist(as.matrix(hlay[[length(hlay)]]), list(fe_var))
@@ -280,7 +286,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   LRvec <- LR <- start.LR#starting LR
   D <- 1e6
   stopcounter <- iter <- 0
-  msevec <- lossvec <- msetestvec <- c()
+  msevec <- lossvec <- c()
   ###############
   #start iterating
   while(iter < maxit & stopcounter < maxstopcounter){
@@ -397,42 +403,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         stopcounter <-0
       }
       if  (verbose == TRUE & iter %% report_interval == 0){
-        if (!is.null(test_set)){ 
-          #we create a fitted prediction object with test set objects
-          Zdm <- demeanlist(as.matrix(hlayers[[length(hlayers)]]), list(fe_var))
-          Zdm <- Matrix(Zdm) #coerce back
-          fe <- (y-ydm) - as.matrix(hlayers[[length(hlayers)]]-Zdm) %*%
-            as.matrix(c(parlist$beta_param, parlist$beta))
-          fe_output <- data.frame(fe_var, fe)
-          pr_test <- list(parlist = parlist, yhat = yhat, activation = activation, fe = fe_output
-                          , fe_var = fe_var, X = X, doscale = doscale, param = param, fe_var = fe_var
-                          , hidden_units = hidden_units, used_bias = bias_hlayers, hidden_layers = hlayers) 
-          pr_within <- predict.panelNNET(pr_test, 
-                                         newX = test_set$x_test, 
-                                         fe.newX = test_set$fe_test, 
-                                         new.param = test_set$test_params, 
-                                         se.fit = FALSE)
-# plot(yhat, pr_within)
-# xp2 <- as.matrix(hlayers[[length(hlayers)]]) %*%as.matrix(c(parlist$beta_param, parlist$beta))
-# all.equal(dd, hlayers[[length(hlayers)]])
-# hl <- hlayers[[length(hlayers)]]
-# sum(as.numeric(hl) %ni% as.numeric(dd))
-# image(as.matrix(dd - hl))
-# Xrs <- X * attr(X, 'scaled:scale') + attr(X, 'scaled:center')
-# all.equal(test_set$x_test, Z[r,])
-# all.equal(test_set$test_params, P[r,])
-# all.equal(test_set$x_test, Xrs)
-# all.equal(scale(Z[r,]), X)
-# print("a")
-# print(all.equal(pr_within, yhat))
-# print("b")
-# print(all.equal(pr_within, test_set$y_test))
-          
-          
-          #predicted_mse
-          mse_test <- mean((pr_within-test_set$y_test)^2)
-          msetestvec[length(msevec)] <- mse_test
-        } else {mse_test <- NA}
         writeLines(paste0(
           "*******************************************\n"
           , 'Lambda = ',lam, "\n"
@@ -446,20 +416,16 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
           , "loss is ",loss, "\n"
           , "last loss was ", oldpar$loss, "\n"
           , "difference is ", oldpar$loss - loss, "\n"
-          , "Testset MSE ", mse_test, "\n"
           , "*******************************************\n"  
         ))
         par(mfrow = c(3,2))
         plot(y, yhat, col = rgb(1,0,0,.5), pch = 19, main = 'in-sample performance')
         abline(0,1)
         plot(LRvec, type = 'b', main = 'learning rate history')
-        plot(msevec, type = 'l', main = 'all epochs', ylim = range(c(msevec, msetestvec), na.rm = TRUE))
-        points(msetestvec,col = "blue", pch = 19)
+        plot(msevec, type = 'l', main = 'all epochs', ylim = range(c(msevec), na.rm = TRUE))
         plot(msevec[(1+(iter)*max(batchid)):length(msevec)], type = 'l', ylab = 'mse', main = 'Current epoch')
         plot(lossvec, type = 'l', main = 'all epochs')
         plot(lossvec[(1+(iter)*max(batchid)):length(lossvec)], type = 'l', ylab = 'loss', main = 'Current epoch')
-print(msevec)
-print(msetestvec)
       } # fi verbose 
     } # fi if loss increases 
     iter <- iter+1
