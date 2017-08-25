@@ -44,7 +44,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   #Define internal functions
   getYhat <- function(pl, hlay = NULL){ 
     #Update hidden layers
-    if (is.null(hlay)){hlay <- calc_hlayers(pl, X)}
+    if (is.null(hlay)){hlay <- calc_hlayers(pl, X = X, param = param, fe_var = fe_var, nlayers = nlayers, convolutional = convolutional, activ = activ)}
     #update yhat
     if (!is.null(fe_var)){
       Zdm <- demeanlist(as.matrix(hlay[[length(hlay)]]), list(fe_var))
@@ -102,7 +102,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       plist$beta <- plist$beta[droplist[[nlayers]]]
     } else {Xd <- X}#for use below...  X should be safe given scope, but extra assignment is cheap here
     if (!is.null(curBat)){CB <- function(x){x[curBat,,drop = FALSE]}} else {CB <- function(x){x}}
-    if (is.null(hlay)){hlay <- calc_hlayers(plist, X)}
+    if (is.null(hlay)){hlay <- calc_hlayers(plist, X = X, param = param, fe_var = fe_var, nlayers = nlayers, convolutional = convolutional, activ = activ)}
     if (is.null(yhat)){yhat <- getYhat(plist, hlay = hlay)}
     #empty list of gradients, one for each hidden layer, plus one for
     NL <- nlayers + as.numeric(!is.null(convolutional))
@@ -247,7 +247,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     }
   }
   #compute hidden layers given parlist
-  hlayers <- calc_hlayers(parlist, X)
+  hlayers <- calc_hlayers(parlist, X = X, param = param, fe_var = fe_var, nlayers = nlayers, convolutional = convolutional, activ = activ)
   # make it relistable
   parlist <- as.relistable(parlist)
   pl <- unlist(parlist) 
@@ -352,7 +352,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       parlist <- as.relistable(mapply('-', parlist, updates))
       pl <- unlist(parlist)
       #Update hidden layers
-      hlayers <- calc_hlayers(parlist, X)
+      hlayers <- calc_hlayers(parlist, X = X, param = param, fe_var = fe_var, nlayers = nlayers, convolutional = convolutional, activ = activ)
       #OLS trick!
       if (OLStrick == TRUE){
         parlist <- OLStrick_function(parlist = parlist, hidden_layers = hlayers, y = y
@@ -479,7 +479,7 @@ print(msetestvec)
         , fe_var = fe_var, lam = lam, parapen = parapen)
     }
     #redo the hidden layers based on the new parlist
-    hlayers <- calc_hlayers(parlist, X)
+    hlayers <- calc_hlayers(parlist, X = X, param = param, fe_var = fe_var, nlayers = nlayers, convolutional = convolutional, activ = activ)
     yhat <- getYhat(unlist(parlist), hlay = hlayers)
   }
   conv <- (iter<maxit)#Did we get convergence?
