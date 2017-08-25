@@ -156,7 +156,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       bvec <- matrix(c(pltemp$beta, pltemp$beta_param))
       pltemp$beta <- pltemp$beta_param <- NULL
       pltemp[[length(pltemp)+1]] <- bvec
-      gradswd <- mapply('+', grads, lapply(pltemp, function(x){x*lam*LR}))
+      wd <<- lapply(pltemp, function(x){x*lam*LR})
+      gradswd <- mapply('+', grads, wd)
       grads <- gradswd
     }
     return(grads)
