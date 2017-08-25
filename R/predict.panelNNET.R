@@ -131,12 +131,6 @@ predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL,
                     activ = activ)
   dd <<- D <- HL[[length(HL)]]
 
-  colnames(D) <- paste0('nodes',1:ncol(D))
-  if (!is.null(obj$param)){
-    D <- cbind(P, D)
-    colnames(D)[1:ncol(new.param)] <- paste0('param',1:ncol(new.param))
-  }
-  if (is.null(obj$fe_var)){D <- cbind(1, D)}#add intercept if no FEs
   if (return_toplayer == TRUE){
     return(D)
   }
