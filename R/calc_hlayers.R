@@ -10,7 +10,7 @@ calc_hlayers <- function(parlist, X = X, param = param, fe_var = fe_var, nlayers
       hlayers[[i]] <- activ(D %*% parlist[[i]])        
     } else {
       HL <- D %*% parlist[[i]]
-      HL[,1:(N_TV_layers * convolutional$Nconv)] <- activ(HL[,1:(N_TV_layers * convolutional$Nconv)])
+      HL[,1:(convolutional$N_TV_layers * convolutional$Nconv)] <- activ(HL[,1:(convolutional$N_TV_layers * convolutional$Nconv)])
       hlayers[[i]] <- HL
     }
   }
