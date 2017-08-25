@@ -1,5 +1,6 @@
 
-calc_hlayers <- function(parlist, X = X, param = param, fe_var = fe_var, nlayers = nlayers, convolutional = convolutional, activ = activ){
+calc_hlayers <- function(parlist, X = X, param = param, fe_var = fe_var, nlayers = nlayers, convolutional = convolutional, activ = activ, bias_hlayers = TRUE){
+  # note:  once you get a chance to remove the bias argument from the main function, purge it off of here as well
   hlayers <- vector('list', nlayers)
   for (i in 1:(nlayers + !is.null(convolutional))){
     if (i == 1){D <- X} else {D <- hlayers[[i-1]]}
