@@ -26,7 +26,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 # verbose = TRUE
 # report_interval = 10
 # test_set = list(y_test = oldy[r], x_test = Z[r,], fe_test = id[r], test_params = P[r, , drop = FALSE])
-# test_set <- NULL
+# # test_set <- NULL
 # bias_hlayers <- TRUE
 # batchsize = nrow(X)
 # dropout_hidden <- dropout_input <- 1
@@ -44,7 +44,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   #Define internal functions
   getYhat <- function(pl, hlay = NULL){ 
     #Update hidden layers
-    if (is.null(hlay)){hlay <- calc_hlayers(pl)}
+    if (is.null(hlay)){hlay <- calc_hlayers(pl, X)}
     #update yhat
     if (!is.null(fe_var)){
       Zdm <- demeanlist(as.matrix(hlay[[length(hlay)]]), list(fe_var))
@@ -64,30 +64,30 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     return(loss)
   }
 
-  calc_hlayers <- function(parlist){
-    hlayers <- vector('list', nlayers)
-    for (i in 1:(nlayers + !is.null(convolutional))){
-      if (i == 1){D <- X} else {D <- hlayers[[i-1]]}
-      if (bias_hlayers == TRUE){D <- cbind(1, D)}
-      # make sure that the time-invariant variables pass through the convolutional layer without being activated
-      if (is.null(convolutional) | i > 1){
-        hlayers[[i]] <- activ(D %*% parlist[[i]])        
-      } else {
-        HL <- D %*% parlist[[i]]
-        HL[,1:(N_TV_layers * convolutional$Nconv)] <- activ(HL[,1:(N_TV_layers * convolutional$Nconv)])
-        hlayers[[i]] <- HL
-      }
-    }
-    colnames(hlayers[[i]]) <- paste0('nodes',1:ncol(hlayers[[i]]))
-    if (!is.null(param)){#Add parametric terms to top layer
-      hlayers[[i]] <- cbind(param, hlayers[[i]])
-      colnames(hlayers[[i]])[1:ncol(param)] <- paste0('param',1:ncol(param))
-    }
-    if (is.null(fe_var)){#add intercept if no FEs
-      hlayers[[i]] <- cbind(1, hlayers[[i]])
-    }
-    return(hlayers)
-  }
+  # calc_hlayers <- function(parlist, X = X, param = param, fe_var = fe_var, nlayers = nlayers, convolutional = convolutional, activ = activ){
+  #   hlayers <- vector('list', nlayers)
+  #   for (i in 1:(nlayers + !is.null(convolutional))){
+  #     if (i == 1){D <- X} else {D <- hlayers[[i-1]]}
+  #     if (bias_hlayers == TRUE){D <- cbind(1, D)}
+  #     # make sure that the time-invariant variables pass through the convolutional layer without being activated
+  #     if (is.null(convolutional) | i > 1){
+  #       hlayers[[i]] <- activ(D %*% parlist[[i]])        
+  #     } else {
+  #       HL <- D %*% parlist[[i]]
+  #       HL[,1:(N_TV_layers * convolutional$Nconv)] <- activ(HL[,1:(N_TV_layers * convolutional$Nconv)])
+  #       hlayers[[i]] <- HL
+  #     }
+  #   }
+  #   colnames(hlayers[[i]]) <- paste0('nodes',1:ncol(hlayers[[i]]))
+  #   if (!is.null(param)){#Add parametric terms to top layer
+  #     hlayers[[i]] <- cbind(param, hlayers[[i]])
+  #     colnames(hlayers[[i]])[1:ncol(param)] <- paste0('param',1:ncol(param))
+  #   }
+  #   if (is.null(fe_var)){#add intercept if no FEs
+  #     hlayers[[i]] <- cbind(1, hlayers[[i]])
+  #   }
+  #   return(hlayers)
+  # }
 
   calc_grads<- function(plist, hlay = NULL, yhat = NULL, curBat = NULL, droplist = NULL, dropinp = NULL){
     #subset the parameters and hidden layers based on the droplist
@@ -102,7 +102,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       plist$beta <- plist$beta[droplist[[nlayers]]]
     } else {Xd <- X}#for use below...  X should be safe given scope, but extra assignment is cheap here
     if (!is.null(curBat)){CB <- function(x){x[curBat,,drop = FALSE]}} else {CB <- function(x){x}}
-    if (is.null(hlay)){hlay <- calc_hlayers(plist)}
+    if (is.null(hlay)){hlay <- calc_hlayers(plist, X)}
     if (is.null(yhat)){yhat <- getYhat(plist, hlay = hlay)}
     #empty list of gradients, one for each hidden layer, plus one for
     NL <- nlayers + as.numeric(!is.null(convolutional))
@@ -247,7 +247,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     }
   }
   #compute hidden layers given parlist
-  hlayers <- calc_hlayers(parlist)
+  hlayers <- calc_hlayers(parlist, X)
   # make it relistable
   parlist <- as.relistable(parlist)
   pl <- unlist(parlist) 
@@ -293,7 +293,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     if (min(table(batchid))<(batchsize/2)){#Deal with orphan batches
       batchid[batchid == max(batchid)] <- sample(1:(max(batchid) - 1), min(table(batchid)), replace = TRUE)
     }
-    for (bat in 1:max(batchid)) { #run minibatch 
+    for (bat in 1:max(batchid)) { #run minibatch
 # bat <- 1
       curBat <- which(batchid == bat)
       hlay <- hlayers#hlay may have experienced dropout, as distinct from hlayers
@@ -352,7 +352,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       parlist <- as.relistable(mapply('-', parlist, updates))
       pl <- unlist(parlist)
       #Update hidden layers
-      hlayers <- calc_hlayers(parlist)
+      hlayers <- calc_hlayers(parlist, X)
       #OLS trick!
       if (OLStrick == TRUE){
         parlist <- OLStrick_function(parlist = parlist, hidden_layers = hlayers, y = y
@@ -365,7 +365,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       msevec <- append(msevec, mse)
       loss <- mse + lam*sum(sapply(parlist, function(x){sum(x^2)}))
       lossvec <- append(lossvec, loss)
-    } #finishes epoch
+} #finishes epoch
 
     #Finished epoch.  Assess whether MSE has increased and revert if so
     mse <- mean((y-yhat)^2)
@@ -412,10 +412,22 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
                                          fe.newX = test_set$fe_test, 
                                          new.param = test_set$test_params, 
                                          se.fit = FALSE)
-print("a")
-print(all.equal(pr_within, yhat))
-print("b")
-print(all.equal(pr_within, test_set$y_test))
+# plot(yhat, pr_within)
+# xp2 <- as.matrix(hlayers[[length(hlayers)]]) %*%as.matrix(c(parlist$beta_param, parlist$beta))
+# all.equal(dd, hlayers[[length(hlayers)]])
+# hl <- hlayers[[length(hlayers)]]
+# sum(as.numeric(hl) %ni% as.numeric(dd))
+# image(as.matrix(dd - hl))
+# Xrs <- X * attr(X, 'scaled:scale') + attr(X, 'scaled:center')
+# all.equal(test_set$x_test, Z[r,])
+# all.equal(test_set$test_params, P[r,])
+# all.equal(test_set$x_test, Xrs)
+# all.equal(scale(Z[r,]), X)
+# print("a")
+# print(all.equal(pr_within, yhat))
+# print("b")
+# print(all.equal(pr_within, test_set$y_test))
+          
           
           #predicted_mse
           mse_test <- mean((pr_within-test_set$y_test)^2)
@@ -467,7 +479,7 @@ print(msetestvec)
         , fe_var = fe_var, lam = lam, parapen = parapen)
     }
     #redo the hidden layers based on the new parlist
-    hlayers <- calc_hlayers(parlist)
+    hlayers <- calc_hlayers(parlist, X)
     yhat <- getYhat(unlist(parlist), hlay = hlayers)
   }
   conv <- (iter<maxit)#Did we get convergence?

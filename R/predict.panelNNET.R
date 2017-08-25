@@ -102,7 +102,6 @@ predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL,
   if (obj$activation == 'lrelu'){
     activ <- lrelu
   }
-  parlist <- plist
   if (obj$doscale == TRUE){
     D <- sweep(sweep(newX, 2, STATS = attr(obj$X, "scaled:center"), FUN = '-'), 2, STATS = attr(obj$X, "scaled:scale"), FUN = '/')
     if (!is.null(obj$param)){
@@ -110,17 +109,26 @@ predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL,
     }
   }
 
-  for (i in 1:length(obj$hidden_layers)){
-  if (obj$used_bias == TRUE){D <- cbind(1, D)}
-    # make sure that the time-invariant variables pass through the convolutional layer without being activated
-    if (is.null(convolutional) | i > 1){
-      D <- activ(D %*% parlist[[i]])        
-    } else {
-      HL <- D %*% parlist[[i]]
-      HL[,1:(N_TV_layers * convolutional$Nconv)] <- activ(HL[,1:(N_TV_layers * convolutional$Nconv)])
-      D <- HL
-    }
-  }
+  # for (i in 1:length(obj$hidden_layers)){
+  # if (obj$used_bias == TRUE){D <- cbind(1, D)}
+  #   # make sure that the time-invariant variables pass through the convolutional layer without being activated
+  #   if (is.null(convolutional) | i > 1){
+  #     D <- activ(D %*% parlist[[i]])        
+  #   } else {
+  #     HL <- D %*% parlist[[i]]
+  #     HL[,1:(N_TV_layers * convolutional$Nconv)] <- activ(HL[,1:(N_TV_layers * convolutional$Nconv)])
+  #     D <- HL
+  #   }
+  # }
+  
+  # compute hidden layers
+  D <- calc_hlayers(parlist = obj$parlist, 
+                    X = D, 
+                    param = P, 
+                    fe_var = obj$fe_var, 
+                    nlayers = length(obj$hidden_layers)-!is.null(obj$convolutional),# subtract off 1 when convolutional because "nlayers" doesn't include conv layer
+                    convolutional = obj$convolutional,
+                    activ = activ)
   
   colnames(D) <- paste0('nodes',1:ncol(D))
   if (!is.null(obj$param)){
@@ -132,10 +140,11 @@ predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL,
     return(D)
   }
   if (is.null(obj$fe)){
-    yhat <- D %*% c(parlist$beta_param, parlist$beta)
+    yhat <- D %*% c(plist$beta_param, plist$beta)
   } else {
-    xpart <- D %*% c(parlist$beta_param, parlist$beta)
-    nd <- data.frame(fe.newX, xpart = as.matrix(xpart), id = 1:length(fe.newX))       
+    dd<<- D
+    xpart <- D %*% c(plist$beta_param, plist$beta)
+    nd <- data.frame(fe.newX, xpart = as.numeric(xpart), id = 1:length(fe.newX))       
     nd <- merge(nd, FEs_to_merge, by.x = 'fe.newX', by.y = 'fe_var', all.x = TRUE, sort = FALSE)
     nd <- nd[order(nd$id),]
     yhat <- nd$fe + nd$xpart
