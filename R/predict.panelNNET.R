@@ -122,16 +122,16 @@ predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL,
   # }
   
   # compute hidden layers
-  D <- calc_hlayers(parlist = obj$parlist, 
+  HL <- calc_hlayers(parlist = obj$parlist, 
                     X = D, 
                     param = P, 
                     fe_var = obj$fe_var, 
                     nlayers = length(obj$hidden_layers)-!is.null(obj$convolutional),# subtract off 1 when convolutional because "nlayers" doesn't include conv layer
                     convolutional = obj$convolutional,
                     activ = activ)
-print(dim(D))
-print(head(D))
-  colnames(D) <- paste0('nodes',1:ncol(D))
+  D <- HL[[length(HL)]]
+
+    colnames(D) <- paste0('nodes',1:ncol(D))
   if (!is.null(obj$param)){
     D <- cbind(P, D)
     colnames(D)[1:ncol(new.param)] <- paste0('param',1:ncol(new.param))
