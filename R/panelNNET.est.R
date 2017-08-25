@@ -131,10 +131,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       }
       grads[[i]] <- Matrix::t(lay) %*% grad_stubs[[i]]
     }
-    # add weight decay
-    grads <- lapply(grads, function(x){
-      LR*lam*x + x
-    })
     #process the gradients for the convolutional layers
     if (!is.null(convolutional)){
       #mask out the areas not in use
@@ -148,20 +144,18 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         rowSums(foreach(j = idx, .combine = cbind) %do% {x <- gg[,j]; x[x!=0][-1]})
       }
       new_convBias <- gg[1,1:(N_TV_layers * convolutional$Nconv)]
-      # weight decay
-      new_convParms <- lapply(new_convParms, function(x){
-        LR*lam*x + x
-      })
-      new_convBias <- new_convBias + LR*lam*new_convBias
       # make the layer
       convGrad <- makeConvLayer(new_convParms, new_convBias)
       #set the gradients on the time-invariant terms to zero
       convGrad[,(N_TV_layers * convolutional$Nconv+1):ncol(convGrad)] <- 0
       grads[[1]] <- convGrad
     }
+    if (lam != 0) {
+      grads <- mapply('+', grads, lapply(parlist, function(x){x*lam*LR}))
+    }
     return(grads)
   }
-  
+
   makeConvLayer <- function(convParms, convBias){
     # time-varying portion
     TV <- foreach(i = 1:convolutional$Nconv, .combine = cbind) %do% {
