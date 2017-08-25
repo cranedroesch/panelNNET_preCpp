@@ -152,9 +152,11 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     }
     #weight decay
     if (lam != 0) {
-      print(lapply(grads, dim))
-      print(lapply(plist, dim))
-      gradswd <- mapply('+', grads, lapply(plist, function(x){x*lam*LR}))
+      pltemp <- plist
+      bvec <- matrix(c(pltemp$beta, pltemp$beta_param))
+      pltemp$beta <- pltemp$beta_param <- NULL
+      pltemp[[length(pltemp)+1]] <- bvec
+      gradswd <- mapply('+', grads, lapply(pltemp, function(x){x*lam*LR}))
       grads <- gradswd
     }
     return(grads)
