@@ -1,5 +1,5 @@
 
-calc_hlayers <- function(parlist, X = X, param = param, fe_var = fe_var, nlayers = nlayers, convolutional = convolutional, activ = activ, bias_hlayers = TRUE){
+calc_hlayers <- function(parlist, X = X, param = param, fe_var = fe_var, nlayers = nlayers, convolutional, activation, bias_hlayers = TRUE){
 # parlist = pnn$parlist
 # X = pnn$X
 # param = pnn$param
@@ -7,16 +7,16 @@ calc_hlayers <- function(parlist, X = X, param = param, fe_var = fe_var, nlayers
 # nlayers = length(pnn$hidden_layers)-1
 # convolutional = pnn$convolutional
 # bias_hlayers = T
-  if (activ == 'tanh'){
+  if (activation == 'tanh'){
     activ <- tanh
   }
-  if (activ == 'logistic'){
+  if (activation == 'logistic'){
     activ <- logistic
   }
-  if (activ == 'relu'){
+  if (activation == 'relu'){
     activ <- relu
   }
-  if (activ == 'lrelu'){
+  if (activation == 'lrelu'){
     activ <- lrelu
   }
   # note:  once you get a chance to remove the bias argument from the main function, purge it off of here as well

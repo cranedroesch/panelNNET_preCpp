@@ -150,16 +150,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       convGrad[,(N_TV_layers * convolutional$Nconv+1):ncol(convGrad)] <- 0
       grads[[1]] <- convGrad
     }
-    #weight decay
-    if (lam != 0) {
-      pltemp <- plist
-      bvec <- matrix(c(pltemp$beta, pltemp$beta_param))
-      pltemp$beta <- pltemp$beta_param <- NULL
-      pltemp[[length(pltemp)+1]] <- bvec
-      wd <<- lapply(pltemp, function(x){x*lam*LR})
-      gradswd <- mapply('+', grads, wd)
-      grads <- gradswd
-    }
     return(grads)
   }
 
@@ -264,7 +254,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     }
   }
   #compute hidden layers given parlist
-  hlayers <- calc_hlayers(parlist, X = X, param = param, fe_var = fe_var, nlayers = nlayers, convolutional = convolutional, activ = activation)
+  hlayers <- calc_hlayers(parlist, X = X, param = param, fe_var = fe_var, nlayers = nlayers, convolutional = convolutional, activation = activation)
   # make it relistable
   parlist <- as.relistable(parlist)
   pl <- unlist(parlist) 
@@ -364,6 +354,11 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         for(i in NL:1){
           updates[[i]] <- LR * grads[[i]]
         }
+      }
+      #weight decay
+      if (lam != 0) {
+        wd <- lapply(parlist, function(x){x*lam*LR})
+        updates <- mapply("+", updates, wd)
       }
       #Update parameters from update list
       parlist <- as.relistable(mapply('-', parlist, updates))
