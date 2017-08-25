@@ -413,9 +413,9 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
                                          new.param = test_set$test_params, 
                                          se.fit = FALSE)
 print("a")
-print(all.equal((pr_within, yhat)))
+print(all.equal(pr_within, yhat))
 print("b")
-print(all.equal((pr_within, test_set$y_test)))
+print(all.equal(pr_within, test_set$y_test))
           
           #predicted_mse
           mse_test <- mean((pr_within-test_set$y_test)^2)
@@ -446,6 +446,8 @@ print(all.equal((pr_within, test_set$y_test)))
         plot(msevec[(1+(iter)*max(batchid)):length(msevec)], type = 'l', ylab = 'mse', main = 'Current epoch')
         plot(lossvec, type = 'l', main = 'all epochs')
         plot(lossvec[(1+(iter)*max(batchid)):length(lossvec)], type = 'l', ylab = 'loss', main = 'Current epoch')
+print(msevec)
+print(msetestvec)
       } # fi verbose 
     } # fi if loss increases 
     iter <- iter+1
