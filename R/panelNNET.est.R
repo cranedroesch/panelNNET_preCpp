@@ -152,7 +152,9 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     }
     #weight decay
     if (lam != 0) {
-      gradswd <- mapply('+', grads, lapply(parlist, function(x){x*lam*LR}))
+      print(lapply(grads, dim))
+      print(lapply(plist, dim))
+      gradswd <- mapply('+', grads, lapply(plist, function(x){x*lam*LR}))
       grads <- gradswd
     }
     return(grads)
