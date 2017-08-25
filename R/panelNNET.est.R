@@ -95,7 +95,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   #   return(hlayers)
   # }
 
-  calc_grads<- function(plist, hlay = NULL, yhat = NULL, curBat = NULL, droplist = NULL, dropinp = NULL, LR = LR, lam = lam){
+  calc_grads<- function(plist, hlay = NULL, yhat = NULL, curBat = NULL, droplist = NULL, dropinp = NULL){
     #subset the parameters and hidden layers based on the droplist
     if (!is.null(droplist)){
       Xd <- X[,dropinp, drop = FALSE]
@@ -276,6 +276,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     , parlist$beta
     , unlist(sapply(parlist[!grepl('beta', names(parlist))], as.numeric)))^2
   )
+  LRvec <- LR <- start.LR#starting LR
   #Calculate gradients.  These aren't the actual gradients, but become the gradients when multiplied by their respective layer.
   grads <- calc_grads(parlist, hlayers, yhat, droplist = NULL, dropinp = NULL)
   #Initialize updates
@@ -289,7 +290,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     G2 <- G2[!grepl('beta', names(G2))]
     G2[[length(G2)+1]] <- betas
   }
-  LRvec <- LR <- start.LR#starting LR
   D <- 1e6
   stopcounter <- iter <- 0
   msevec <- lossvec <- c()
