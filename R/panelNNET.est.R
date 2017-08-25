@@ -95,7 +95,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   #   return(hlayers)
   # }
 
-  calc_grads<- function(plist, hlay = NULL, yhat = NULL, curBat = NULL, droplist = NULL, dropinp = NULL, LR = LR, lam = lam){
+  calc_grads<- function(plist, hlay = NULL, yhat = NULL, curBat = NULL, droplist = NULL, dropinp = NULL){
     #subset the parameters and hidden layers based on the droplist
     if (!is.null(droplist)){
       Xd <- X[,dropinp, drop = FALSE]
@@ -150,8 +150,10 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       convGrad[,(N_TV_layers * convolutional$Nconv+1):ncol(convGrad)] <- 0
       grads[[1]] <- convGrad
     }
+    #weight decay
     if (lam != 0) {
-      grads <- mapply('+', grads, lapply(parlist, function(x){x*lam*LR}))
+      gradswd <- mapply('+', grads, lapply(parlist, function(x){x*lam*LR}))
+      grads <- gradswd
     }
     return(grads)
   }
