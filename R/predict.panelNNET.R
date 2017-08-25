@@ -103,7 +103,7 @@ predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL,
     activ <- lrelu
   }
   if (obj$doscale == TRUE){
-    D <- sweep(sweep(newX, 2, STATS = attr(obj$X, "scaled:center"), FUN = '-'), 2, STATS = attr(obj$X, "scaled:scale"), FUN = '/')
+    dd <<- D <- sweep(sweep(newX, 2, STATS = attr(obj$X, "scaled:center"), FUN = '-'), 2, STATS = attr(obj$X, "scaled:scale"), FUN = '/')
     if (!is.null(obj$param)){
       P <- sweep(sweep(new.param, 2, STATS = attr(obj$param, "scaled:center"), FUN = '-'), 2, STATS = attr(obj$param, "scaled:scale"), FUN = '/')
     }
@@ -129,7 +129,7 @@ predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL,
                     nlayers = length(obj$hidden_layers)-!is.null(obj$convolutional),# subtract off 1 when convolutional because "nlayers" doesn't include conv layer
                     convolutional = obj$convolutional,
                     activ = activ)
-  dd <<- D <- HL[[length(HL)]]
+  D <- HL[[length(HL)]]
 
   if (return_toplayer == TRUE){
     return(D)
