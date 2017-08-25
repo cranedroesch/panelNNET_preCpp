@@ -108,20 +108,7 @@ predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL,
       P <- sweep(sweep(new.param, 2, STATS = attr(obj$param, "scaled:center"), FUN = '-'), 2, STATS = attr(obj$param, "scaled:scale"), FUN = '/')
     }
   }
-  ff <<- D 
-  
-  # for (i in 1:length(obj$hidden_layers)){
-  # if (obj$used_bias == TRUE){D <- cbind(1, D)}
-  #   # make sure that the time-invariant variables pass through the convolutional layer without being activated
-  #   if (is.null(convolutional) | i > 1){
-  #     D <- activ(D %*% parlist[[i]])        
-  #   } else {
-  #     HL <- D %*% parlist[[i]]
-  #     HL[,1:(N_TV_layers * convolutional$Nconv)] <- activ(HL[,1:(N_TV_layers * convolutional$Nconv)])
-  #     D <- HL
-  #   }
-  # }
-  
+
   # compute hidden layers
   HL <- calc_hlayers(parlist = obj$parlist, 
                     X = D, 

@@ -1,5 +1,24 @@
 
 calc_hlayers <- function(parlist, X = X, param = param, fe_var = fe_var, nlayers = nlayers, convolutional = convolutional, activ = activ, bias_hlayers = TRUE){
+# parlist = pnn$parlist
+# X = pnn$X
+# param = pnn$param
+# fe_var = pnn$fe_var
+# nlayers = length(pnn$hidden_layers)-1
+# convolutional = pnn$convolutional
+# bias_hlayers = T
+  if (activ == 'tanh'){
+    activ <- tanh
+  }
+  if (activ == 'logistic'){
+    activ <- logistic
+  }
+  if (activ == 'relu'){
+    activ <- relu
+  }
+  if (activ == 'lrelu'){
+    activ <- lrelu
+  }
   # note:  once you get a chance to remove the bias argument from the main function, purge it off of here as well
   hlayers <- vector('list', nlayers)
   for (i in 1:(nlayers + !is.null(convolutional))){
