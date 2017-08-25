@@ -129,9 +129,9 @@ predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL,
                     nlayers = length(obj$hidden_layers)-!is.null(obj$convolutional),# subtract off 1 when convolutional because "nlayers" doesn't include conv layer
                     convolutional = obj$convolutional,
                     activ = activ)
-  D <- HL[[length(HL)]]
+  dd <<- D <- HL[[length(HL)]]
 
-    colnames(D) <- paste0('nodes',1:ncol(D))
+  colnames(D) <- paste0('nodes',1:ncol(D))
   if (!is.null(obj$param)){
     D <- cbind(P, D)
     colnames(D)[1:ncol(new.param)] <- paste0('param',1:ncol(new.param))
