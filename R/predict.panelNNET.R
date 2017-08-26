@@ -64,23 +64,23 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, se.fit = FALSE
         }
       }
       #predicted top-level variables
-      X <- predfun(pvec, obj = obj, newX = newX, fe.newX = fe.newX
-          , new.param = new.param, FEs_to_merge = FEs_to_merge, return_toplayer = TRUE)
+      X <- as.matrix(predfun(pvec, obj = obj, newX = newX, fe.newX = fe.newX
+          , new.param = new.param, FEs_to_merge = FEs_to_merge, return_toplayer = TRUE))
       vcnames <- c()
       semat <- foreach(i = 1:length(obj$vcs), .combine = cbind, .errorhandling = 'remove') %do% {
         if (grepl('OLS', names(obj$vcs)[i])){
           se <- foreach(j = 1:nrow(X), .combine = c)%do% {
-print(            as.numeric(sqrt(X[j,, drop = FALSE] %*% obj$vcs[[i]] %*% t(X[j,, drop = FALSE]))))
+            sqrt(X[j,, drop = FALSE] %*% obj$vcs[[i]] %*% t(X[j,, drop = FALSE]))
           }
         } else {
           se <- foreach(j = 1:nrow(J), .combine = c)%do% {
-            as.numeric(sqrt(J[j,, drop = FALSE] %*% obj$vcs[[i]] %*% t(J[j,, drop = FALSE])))
+            sqrt(J[j,, drop = FALSE] %*% obj$vcs[[i]] %*% t(J[j,, drop = FALSE]))
           }
         }
         vcnames[i] <- names(obj$vcs)[i]
         return(se)
       }
-      # if (any(is.na(vcnames))){warning("One or more VCV has negative diagonals")}
+      if (any(is.na(vcnames))){warning("One or more VCV has negative diagonals")}
       colnames(semat) <- vcnames[!is.na(vcnames)]
     }
     return(cbind(yhat, semat))
