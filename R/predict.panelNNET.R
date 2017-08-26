@@ -5,11 +5,11 @@
 predict.panelNNET <-
 function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, se.fit = FALSE
          , numerical_jacobian = FALSE, parallel_jacobian = FALSE, convolutional = NULL){
-# obj = pr_test
-# newX = test_set$x_test
-# fe.newX = test_set$fe_test
-# new.param = test_set$test_params
-# se.fit = FALSE
+# obj = pnn
+# newX = Z[v,]
+# new.param = P[v,]
+# fe.newX = id[v]
+# se.fit = T
   if (obj$activation == 'tanh'){
     activ <- tanh
   }
@@ -70,11 +70,11 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, se.fit = FALSE
       semat <- foreach(i = 1:length(obj$vcs), .combine = cbind, .errorhandling = 'remove') %do% {
         if (grepl('OLS', names(obj$vcs)[i])){
           se <- foreach(j = 1:nrow(X), .combine = c)%do% {
-            sqrt(X[j,, drop = FALSE] %*% obj$vcs[[i]] %*% t(X[j,, drop = FALSE]))
+            as.numeric(sqrt(X[j,, drop = FALSE] %*% obj$vcs[[i]] %*% t(X[j,, drop = FALSE])))
           }
         } else {
           se <- foreach(j = 1:nrow(J), .combine = c)%do% {
-            sqrt(J[j,, drop = FALSE] %*% obj$vcs[[i]] %*% t(J[j,, drop = FALSE]))
+            as.numeric(sqrt(J[j,, drop = FALSE] %*% obj$vcs[[i]] %*% t(J[j,, drop = FALSE])))
           }
         }
         vcnames[i] <- names(obj$vcs)[i]
