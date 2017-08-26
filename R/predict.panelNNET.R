@@ -70,7 +70,7 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, se.fit = FALSE
       semat <- foreach(i = 1:length(obj$vcs), .combine = cbind, .errorhandling = 'remove') %do% {
         if (grepl('OLS', names(obj$vcs)[i])){
           se <- foreach(j = 1:nrow(X), .combine = c)%do% {
-            as.numeric(sqrt(X[j,, drop = FALSE] %*% obj$vcs[[i]] %*% t(X[j,, drop = FALSE])))
+print()            as.numeric(sqrt(X[j,, drop = FALSE] %*% obj$vcs[[i]] %*% t(X[j,, drop = FALSE]))))
           }
         } else {
           se <- foreach(j = 1:nrow(J), .combine = c)%do% {
@@ -78,9 +78,8 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, se.fit = FALSE
           }
         }
         vcnames[i] <- names(obj$vcs)[i]
-        return(matrix(se))
+        return(se)
       }
-      print(head(semat))
       # if (any(is.na(vcnames))){warning("One or more VCV has negative diagonals")}
       colnames(semat) <- vcnames[!is.na(vcnames)]
     }
