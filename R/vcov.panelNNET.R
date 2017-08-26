@@ -17,7 +17,7 @@ function(obj, option, J = NULL, edf_J = NULL, edf_X = NULL){
     #use the EDF corresponding to the Jacobian approximation
     edf <- obj$edf_J
     #compute "bread"
-    bread <- solve(t(J) %*% J + diag(D))
+    bread <- solve(Matrix:t(J) %*% J + diag(D))
     if (option == 'Jacobian_homoskedastic'){
       vcov <- sum(e^2)/(length(e) - edf) * bread
     }

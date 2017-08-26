@@ -34,14 +34,12 @@ do_inference <- function(obj, numerical = FALSE, parallel = TRUE
     obj$edf_J <- sum(svJ$d^2/(svJ$d^2+D))
     obj$sigma2_J <- sum(res^2)/(nrow(X) - obj$edf_J)
   }
-  #EDF and sigma for OLS approcimation
-  Xdm <- demeanlist(X, list(obj$fe_var))
   #de-mean, if fixed effects
   if (is.null(obj$fe_var)){
     Xdm <- X
     targ <- obj$y
   } else {
-    Xdm <- demeanlist(X, list(obj$fe_var))
+    Xdm <- demeanlist(as.matrix(X), list(obj$fe_var))
     targ <- demeanlist(obj$y, list(obj$fe_var))
   }
   #get implicit lambda for top level ridge regression
@@ -57,8 +55,7 @@ do_inference <- function(obj, numerical = FALSE, parallel = TRUE
     constraint <- sum(c(obj$parlist$beta_param*obj$parapen, obj$parlist$beta)^2)
     #function to find implicit lambda
     f <- function(lam){
-      bi <- glmnet(y = targ, x = Xdm, lambda = lam, alpha = 0, intercept = FALSE, penalty.factor = D, standardize = FALSE)
-      bi <- as.matrix(coef(bi))[-1,]
+      bi <- solve(crossprod(Xdm) + diag(D)*lam) %*% t(Xdm) %*% targ
       (t(bi*D) %*% (bi*D) - constraint)^2
     }
     #optimize it
