@@ -32,7 +32,7 @@ function(obj, option, J = NULL, edf_J = NULL, edf_X = NULL){
       meat <- foreach(i = 1:G, .combine = '+')%do%{
         ei <- e[obj$fe_var == unique(obj$fe_var)[i]]
         Ji <- J[obj$fe_var == unique(obj$fe_var)[i],,drop = FALSE]
-        t(Ji) %*% ei %*% t(ei) %*% Ji
+        Matrix::t(Ji) %*% ei %*% t(ei) %*% Ji
       }
       vcov <- G/(G-1)*(length(e) - 1)/(length(e) - edf) * bread %*% meat %*% bread
     }
