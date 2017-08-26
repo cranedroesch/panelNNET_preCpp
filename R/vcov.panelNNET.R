@@ -17,13 +17,13 @@ function(obj, option, J = NULL, edf_J = NULL, edf_X = NULL){
     #use the EDF corresponding to the Jacobian approximation
     edf <- obj$edf_J
     #compute "bread"
-    bread <- solve(Matrix:t(J) %*% J + diag(D))
+    bread <- solve(Matrix::t(J) %*% J + diag(D))
     if (option == 'Jacobian_homoskedastic'){
       vcov <- sum(e^2)/(length(e) - edf) * bread
     }
     if (option == 'Jacobian_sandwich'){
       meat <- foreach(i = 1:length(e), .combine = '+') %do% {
-        e[i]^2*J[i,] %*% Matrix:t(J[i,])
+        e[i]^2*J[i,] %*% Matrix::t(J[i,])
       }
       vcov <- (length(e)-1)/(length(e) - edf) * bread %*% meat %*% bread
     }
@@ -51,13 +51,13 @@ function(obj, option, J = NULL, edf_J = NULL, edf_X = NULL){
     #use the EDF corresponding to the Ridge approximation
     edf <- obj$edf_X
     #compute "bread"
-    bread <- solve(Matrix:t(J) %*% J + diag(D))
+    bread <- solve(Matrix::t(J) %*% J + diag(D))
     if (option == 'OLS'){
       vcov <- sum(e^2)/(length(e) - edf) * bread
     }
     if (option == 'sandwich'){
       meat <- foreach(i = 1:length(e), .combine = '+') %do% {
-        e[i]^2*J[i,] %*% Matrix:t(J[i,])
+        e[i]^2*J[i,] %*% Matrix::t(J[i,])
       }
       vcov <- (length(e)-1)/(length(e) - edf) * bread %*% meat %*% bread
     }
