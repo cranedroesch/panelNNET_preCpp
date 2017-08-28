@@ -67,8 +67,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     #process the gradients for the convolutional layers
     if (!is.null(convolutional)){
       #mask out the areas not in use
-      mask <- t(do.call(rbind, replicate(convolutional$Nconv, t(convMask[,1:N_TV_layers]), simplify=FALSE)))
-      mask <- cbind(mask, matrix(rep(0, nrow(mask)*(ncol(convMask)-N_TV_layers)), nrow = nrow(mask)))
+      mask <- t(do.call(rbind, replicate(convolutional$Nconv, t(convolutional$convMask[,1:N_TV_layers]), simplify=FALSE)))
+      mask <- cbind(mask, matrix(rep(0, nrow(mask)*(ncol(convolutional$convMask)-N_TV_layers)), nrow = nrow(mask)))
       mask <- rbind(1, mask)
       gg <- grads[[1]] * mask
       #loop over Nconv
@@ -89,12 +89,12 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   makeConvLayer <- function(convParms, convBias){
     # time-varying portion
     TV <- foreach(i = 1:convolutional$Nconv, .combine = cbind) %do% {
-      apply(convMask[,1:N_TV_layers], 2, function(x){
+      apply(convolutional$convMask[,1:N_TV_layers], 2, function(x){
         x[x!=0] <- convParms[[i]]
         return(x)
       })
     }
-    NTV <- convMask[,(N_TV_layers+1):ncol(convMask)]
+    NTV <- convolutional$convMask[,(N_TV_layers+1):ncol(convolutional$convMask)]
     bias <- c(unlist(convBias), rep(0, ncol(NTV)))
     return(Matrix(rbind(bias,cbind(TV, NTV))))
   }
