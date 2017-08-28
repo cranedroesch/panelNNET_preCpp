@@ -67,8 +67,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     #process the gradients for the convolutional layers
     if (!is.null(convolutional)){
       #mask out the areas not in use
-      mask <- t(do.call(rbind, replicate(convolutional$Nconv, t(convolutional$convMask[,1:N_TV_layers]), simplify=FALSE)))
-      mask <- cbind(mask, matrix(rep(0, nrow(mask)*(ncol(convolutional$convMask)-N_TV_layers)), nrow = nrow(mask)))
+      mask <- t(do.call(rbind, replicate(convolutional$Nconv, t(convMask[,1:N_TV_layers]), simplify=FALSE)))
+      mask <- cbind(mask, matrix(rep(0, nrow(mask)*(ncol(convMask)-N_TV_layers)), nrow = nrow(mask)))
       mask <- rbind(1, mask)
       gg <- grads[[1]] * mask
       #loop over Nconv
@@ -89,12 +89,12 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   makeConvLayer <- function(convParms, convBias){
     # time-varying portion
     TV <- foreach(i = 1:convolutional$Nconv, .combine = cbind) %do% {
-      apply(convolutional$convMask[,1:N_TV_layers], 2, function(x){
+      apply(convMask[,1:N_TV_layers], 2, function(x){
         x[x!=0] <- convParms[[i]]
         return(x)
       })
     }
-    NTV <- convolutional$convMask[,(N_TV_layers+1):ncol(convolutional$convMask)]
+    NTV <- convMask[,(N_TV_layers+1):ncol(convMask)]
     bias <- c(unlist(convBias), rep(0, ncol(NTV)))
     return(Matrix(rbind(bias,cbind(TV, NTV))))
   }
@@ -130,7 +130,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     if (!is.null(convolutional)){
       #make the convolutional masking matrix if using conv nets
       # Suppressing warnings about coercing to NAs
-      convMask <- convolutional$convMask <- suppressWarnings(makeMask(X, convolutional$topology, convolutional$span, convolutional$step))
+      convMask <- suppressWarnings(makeMask(X, convolutional$topology, convolutional$span, convolutional$step))
       # store the number of time-varying variables
       # both in the local env for convenience, and in the convolutional object for passing to other functions
       N_TV_layers <- convolutional$N_TV_layers <- sum(colnames(convMask) %in% convolutional$topology)
