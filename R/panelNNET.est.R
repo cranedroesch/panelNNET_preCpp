@@ -124,34 +124,40 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     activ_prime <- lrelu_prime
   }
   nlayers <- length(hidden_units)
-  #get starting weights, either randomly or from a specified parlist
-  if (is.null(parlist)){#random starting weights
-    # initialize the convolutional layer, if present
-    if (!is.null(convolutional)){
-      #make the convolutional masking matrix if using conv nets
-      # Suppressing warnings about coercing to NAs
-      convMask <- suppressWarnings(makeMask(X, convolutional$topology, convolutional$span, convolutional$step))
-      # store the number of time-varying variables
-      # both in the local env for convenience, and in the convolutional object for passing to other functions
-      N_TV_layers <- convolutional$N_TV_layers <- sum(colnames(convMask) %in% convolutional$topology)
-      # For each convolutional "column", initialize the single parameter vector that will be shared among columns
-      convParms <- foreach(i = 1:convolutional$Nconv) %do% {
+  # initialize the convolutional layer, if present
+  if (!is.null(convolutional)){
+    #make the convolutional masking matrix if using conv nets
+    # Suppressing warnings about coercing to NAs
+    convMask <- convolutional$convmask <- suppressWarnings(makeMask(X, convolutional$topology, convolutional$span, convolutional$step))
+    # store the number of time-varying variables
+    # both in the local env for convenience, and in the convolutional object for passing to other functions
+    N_TV_layers <- convolutional$N_TV_layers <- sum(colnames(convMask) %in% convolutional$topology)
+    # For each convolutional "column", initialize the single parameter vector that will be shared among columns
+    if (is.null(convolutional$convParms)){
+      convParms <- convolutional$convParms <- foreach(i = 1:convolutional$Nconv) %do% {
         rnorm(sum(convMask[,1]), sd = 2/sqrt(sum(convMask[,1])))
       }
-      # Initialize convolutional layer biases
-      convBias <- foreach(i = 1:convolutional$Nconv) %do% {
+    }
+    # Initialize convolutional layer biases, if not present
+    if (is.null(convolutional$convBias)){
+      convBias <- convolutional$convBias <- foreach(i = 1:convolutional$Nconv) %do% {
         rnorm(N_TV_layers, sd = 2/sqrt(sum(convMask[,1])))
       }
-      # initialize the convolutional parlist
-      convParMat <- makeConvLayer(convParms, convBias)
     }
+    # initialize the convolutional parlist, if not present
+    if (is.null(convolutional$convParMat)){
+      convParMat <- convolutional$convParMat <- makeConvLayer(convParms, convBias)
+    }
+  }
+  #get starting weights, either randomly or from a specified parlist
+  if (is.null(parlist)){#random starting weights
     parlist <- vector('list', nlayers)
     for (i in 1:nlayers){
       if (i == 1){
         if (is.null(convolutional)){
           D <- ncol(X)
         } else {
-          D <- ncol(convParMat)
+          D <- ncol(convolutional$convParMat)
         }
       } else {
         D <- hidden_units[i-1]
@@ -172,7 +178,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     parlist$beta <- runif(hidden_units[i], -ubounds, ubounds)
     # add convolutional layer on the bottom
     if (!is.null(convolutional)){
-      parlist <- c(convParMat, parlist)
+      parlist <- c(convolutional$convParMat, parlist)
     }
     # parameters on parametric terms
     if (is.null(param)){
@@ -399,7 +405,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
                             convolutional = convolutional, activ = activation)
     yhat <- getYhat(unlist(parlist), hlay = hlayers)
   }
-  conv <- (iter<maxit)#Did we get convergence?
+  conv <- (iter < maxit)#Did we get convergence?
   if(is.null(fe_var)){
     fe_output <- NULL
   } else {
