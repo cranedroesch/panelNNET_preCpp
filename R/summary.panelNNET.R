@@ -3,7 +3,7 @@ function(x, ...){
   if(is.null(x$vcs)){
     infstrings <- NULL
   } else {
-    dparm <- parm <- c(x$parlist$beta_param, x$parlist$beta_treatment)
+    dparm <- parm <- c(x$parlist$beta_param)
     if (x$doscale == TRUE){
       scalefac <- c(rep(attr(x$param, "scaled:scale"), ncol(x$param)+is.null(x$fe_var)))
       if (!is.null(x$treatment)){scalefac <- append(scalefac, 1)}#Treatment is never scaled because it is never subject to penalization.  Thus the scale factor is always 1
@@ -27,7 +27,6 @@ function(x, ...){
       parnames <- colnames(x$param)    
     }
 
-    if (!is.null(x$treatment)){parnames <- append(parnames, 'treatment')}
     for (i in 1:length(labs)){
       s <- summary_table_element(x$vcs[[i]], parm)
       infstrings <- paste0(infstrings, "-----------------------------------------------------------\n")
