@@ -106,7 +106,6 @@ If "HRZS", the weight initialization scheme proposed by He, Zhang, Ren, and Jian
   When not null, a list with the following elements.  topology: an integer vector indicating when variables were measured, for example days in a season.  span: the width of local connectivity, in units of the topology.  step: the distance between centers of spans.
 }
 
-
 }
 \details{
 Function fits a model of the form

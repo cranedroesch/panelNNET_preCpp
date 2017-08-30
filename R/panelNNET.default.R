@@ -4,7 +4,7 @@ function(y, X, hidden_units, fe_var
   , parapen = rep(0, ncol(param)), parlist = NULL, verbose = FALSE
   , report_interval = 100
   , gravity = 1.01, convtol = 1e-8, bias_hlayers = TRUE, RMSprop = TRUE, start_LR = .01
-  , activation = 'tanh', doscale = TRUE
+  , activation = 'relu', doscale = TRUE
   , batchsize = nrow(X)
   , maxstopcounter = 10, OLStrick = FALSE, initialization = 'HZRS'
   , dropout_hidden = 1, dropout_input = 1
