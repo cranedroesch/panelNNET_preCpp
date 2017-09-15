@@ -21,6 +21,7 @@ calc_hlayers <- function(parlist, X = X, param = param, fe_var = fe_var, nlayers
   hlayers <- vector('list', nlayers)
   for (i in 1:(nlayers + !is.null(convolutional))){
     if (i == 1){D <- X} else {D <- hlayers[[i-1]]}
+    D <- cbind(1, D) #add bias
     # make sure that the time-invariant variables pass through the convolutional layer without being activated
     if (is.null(convolutional) | i > 1){
       hlayers[[i]] <- activ(D %*% parlist[[i]])        
