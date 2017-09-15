@@ -280,6 +280,7 @@ print(lapply(newG2, dim))
 print(lapply(oldG2, dim))
 print(newG2[[length(newG2)]])
 print(oldG2[[length(oldG2)]])
+print(parlist[[length(parlist)]])
         G2 <- mapply('+', newG2, oldG2)
         # updates to beta
         uB <- LR/sqrt(G2[[length(G2)]]+1e-10) * grads[[length(grads)]]
