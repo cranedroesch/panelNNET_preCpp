@@ -271,7 +271,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       if (RMSprop == TRUE){
         newG2 <- foreach(i = 1:(length(hlayers)+1)) %do% {
           if (i == 1){D <- as.matrix(X)[curBat,]} else {D <- hlayers[[i-1]][curBat,]}
-          if (i != length(hlayers)+1){D <- cbind(1, D)}
+          if (i != length(hlayers)){D <- cbind(1, D)}
           return(.1*grads[[i]]^2)
         }
         oldG2 <- lapply(G2, function(x){.9*x})
