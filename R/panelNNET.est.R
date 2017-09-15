@@ -1,6 +1,6 @@
 panelNNET.est <-
 function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist
-         , verbose, report_interval, gravity, convtol, bias_hlayers, RMSprop
+         , verbose, report_interval, gravity, convtol, RMSprop
          , start.LR, activation, doscale
          , batchsize, maxstopcounter, OLStrick, initialization, dropout_hidden
          , dropout_input, convolutional, ...){
@@ -50,18 +50,15 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     for (i in NL:1){
       if (i == NL){outer_param = as.matrix(c(plist$beta))} else {outer_param = plist[[i+1]]}
       if (i == 1){lay = CB(Xd)} else {lay= CB(hlay[[i-1]])}
-      if (bias_hlayers == TRUE){
-        lay <- cbind(1, lay) #add bias to the hidden layer
-        if (i != NL){outer_param <- outer_param[-1,, drop = FALSE]}      #remove parameter on upper-layer bias term
-      }
+      #add the bias
+      lay <- cbind(1, lay) #add bias to the hidden layer
+      if (i != NL){outer_param <- outer_param[-1,, drop = FALSE]}      #remove parameter on upper-layer bias term
       grad_stubs[[i]] <- activ_prime(lay %*% plist[[i]]) * grad_stubs[[i+1]] %*% Matrix::t(outer_param)
     }
     #multiply the gradient stubs by their respective layers to get the actual gradients
     for (i in 1:length(grad_stubs)){
       if (i == 1){lay = CB(Xd)} else {lay= CB(hlay[[i-1]])}
-      if (bias_hlayers == TRUE & i != length(grad_stubs)){
-        lay <- cbind(1, lay) #add bias to the hidden layer
-      }
+      lay <- cbind(1, lay) #add bias to the hidden layer
       grads[[i]] <- Matrix::t(lay) %*% grad_stubs[[i]]
     }
     #process the gradients for the convolutional layers
@@ -166,10 +163,10 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         ubounds <- .7 #follows ESL recommendaton
       } else {
         if (initialization == 'XG'){
-          ubounds <- sqrt(6)/sqrt(D+hidden_units[i]+2*bias_hlayers)
+          ubounds <- sqrt(6)/sqrt(D+hidden_units[i]+2)#2 is for the bias.  Not sure why 2.  Would need to go back and read the paper.  
         }
         if (initialization == 'HZRS'){
-          ubounds <- 2*sqrt(6)/sqrt(D+hidden_units[i]+2*bias_hlayers)
+          ubounds <- 2*sqrt(6)/sqrt(D+hidden_units[i]+2)#2 is for the bias.  Not sure why 2.  Would need to go back and read the paper.
         }
       }
       parlist[[i]] <- matrix(runif((hidden_units[i])*(D+bias_hlayers), -ubounds, ubounds), ncol = hidden_units[i])
@@ -274,7 +271,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       if (RMSprop == TRUE){
         newG2 <- foreach(i = 1:(length(hlayers)+1)) %do% {
           if (i == 1){D <- as.matrix(X)[curBat,]} else {D <- hlayers[[i-1]][curBat,]}
-          if (bias_hlayers == TRUE & i != length(hlayers)+1){D <- cbind(1, D)}
+          if (i != length(hlayers)+1){D <- cbind(1, D)}
           return(.1*grads[[i]]^2)
         }
         oldG2 <- lapply(G2, function(x){.9*x})
@@ -419,7 +416,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   output <- list(yhat = yhat, parlist = parlist, hidden_layers = hlayers
     , fe = fe_output, converged = conv, mse = mse, loss = loss, lam = lam, time_var = time_var
     , X = X, y = y, param = param, fe_var = fe_var, hidden_units = hidden_units, maxit = maxit
-    , used_bias = bias_hlayers, final_improvement = D, msevec = msevec, RMSprop = RMSprop, convtol = convtol
+    , final_improvement = D, msevec = msevec, RMSprop = RMSprop, convtol = convtol
     , grads = grads, activation = activation, parapen = parapen, doscale = doscale
     , batchsize = batchsize, initialization = initialization, convolutional = convolutional)
   return(output) # list 
