@@ -169,7 +169,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
           ubounds <- 2*sqrt(6)/sqrt(D+hidden_units[i]+2)#2 is for the bias.  Not sure why 2.  Would need to go back and read the paper.
         }
       }
-      parlist[[i]] <- matrix(runif((hidden_units[i])*(D+bias_hlayers), -ubounds, ubounds), ncol = hidden_units[i])
+      parlist[[i]] <- matrix(runif((hidden_units[i])*(D+1), -ubounds, ubounds), ncol = hidden_units[i])
     }
     # vector of parameters at the top layer
     parlist$beta <- runif(hidden_units[i], -ubounds, ubounds)
