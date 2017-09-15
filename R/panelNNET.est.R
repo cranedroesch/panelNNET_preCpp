@@ -275,6 +275,9 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
           return(.1*grads[[i]]^2)
         }
         oldG2 <- lapply(G2, function(x){.9*x})
+print(lapply(newG2, dim))
+print(lapply(oldG2, dim))
+
         G2 <- mapply('+', newG2, oldG2)
         # updates to beta
         uB <- LR/sqrt(G2[[length(G2)]]+1e-10) * grads[[length(grads)]]
