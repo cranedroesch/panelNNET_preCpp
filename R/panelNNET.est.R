@@ -296,7 +296,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         Xd <- X[,dropinp]
       } else {Xd <- X; droplist = NULL}
       # before updating gradients, compute square of gradients for RMSprop
-      oldG2 <- lapply(G2, function(x){.9*x^2}) #old G2 term 
+      oldG2 <- lapply(grads, function(x){.9*x^2}) #old G2 term 
       # Get updated gradients
       grads <- calc_grads(plist = parlist, hlay = hlay
         , yhat = yhat[curBat], curBat = curBat, droplist = droplist, dropinp = dropinp)
