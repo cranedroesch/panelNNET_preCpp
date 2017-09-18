@@ -34,7 +34,7 @@ Jacobian.numerical <- function(obj){
     parlist <- relist(pvec)
     D <- obj$X
     for (i in 1:length(obj$hidden_units)){
-      if (obj$used_bias == TRUE){D <- cbind(1,D)}
+      D <- cbind(1,D) #bias
       D <- activ(D %*% parlist[[i]])
     } 
     colnames(D) <- paste0('nodes',1:ncol(D))

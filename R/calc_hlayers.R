@@ -1,12 +1,11 @@
 
-calc_hlayers <- function(parlist, X = X, param = param, fe_var = fe_var, nlayers = nlayers, convolutional, activation, bias_hlayers = TRUE){
+calc_hlayers <- function(parlist, X = X, param = param, fe_var = fe_var, nlayers = nlayers, convolutional, activation){
 # parlist = pnn$parlist
 # X = pnn$X
 # param = pnn$param
 # fe_var = pnn$fe_var
 # nlayers = length(pnn$hidden_layers)-1
 # convolutional = pnn$convolutional
-# bias_hlayers = T
   if (activation == 'tanh'){
     activ <- tanh
   }
@@ -19,11 +18,10 @@ calc_hlayers <- function(parlist, X = X, param = param, fe_var = fe_var, nlayers
   if (activation == 'lrelu'){
     activ <- lrelu
   }
-  # note:  once you get a chance to remove the bias argument from the main function, purge it off of here as well
   hlayers <- vector('list', nlayers)
   for (i in 1:(nlayers + !is.null(convolutional))){
     if (i == 1){D <- X} else {D <- hlayers[[i-1]]}
-    if (bias_hlayers == TRUE){D <- cbind(1, D)}
+    D <- cbind(1, D) #add bias
     # make sure that the time-invariant variables pass through the convolutional layer without being activated
     if (is.null(convolutional) | i > 1){
       hlayers[[i]] <- activ(D %*% parlist[[i]])        
