@@ -11,22 +11,28 @@ TBD:
 
 4.  Look into GPU libraries
 
-5.  Verbose output should give information about mean and sd of activations, to monitor saturation
+5.  Add sanity checks:  that FE input is defined and is a factor, that the parametric penalty multiplier is the same length as the parametric term vector, etc.
 
-6.  Add sanity checks:  that FE input is defined and is a factor, that the parametric penalty multiplier is the same length as the parametric term vector, etc.
+6.  Add effective degrees of freedom to summary output
 
-7.  Add effective degrees of freedom to summary output
+7.  Build interactive mode, using the keypress package
 
-8.  Write multistart function
+8.  Write a function to predict from a new dataset that has missing observations.  As arguments it should take distributions from which to draw the missing values.
 
-9.  Build interactive mode, using the keypress package
+9.  Code up permutaiton importance function
 
-10.  Write a function to predict from a new dataset that has missing observations.  As arguments it should take distributions from which to draw the missing values.
+10.  Write a vignette
 
-11.  Code up permutaiton importance function
+11.  Remove the doscale and bias_hlayers arguments -- they should always be on
 
-12.  Write a vignette
+12.  Save activations as functions, rather than strings/pointers, then remove all of the redundant headers in the various files
 
-13.  Remove the doscale and bias_hlayers arguments -- they should always be on
+13.  Remove storage of hidden layers to degree possible, to reduce memory footprint.
 
-14.  Save activations as functions, rather than strings/pointers, then remove all of the redundant headers in the various files
+14.  Reduce number of things in the output, perhaps subject to an argument.  Goal is to reduce storage footprint and loading time.
+
+15.  Create infrastructure to bag (bootstrap aggregate) neural nets, including creating objects that can predict from bagged NNs ensembles.  
+
+16.  Attention to convolutional nets -- probable bug in their gradient computation
+
+

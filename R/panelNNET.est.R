@@ -5,6 +5,26 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
          , batchsize, maxstopcounter, OLStrick, initialization, dropout_hidden
          , dropout_input, convolutional, ...){
 
+# y = y[tr]
+# X = X[tr,]
+# hidden_units = c(5,3)
+# fe_var = id[tr]
+# lam = 1
+# time_var = time[tr]
+# param = P[tr,]
+# verbose = TRUE
+# gravity = 1.01
+# RMSprop = TRUE
+# convtol = 1e-5
+# maxit = 10000
+# activation = 'lrelu'
+# doscale = TRUE
+# parapen = c(0,0)
+# convolutional = NULL
+# dropout_hidden <- dropout_input <- 1
+# parlist <- NULL
+# initialization = "HZRS"
+# start.LR = .1
 
   ##########
   #Define internal functions
@@ -41,7 +61,15 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       plist$beta <- plist$beta[droplist[[nlayers]]]
     } else {Xd <- X}#for use below...  X should be safe given scope, but extra assignment is cheap here
     if (!is.null(curBat)){CB <- function(x){x[curBat,,drop = FALSE]}} else {CB <- function(x){x}}
-    if (is.null(hlay)){hlay <- calc_hlayers(plist, X = X, param = param, fe_var = fe_var, nlayers = nlayers, convolutional = convolutional, activ = activation)}
+    if (is.null(hlay)){
+      hlay <- calc_hlayers(plist, 
+                           X = X, 
+                           param = param, 
+                           fe_var = fe_var, 
+                           nlayers = nlayers, 
+                           convolutional = convolutional, 
+                           activ = activation)
+    }
     if (is.null(yhat)){yhat <- getYhat(plist, hlay = hlay)}
     #empty list of gradients, one for each hidden layer, plus one for
     NL <- nlayers + as.numeric(!is.null(convolutional))
@@ -58,7 +86,9 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     #multiply the gradient stubs by their respective layers to get the actual gradients
     for (i in 1:length(grad_stubs)){
       if (i == 1){lay = CB(Xd)} else {lay= CB(hlay[[i-1]])}
-      lay <- cbind(1, lay) #add bias to the hidden layer
+      if (i != length(grad_stubs) | is.null(fe_var)){# don't add bias term to top layer when there are fixed effects present
+        lay <- cbind(1, lay) #add bias to the hidden layer
+      }
       grads[[i]] <- Matrix::t(lay) %*% grad_stubs[[i]]
     }
     #process the gradients for the convolutional layers
@@ -123,6 +153,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   nlayers <- length(hidden_units)
   # initialize the convolutional layer, if present
   if (!is.null(convolutional)){
+    warning("Conv nets are buggy -- there is certainly a problem with how the gradients are computed, and likely other problems.  Needs attention.")
     #make the convolutional masking matrix if using conv nets
     # Suppressing warnings about coercing to NAs
     convMask <- convolutional$convmask <- suppressWarnings(makeMask(X, convolutional$topology, convolutional$span, convolutional$step))
@@ -264,24 +295,15 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         }
         Xd <- X[,dropinp]
       } else {Xd <- X; droplist = NULL}
+      # before updating gradients, compute square of gradients for RMSprop
+      oldG2 <- lapply(G2, function(x){.9*x^2}) #old G2 term 
+      
       # Get updated gradients
       grads <- calc_grads(plist = parlist, hlay = hlay
         , yhat = yhat[curBat], curBat = curBat, droplist = droplist, dropinp = dropinp)
       # Calculate updates to parameters based on gradients and learning rates
       if (RMSprop == TRUE){
-TEST <<- list(hlayers = hlayers, X = X, curBat= curBat, grads = grads)
-        newG2 <- foreach(i = 1:(length(hlayers)+1)) %do% {
-          if (i == 1){D <- as.matrix(X)[curBat,]} else {D <- hlayers[[i-1]][curBat,]}
-          if (i != length(hlayers)+1){D <- cbind(1, D)}
-          return(.1*grads[[i]]^2)
-        }
-        oldG2 <- lapply(G2, function(x){.9*x})
-print(grads)
-print(lapply(newG2, dim))
-print(lapply(oldG2, dim))
-print(newG2[[length(newG2)]])
-print(oldG2[[length(oldG2)]])
-print(parlist[[length(parlist)]])
+        newG2 <- lapply(grads, function(x){.1*x^2}) #new gradient is squared and multiplied by .1
         G2 <- mapply('+', newG2, oldG2)
         # updates to beta
         uB <- LR/sqrt(G2[[length(G2)]]+1e-10) * grads[[length(grads)]]
