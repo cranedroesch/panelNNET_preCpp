@@ -5,27 +5,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
          , batchsize, maxstopcounter, OLStrick, initialization, dropout_hidden
          , dropout_input, convolutional, ...){
 
-# y = y[tr]
-# X = X[tr,]
-# hidden_units = c(5,3)
-# fe_var = id[tr]
-# lam = 1
-# time_var = time[tr]
-# param = P[tr,]
-# verbose = TRUE
-# gravity = 1.01
-# RMSprop = TRUE
-# convtol = 1e-5
-# maxit = 10000
-# activation = 'lrelu'
-# doscale = TRUE
-# parapen = c(0,0)
-# convolutional = NULL
-# dropout_hidden <- dropout_input <- 1
-# parlist <- NULL
-# initialization = "HZRS"
-# start.LR = .1
-
   ##########
   #Define internal functions
   getYhat <- function(pl, hlay = NULL){ 

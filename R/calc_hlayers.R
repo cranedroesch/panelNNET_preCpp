@@ -1,11 +1,5 @@
 
 calc_hlayers <- function(parlist, X = X, param = param, fe_var = fe_var, nlayers = nlayers, convolutional, activation){
-# parlist = pnn$parlist
-# X = pnn$X
-# param = pnn$param
-# fe_var = pnn$fe_var
-# nlayers = length(pnn$hidden_layers)-1
-# convolutional = pnn$convolutional
   if (activation == 'tanh'){
     activ <- tanh
   }
