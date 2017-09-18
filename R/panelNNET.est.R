@@ -270,7 +270,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       # Calculate updates to parameters based on gradients and learning rates
       if (RMSprop == TRUE){
 TEST <<- list(hlayers = hlayers, X = X, curBat= curBat, grads = grads)
-THERE IS A TOTALLS STUPUD BUG HERE.  WHI AM I JUST RETURNING THE FUCKING GRADIENT???
         newG2 <- foreach(i = 1:(length(hlayers)+1)) %do% {
           if (i == 1){D <- as.matrix(X)[curBat,]} else {D <- hlayers[[i-1]][curBat,]}
           if (i != length(hlayers)+1){D <- cbind(1, D)}
