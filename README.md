@@ -23,16 +23,14 @@ TBD:
 
 10.  Write a vignette
 
-11.  Remove the doscale and bias_hlayers arguments -- they should always be on
+11.  Save activations as functions, rather than strings/pointers, then remove all of the redundant headers in the various files
 
-12.  Save activations as functions, rather than strings/pointers, then remove all of the redundant headers in the various files
+12.  Remove storage of hidden layers to degree possible, to reduce memory footprint.
 
-13.  Remove storage of hidden layers to degree possible, to reduce memory footprint.
+13.  Reduce number of things in the output, perhaps subject to an argument.  Goal is to reduce storage footprint and loading time.  This will involve not storing the input data, but storing the scaling factors from the input data.
 
-14.  Reduce number of things in the output, perhaps subject to an argument.  Goal is to reduce storage footprint and loading time.  This will involve not storing the input data, but storing the scaling factors from the input data.
+14.  Create infrastructure to bag (bootstrap aggregate) neural nets, including creating objects that can predict from bagged NNs ensembles.  
 
-15.  Create infrastructure to bag (bootstrap aggregate) neural nets, including creating objects that can predict from bagged NNs ensembles.  
-
-16.  Attention to convolutional nets -- probable bug in their gradient computation
+15.  Attention to convolutional nets -- probable bug in their gradient computation
 
 
