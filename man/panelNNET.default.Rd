@@ -20,8 +20,8 @@ function(y, X, hidden_units, fe_var
   , maxit = 100, lam = 0, time_var = NULL, param = NULL
   , parapen = rep(0, ncol(param)), parlist = NULL, verbose = FALSE
   , report_interval = 100
-  , gravity = 1.01, convtol = 1e-8, bias_hlayers = TRUE, RMSprop = TRUE, start_LR = .01
-  , activation = 'relu', doscale = TRUE
+  , gravity = 1.01, convtol = 1e-8, RMSprop = TRUE, start_LR = .01
+  , activation = 'relu'
   , batchsize = nrow(X)
   , maxstopcounter = 10, OLStrick = FALSE, initialization = 'HZRS'
   , dropout_hidden = 1, dropout_input = 1
@@ -69,9 +69,6 @@ The learning rate will be multiplied by this factor after each step.
   \item{convtol}{
 Convergence tolerance.  When <<maxstopcounter>> successive iterations fail to improve MSE by this amount, gradient descent exits
 }
-  \item{bias_hlayers}{
-Add bias (i.e. intercept) terms to hidden layers
-}
   \item{RMSprop}{
 Gradient descent by RMSprop.  If FALSE, by "vanilla" gradient descent
 }
@@ -80,9 +77,6 @@ The initial learning rate a.k.a. step size
 }
   \item{activation}{
 "tanh", "logistic", "relu", or "lrelu" (for "leaky ReLU")
-}
-  \item{doscale}{
-Should the input data be scaled?  Generally it should.
 }
   \item{batchsize}{
 Size of batches for minibatch gradient descent.  Defaults to nrow(X), which is batch gradient descent.
@@ -139,9 +133,7 @@ in the single-layer case, and generalized in the multi-layer cased.  Parameters 
   \item{grads }{The gradients at exit}
   \item{activation }{The activation function used}
   \item{parapen }{The factor that multiplies lambda for the parametric terms}
-  \item{doscale }{Whether the data was scaled.  Note that the scaling factors can be gotten from the attributes of the returned X and param matrices}
   \item{batchsize}{User-supplied}
-  \item{usedOptim}{User-supplied}
   \item{initialization}{User-supplied}
 }
 
@@ -187,9 +179,9 @@ This package is in active development.
   pnn <- panelNNET(y[tr], X[tr,], hidden_units = c(5,3)
     , fe_var = id[tr], lam = 1
     , time_var = time[tr], param = P[tr,], verbose = FALSE
-    , bias_hlayers = TRUE, gravity = 1.01
+    , gravity = 1.01
     , RMSprop = TRUE, convtol = 1e-5, maxit = 10000
-    , activation = 'tanh', doscale = TRUE, parapen = c(0,0)
+    , activation = 'tanh', parapen = c(0,0)
   )
 
   plot(pnn)

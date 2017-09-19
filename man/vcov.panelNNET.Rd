@@ -74,9 +74,9 @@ te <- tr == FALSE
 pnn <- panelNNET(y[tr], X[tr,], hidden_units = c(5,3)
   , fe_var = id[tr], lam = 1
   , time_var = time[tr], param = P[tr,], verbose = FALSE
-  , bias_hlayers = TRUE, gravity = 1.01
+  , gravity = 1.01
   , RMSprop = TRUE, convtol = 1e-5, maxit = 10000
-  , activation = 'tanh', doscale = TRUE, parapen = c(0,0)
+  , activation = 'tanh', parapen = c(0,0)
 )
 
 vc <- vcov(pnn, 'Jacobian_cluster')

@@ -1,7 +1,7 @@
 panelNNET.est <-
 function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist
          , verbose, report_interval, gravity, convtol, RMSprop
-         , start.LR, activation, doscale
+         , start.LR, activation
          , batchsize, maxstopcounter, OLStrick, initialization, dropout_hidden
          , dropout_input, convolutional, ...){
 
@@ -106,12 +106,12 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   }
   
   ###########################
-  #start fitting
-  if (doscale == TRUE){
-    X <- scale(X)
-    if (!is.null(param)){
-      param <- scale(param)
-    }
+  # start fitting
+  ###########################
+  # do scaling
+  X <- scale(X)
+  if (!is.null(param)){
+    param <- scale(param)
   }
   if (activation == 'tanh'){
     activ <- tanh
@@ -424,7 +424,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     , fe = fe_output, converged = conv, mse = mse, loss = loss, lam = lam, time_var = time_var
     , X = X, y = y, param = param, fe_var = fe_var, hidden_units = hidden_units, maxit = maxit
     , final_improvement = D, msevec = msevec, RMSprop = RMSprop, convtol = convtol
-    , grads = grads, activation = activation, parapen = parapen, doscale = doscale
+    , grads = grads, activation = activation, parapen = parapen
     , batchsize = batchsize, initialization = initialization, convolutional = convolutional)
   return(output) # list 
 }

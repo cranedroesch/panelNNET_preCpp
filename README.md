@@ -19,7 +19,7 @@ TBD:
 
 8.  Write a function to predict from a new dataset that has missing observations.  As arguments it should take distributions from which to draw the missing values.
 
-9.  Code up permutaiton importance function
+9.  Code up permutation importance function
 
 10.  Write a vignette
 
@@ -29,7 +29,7 @@ TBD:
 
 13.  Remove storage of hidden layers to degree possible, to reduce memory footprint.
 
-14.  Reduce number of things in the output, perhaps subject to an argument.  Goal is to reduce storage footprint and loading time.
+14.  Reduce number of things in the output, perhaps subject to an argument.  Goal is to reduce storage footprint and loading time.  This will involve not storing the input data, but storing the scaling factors from the input data.
 
 15.  Create infrastructure to bag (bootstrap aggregate) neural nets, including creating objects that can predict from bagged NNs ensembles.  
 

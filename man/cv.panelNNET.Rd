@@ -69,9 +69,9 @@ P <- cbind(time, time^2)
 pnn1 <- panelNNET(y, X, hidden_units = c(3,2)
   , fe_var = id, lam = 1
   , time_var = time, param = P, verbose = FALSE
-  , bias_hlayers = TRUE, gravity = 1.01
+  , gravity = 1.01
   , RMSprop = TRUE, convtol = 1e-5, maxit = 10000
-  , activation = 'tanh', doscale = TRUE, parapen = c(0,0)
+  , activation = 'tanh', parapen = c(0,0)
 )
 
 pnn2 <- panelNNET(y, X, hidden_units = c(4,3)

@@ -4,11 +4,9 @@ function(x, ...){
     infstrings <- NULL
   } else {
     dparm <- parm <- c(x$parlist$beta_param)
-    if (x$doscale == TRUE){
-      scalefac <- c(rep(attr(x$param, "scaled:scale"), ncol(x$param)+is.null(x$fe_var)))
-      if (!is.null(x$treatment)){scalefac <- append(scalefac, 1)}#Treatment is never scaled because it is never subject to penalization.  Thus the scale factor is always 1
-      dparm <- dparm/scalefac
-    }
+    #scaling
+    scalefac <- c(rep(attr(x$param, "scaled:scale"), ncol(x$param)+is.null(x$fe_var)))
+    dparm <- dparm/scalefac
     #Interence strings -- to send to `writelines`
     infstrings <- "\nParametric Estimates:\n"  
     #Parameter names and variance estimate labels...
@@ -37,7 +35,7 @@ function(x, ...){
         if (length(s) == 1){
           infstrings <- paste0(infstrings, "\t", s, "\n")
         } else {
-          if (x$doscale == TRUE & j==1){
+          if (j==1){
             s[[1]] <- s[[1]]/scalefac
           }
           #futz with notation

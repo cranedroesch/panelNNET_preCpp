@@ -1,12 +1,14 @@
+
+
 coef.panelNNET <- function(obj, rescale = TRUE){
   parm <- obj$parlist$beta_param
-  if (rescale == TRUE & obj$doscale == TRUE){
+  if (rescale == TRUE){
     parm <- parm/attr(obj$param, "scaled:scale")
   }
   if (!is.null(obj$vcs)){
     se <- lapply(obj$vcs, function(x){
       se <- sqrt(diag(x))[1:length(parm)]
-      if (rescale == TRUE & obj$doscale == TRUE){
+      if (rescale == TRUE){
         se <- se/attr(obj$param, "scaled:scale")
       }
       return(se)

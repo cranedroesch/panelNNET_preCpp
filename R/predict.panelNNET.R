@@ -102,13 +102,17 @@ predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL,
   if (obj$activation == 'lrelu'){
     activ <- lrelu
   }
-  if (obj$doscale == TRUE){
-    D <- sweep(sweep(newX, 2, STATS = attr(obj$X, "scaled:center"), FUN = '-'), 2, STATS = attr(obj$X, "scaled:scale"), FUN = '/')
-    if (!is.null(obj$param)){
-      P <- sweep(sweep(new.param, 2, STATS = attr(obj$param, "scaled:center"), FUN = '-'), 2, STATS = attr(obj$param, "scaled:scale"), FUN = '/')
-    }
+  # rescale new data to scale of training data
+  D <- sweep(sweep(newX, 2, STATS = attr(obj$X, "scaled:center"), FUN = '-'), 2, STATS = attr(obj$X, "scaled:scale"), FUN = '/')
+  if (!is.null(obj$param)){
+    P <- sweep(sweep(new.param, 
+                     MARGIN = 2, 
+                     STATS = attr(obj$param, "scaled:center"), 
+                     FUN = '-'), 
+               MARGIN = 2, 
+               STATS = attr(obj$param, "scaled:scale"), 
+               FUN = '/')
   }
-
   # compute hidden layers
   HL <- calc_hlayers(parlist = obj$parlist, 
                     X = D, 
