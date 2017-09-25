@@ -352,7 +352,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       if (OLStrick == TRUE){
         parlist <- OLStrick_function(parlist = parlist, hidden_layers = hlayers, y = y
           , fe_var = fe_var, lam = lam, parapen = parapen)
-        pl <- unlist(parlist)
       }
       #update yhat
       yhat <- getYhat(parlist, hlay = hlayers)
@@ -443,7 +442,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     hlayers <- calc_hlayers(parlist, X = X, param = param,
                             fe_var = fe_var, nlayers = nlayers,
                             convolutional = convolutional, activ = activation)
-    yhat <- getYhat(unlist(parlist), hlay = hlayers)
+    yhat <- getYhat(parlist, hlay = hlayers)
   }
   conv <- (iter < maxit)#Did we get convergence?
   if(is.null(fe_var)){
