@@ -28,15 +28,19 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   }
 
   calc_grads<- function(plist, hlay = NULL, yhat = NULL, curBat = NULL, droplist = NULL, dropinp = NULL){
+plist <- parlist
     #subset the parameters and hidden layers based on the droplist
     if (!is.null(droplist)){
       Xd <- X[,dropinp, drop = FALSE]
       #drop from parameter list emanating from input
       plist[[1]] <- plist[[1]][c(TRUE,dropinp),droplist[[1]]]
       #drop from subsequent parameter matrices
+      dl <- droplist
+      dl[[length(dl)]] <- dl[[length(dl)]][
       for (i in 2:nlayers){
         plist[[i]] <- plist[[i]][c(TRUE, droplist[[i-1]]), droplist[[i]], drop = FALSE]
       }
+LEFT OFF HERE.  NEED TO DEAL WITH PARAMETRIC TERMS WHEN DOING DROPOUT
       plist$beta <- plist$beta[droplist[[nlayers]]]
     } else {Xd <- X}#for use below...  X should be safe given scope, but extra assignment is cheap here
     if (!is.null(curBat)){CB <- function(x){x[curBat,,drop = FALSE]}} else {CB <- function(x){x}}
@@ -70,6 +74,21 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       }
       grads[[i]] <- Matrix::t(lay) %*% grad_stubs[[i]]
     }
+    # if using dropout, reconstitute full gradient
+lapply(parlist, dim)
+lapply(grads, dim)
+    emptygrads <- lapply(parlist, function(x){x*0})
+    # bottom weights
+    emptygrads[[1]][c(TRUE,dropinp),droplist[[1]]] <- grads[[1]]
+    for (i in 2:nlayers){
+      emptygrads[[i]][c(TRUE, droplist[[i-1]]), droplist[[i]]] <- grads[[i]]
+    }
+    plist$beta <- plist$beta[droplist[[nlayers]]]
+
+
+
+  #drop from parameter list emanating from input
+  plist[[1]] <- plist[[1]][c(TRUE,dropinp),droplist[[1]]]
     #process the gradients for the convolutional layers
     if (!is.null(convolutional)){
       #mask out the areas not in use
@@ -263,7 +282,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
           return(todrop)
         })
         # remove the parametric terms
-        droplist[[nlayers]] <- droplist[[nlayers]][(ncol(param)+1):length(droplist[[nlayers]])]
+#        droplist[[nlayers]] <- droplist[[nlayers]][(ncol(param)+1):length(droplist[[nlayers]])]
+        droplist[[nlayers]] <- droplist[[nlayers]][1:ncol(param)] <- TRUE
         todrop <- rbinom(ncol(X), 1, dropout_input)
         if (all(todrop==FALSE)){# ensure that at least one unit is present
           todrop[sample(1:length(todrop))] <- TRUE
