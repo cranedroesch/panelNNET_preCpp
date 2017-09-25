@@ -35,7 +35,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       plist[[1]] <- plist[[1]][c(TRUE,dropinp),droplist[[1]]]
       #drop from subsequent parameter matrices
       dl <- droplist
-      dl[[length(dl)]] <- dl[[length(dl)]][
+      dl[[length(dl)]] <- dl[[length(dl)]]
       for (i in 2:nlayers){
         plist[[i]] <- plist[[i]][c(TRUE, droplist[[i-1]]), droplist[[i]], drop = FALSE]
       }
