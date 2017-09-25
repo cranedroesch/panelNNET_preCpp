@@ -58,8 +58,10 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       #drop from parameter list emanating from input
       plist[[1]] <- plist[[1]][c(TRUE,dropinp),droplist[[1]]]
       # drop from subsequent parameter matrices
-      for (i in 2:(nlayers-1)){
-        plist[[i]] <- plist[[i]][c(TRUE, droplist[[i-1]]), droplist[[i]], drop = FALSE]
+      if (nlayers>2){
+        for (i in 2:(nlayers-1)){
+          plist[[i]] <- plist[[i]][c(TRUE, droplist[[i-1]]), droplist[[i]], drop = FALSE]
+        }
       }
       # manage parametric/nonparametric distinction in the top layer
       plist[[nlayers]] <- plist[[nlayers]][c(TRUE, droplist[[nlayers-1]]), 
@@ -93,8 +95,10 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       emptygrads <- lapply(parlist, function(x){x*0})
       # bottom weights
       emptygrads[[1]][c(TRUE,dropinp),droplist[[1]]] <- grads[[1]]
-      for (i in 2:(nlayers-1)){
-        emptygrads[[i]][c(TRUE, droplist[[i-1]]), droplist[[i]]] <- grads[[i]]
+      if (nlayers>2){
+        for (i in 2:(nlayers-1)){
+          emptygrads[[i]][c(TRUE, droplist[[i-1]]), droplist[[i]]] <- grads[[i]]
+        }
       }
       emptygrads[[nlayers]][c(TRUE, droplist[[nlayers-1]]), 
                              droplist[[nlayers]][(ncol(param)+1):length(droplist[[nlayers]])]] <- grads[[nlayers]]
