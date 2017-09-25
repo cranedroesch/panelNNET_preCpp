@@ -5,6 +5,30 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
          , batchsize, maxstopcounter, OLStrick, initialization, dropout_hidden
          , dropout_input, convolutional, ...){
 
+# y <- dat$yield
+# X <- Xb
+# hidden_units <- c(10,10,10)
+# fe_var <- dat$reap
+# maxit = 10
+# param = Xp
+# parlist <- NULL
+# verbose <- TRUE
+# report_interval = 10
+# gravity = 1.01
+# convtol = 1e-6
+# RMSprop <- TRUE
+# start.LR <- .01
+# activation <- "lrelu"
+# batchsize <- nrow(X)
+# maxstopcounter <- 10
+# OLStrick <- FALSE
+# initialization <- "HZRS"
+# dropout_hidden <- .5
+# dropout_input <- .8
+# convolutional <- NULL
+# lam <- 1
+# parapen <- rep(0, ncol(Xp))
+  
   ##########
   #Define internal functions
   getYhat <- function(pl, hlay = NULL){ 
@@ -33,26 +57,18 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       Xd <- X[,dropinp, drop = FALSE]
       #drop from parameter list emanating from input
       plist[[1]] <- plist[[1]][c(TRUE,dropinp),droplist[[1]]]
-      #drop from subsequent parameter matrices
-      dl <- droplist
-      dl[[length(dl)]] <- dl[[length(dl)]]
-      for (i in 2:nlayers){
+      # drop from subsequent parameter matrices
+      for (i in 2:(nlayers-1)){
         plist[[i]] <- plist[[i]][c(TRUE, droplist[[i-1]]), droplist[[i]], drop = FALSE]
       }
-      plist$beta <- plist$beta[droplist[[nlayers]]]
+      # manage parametric/nonparametric distinction in the top layer
+      plist[[nlayers]] <- plist[[nlayers]][c(TRUE, droplist[[nlayers-1]]), 
+                                     droplist[[nlayers]][(ncol(param)+1):length(droplist[[nlayers]])], 
+                                     drop = FALSE]
+      plist$beta <- plist$beta[droplist[[nlayers]][(ncol(param)+1):length(droplist[[nlayers]])]]
     } else {Xd <- X}#for use below...  X should be safe given scope, but extra assignment is cheap here
     if (!is.null(curBat)){CB <- function(x){x[curBat,,drop = FALSE]}} else {CB <- function(x){x}}
-    if (is.null(hlay)){
-      hlay <- calc_hlayers(plist, 
-                           X = X, 
-                           param = param, 
-                           fe_var = fe_var, 
-                           nlayers = nlayers, 
-                           convolutional = convolutional, 
-                           activ = activation)
-    }
     if (is.null(yhat)){yhat <- getYhat(plist, hlay = hlay)}
-    #empty list of gradients, one for each hidden layer, plus one for
     NL <- nlayers + as.numeric(!is.null(convolutional))
     grads <- grad_stubs <- vector('list', NL + 1)
     grad_stubs[[length(grad_stubs)]] <- getDelta(CB(as.matrix(y)), yhat)
@@ -72,18 +88,29 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       }
       grads[[i]] <- Matrix::t(lay) %*% grad_stubs[[i]]
     }
-    # # if using dropout, reconstitute full gradient
-    # emptygrads <- lapply(parlist, function(x){x*0})
-    # # bottom weights
-    # emptygrads[[1]][c(TRUE,dropinp),droplist[[1]]] <- grads[[1]]
-    # for (i in 2:nlayers){
-    #   emptygrads[[i]][c(TRUE, droplist[[i-1]]), droplist[[i]]] <- grads[[i]]
-    # }
-    # plist$beta <- plist$beta[droplist[[nlayers]]]
-    # #drop from parameter list emanating from input
-    # plist[[1]] <- plist[[1]][c(TRUE,dropinp),droplist[[1]]]
-    # #process the gradients for the convolutional layers
+    # if using dropout, reconstitute full gradient
+    if (!is.null(droplist)){
+      emptygrads <- lapply(parlist, function(x){x*0})
+      # bottom weights
+      emptygrads[[1]][c(TRUE,dropinp),droplist[[1]]] <- grads[[1]]
+      for (i in 2:(nlayers-1)){
+        emptygrads[[i]][c(TRUE, droplist[[i-1]]), droplist[[i]]] <- grads[[i]]
+      }
+      emptygrads[[nlayers]][c(TRUE, droplist[[nlayers-1]]), 
+                             droplist[[nlayers]][(ncol(param)+1):length(droplist[[nlayers]])]] <- grads[[nlayers]]
+      #top-level
+      emptygrads$beta <- emptygrads$beta_param <- NULL
+      emptygrads[[nlayers + 1]] <- matrix(rep(0, length(parlist$beta)+length(parlist$beta_param))) #empty
+      emptygrads[[nlayers + 1]][droplist[[nlayers]]] <- grads[[nlayers + 1]]
+      # all done
+      grads <- emptygrads
+    }
+    
+    #process the gradients for the convolutional layers
     if (!is.null(convolutional)){
+      if (!is.null(droplist)){
+        warning("dropout not yet made to work with conv nets")
+      }
       #mask out the areas not in use
       mask <- t(do.call(rbind, replicate(convolutional$Nconv, t(convMask[,1:N_TV_layers]), simplify=FALSE)))
       mask <- cbind(mask, matrix(rep(0, nrow(mask)*(ncol(convMask)-N_TV_layers)), nrow = nrow(mask)))
@@ -216,9 +243,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   hlayers <- calc_hlayers(parlist, X = X, param = param, 
                           fe_var = fe_var, nlayers = nlayers, 
                           convolutional = convolutional, activation = activation)
-  # make it relistable
-  parlist <- as.relistable(parlist)
-  pl <- unlist(parlist) 
   #calculate ydm and put it in global...
   if (!is.null(fe_var)){
     ydm <<- demeanlist(y, list(fe_var)) 
@@ -274,9 +298,9 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
           }
           return(todrop)
         })
-        # remove the parametric terms
-#        droplist[[nlayers]] <- droplist[[nlayers]][(ncol(param)+1):length(droplist[[nlayers]])]
-        droplist[[nlayers]] <- droplist[[nlayers]][1:ncol(param)] <- TRUE
+        # remove the parametric terms from dropout contention
+        droplist[[nlayers]][1:ncol(param)] <- TRUE
+        # dropout from the input layer
         todrop <- rbinom(ncol(X), 1, dropout_input)
         if (all(todrop==FALSE)){# ensure that at least one unit is present
           todrop[sample(1:length(todrop))] <- TRUE
@@ -320,8 +344,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         updates <- mapply("+", updates, wd)
       }
       # Update parameters from update list
-      parlist <- as.relistable(mapply('-', parlist, updates))
-      pl <- unlist(parlist)
+      parlist <- mapply('-', parlist, updates)
       # Update hidden layers
       hlayers <- calc_hlayers(parlist, X = X, param = param, fe_var = fe_var, 
                               nlayers = nlayers, convolutional = convolutional, activ = activation)
