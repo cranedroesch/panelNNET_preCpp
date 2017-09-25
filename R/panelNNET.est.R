@@ -332,7 +332,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       } else { #if RMSprop == FALSE
         uB <- LR * grads[[length(grads)]]
         updates$beta_param <- uB[1:length(parlist$beta_param)]
-        updates$beta <- uB[grepl('nodes', rownames(uB))]
+        updates$beta <- uB[ncol(param)+(1:length(parlist$beta))]
         NL <- nlayers + as.numeric(!is.null(convolutional))
         for(i in NL:1){
           updates[[i]] <- LR * grads[[i]]
