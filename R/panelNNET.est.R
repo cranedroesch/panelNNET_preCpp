@@ -5,34 +5,34 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
          , batchsize, maxstopcounter, OLStrick, initialization, dropout_hidden
          , dropout_input, convolutional, ...){
 
-# 
-# y = dat$yield[tr]
-# X = Xb[tr,]
-# hidden_units = arch
-# parapen = parapen
-# fe_var = dat$reap[tr]
-# maxit = 100
-# lam = .1
-# time_var = dat$year[tr]
-# param = Xp[tr,]
-# verbose = T
-# report_interval = 10
-# gravity = 1.01
-# convtol = 1e-5
-# activation = 'lrelu'
-# dropout_hidden <- dropout_input <- 1
-# start_LR = .01
-# parlist = NULL
-# OLStrick = FALSE
-# initialization = 'HZRS'
-# convolutional = list(Nconv = 3,
-#                     topology = dateframe$topo,
-#                     span = 4,
-#                     step = 2)
-# start.LR <- .01
-# maxit = 100
-# convtol = 1e-6
-# RMSprop <- TRUE
+
+y = dat$yield[tr]
+X = Xb[tr,]
+hidden_units = arch
+parapen = parapen
+fe_var = dat$reap[tr]
+maxit = 100
+lam = .1
+time_var = dat$year[tr]
+param = Xp[tr,]
+verbose = T
+report_interval = 10
+gravity = 1.01
+convtol = 1e-5
+activation = 'lrelu'
+dropout_hidden <- dropout_input <- 1
+start_LR = .01
+parlist = NULL
+OLStrick = FALSE
+initialization = 'HZRS'
+convolutional = list(Nconv = 3,
+                    topology = dateframe$topo,
+                    span = 10,
+                    step = 5)
+start.LR <- .01
+maxit = 100
+convtol = 1e-6
+RMSprop <- TRUE
   ##########
   #Define internal functions
   getYhat <- function(pl, hlay = NULL){ 
@@ -178,8 +178,13 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   nlayers <- length(hidden_units)
   # initialize the convolutional layer, if present
   if (!is.null(convolutional)){
-    #make the convolutional masking matrix if using conv nets
-    # Suppressing warnings about coercing to NAs
+    # make the convolutional masking matrix if using conv nets
+    # ensure the span is even
+    if (convolutional$span %%2 != 1){
+      convolutional$span <- floor(convolutional$span)
+      print(paste0("span supplied wasn't an even number.  coercing it to ", convolutional$span))
+      warning(paste0("span supplied wasn't an even number.  coercing it to ", convolutional$span))
+    }
     convMask <- convolutional$convmask <- makeMask(X, convolutional$topology, convolutional$span, convolutional$step, convolutional$Nconv)
     # store the number of time-varying variables
     # both in the local env for convenience, and in the convolutional object for passing to other functions

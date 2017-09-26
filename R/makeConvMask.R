@@ -5,10 +5,10 @@
 
 
 makeMask <- function(X, topology, span, step, Nconv){
-  stops <- seq(round(span/2), (max(topology, na.rm = T)), by = step)
+  stops <- seq(span/2, (max(topology, na.rm = T)), by = step)
   # make a matrix of zeros, of dimension equal to the number of inputs by the number of outputs (which is a function of the span)
   TVmask <- foreach(i = 1:length(topology), .combine = rbind) %do% {
-    interval <- topology[i] + round(span/2) * c(-1, 1)
+    interval <- topology[i] + span/2 * c(-1, 1)
     as.numeric(stops>= interval[1] & stops<=interval[2])
   }
   # First compute which rows of the time-varying mask are NAs
