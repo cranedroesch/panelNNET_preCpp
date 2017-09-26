@@ -1,5 +1,6 @@
 
 #function to make a mask for convolutional nets
+# the purpose of the mask is to represent local connectivity
 #topology argument should be an integer vector indicating positions in a 1-dimensional topology, with NA's for variables that aren't time-varying
 
 
@@ -10,25 +11,33 @@ makeMask <- function(X, topology, span, step){
     interval <- topology[i] + round(span/2) * c(-1, 1)
     as.numeric(stops> interval[1] & stops<interval[2])
   }
-  # If the last span overlaps the end of the topology, do a hack where the last span extends "upwards" into previous time periods
-  # This will ensure that all columns have identical entries
-  # the consequence of this is that the ending time periods are somewhat redundantly represented
-  # first compute where the NA's start.  They will start with the non-time-varying variables. 
-  if(any(is.na(TVmask))){
-    NAstart <- which(is.na(TVmask[,ncol(TVmask)]))[1]
-  } else { # case with no time-varying variables:
-    NAstart <- nrow(TVmask) + 1
-  }
-  TVmask[(NAstart - sum(TVmask[,1], na.rm = TRUE)):(NAstart - 1),ncol(TVmask)]<-1 #should be same number of ones as first column
+  # First compute which rows of the time-varying mask are NAs
+  NArows <- apply(TVmask, 1, function(x){any(is.na(x))})
   # Variables that don't have a topology should be NA -- they will get set to zero
   TVmask[is.na(TVmask)] <- 0
   colnames(TVmask) <- stops
-  # Add on a block diagonal matrix for the non-time-varying terms
-  NTVmask <- rbind(matrix(rep(0, length(topology[!is.na(topology)]) *
-                                length(topology[is.na(topology)])), ncol = length(topology[is.na(topology)])),
-                   diag(rep(1, length(topology[is.na(topology)]))))
+  # If the last span overlaps the end of the topology, do a hack where the last span extends "upwards" into previous time periods
+  # This will ensure that all columns have identical entries
+  # the consequence of this is that the ending time periods are somewhat redundantly represented
+  # first identify the position of the last entry in the last column
+  endpos <- max(which(TVmask[,as.character(max(stops))] == 1))
+  # then take the next column left, starting from last entry that is a 1
+  endpos_neighbor <- max(which(TVmask[,as.character(stops[length(stops)-1])] == 1))
+  neighbor <- TVmask[1:endpos_neighbor, as.character(stops[length(stops)-1])]
+  # pad the front and back with zeros
+  neighbor_repadded <- c(rep(0, endpos - endpos_neighbor), neighbor, rep(0, nrow(TVmask) - endpos))
+  # and re-insert it
+  TVmask[,as.character(max(stops))] <- neighbor_repadded
+  # make a diagonal matrix for the non-TV terms
+  NTVmask <- diag(rep(1, length(topology[is.na(topology)])))
   colnames(NTVmask) <- colnames(X)[is.na(topology)]
-  mask <- cbind(TVmask, NTVmask)
+  # combine them.  first add on a zero matrix to the left of the TV matrix
+  mask <- cbind(TVmask, 
+                matrix(rep(0, ncol(NTVmask)*nrow(TVmask)), ncol = ncol(NTVmask))
+                )
+  # next add the NTVmask entries into the NArows
+  mask[NArows,(ncol(TVmask)+1):ncol(mask)] <- NTVmask
+  colnames(mask)[(ncol(TVmask)+1):ncol(mask)] <- colnames(NTVmask)
   rownames(mask) <- colnames(X)
   return(mask)
 }

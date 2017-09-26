@@ -5,30 +5,34 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
          , batchsize, maxstopcounter, OLStrick, initialization, dropout_hidden
          , dropout_input, convolutional, ...){
 
-# y <- dat$yield
-# X <- Xb
-# hidden_units <- c(10,10,10)
-# fe_var <- dat$reap
-# maxit = 10
-# param = Xp
-# parlist <- NULL
-# verbose <- TRUE
+# 
+# y = dat$yield[tr]
+# X = Xb[tr,]
+# hidden_units = arch
+# parapen = parapen
+# fe_var = dat$reap[tr]
+# maxit = 100
+# lam = .1
+# time_var = dat$year[tr]
+# param = Xp[tr,]
+# verbose = T
 # report_interval = 10
 # gravity = 1.01
-# convtol = 1e-6
-# RMSprop <- TRUE
+# convtol = 1e-5
+# activation = 'lrelu'
+# dropout_hidden <- dropout_input <- 1
+# start_LR = .01
+# parlist = NULL
+# OLStrick = FALSE
+# initialization = 'HZRS'
+# convolutional = list(Nconv = 5,
+#                     topology = dateframe$topo, 
+#                     span = 14, 
+#                     step = 7)
 # start.LR <- .01
-# activation <- "lrelu"
-# batchsize <- nrow(X)
-# maxstopcounter <- 10
-# OLStrick <- FALSE
-# initialization <- "HZRS"
-# dropout_hidden <- .5
-# dropout_input <- .8
-# convolutional <- NULL
-# lam <- 1
-# parapen <- rep(0, ncol(Xp))
-  
+# maxit = 100
+# convtol = 1e-6
+
   ##########
   #Define internal functions
   getYhat <- function(pl, hlay = NULL){ 
@@ -178,7 +182,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     warning("Conv nets are buggy -- there is certainly a problem with how the gradients are computed, and likely other problems.  Needs attention.")
     #make the convolutional masking matrix if using conv nets
     # Suppressing warnings about coercing to NAs
-    convMask <- convolutional$convmask <- suppressWarnings(makeMask(X, convolutional$topology, convolutional$span, convolutional$step))
+    convMask <- convolutional$convmask <- (makeMask(X, convolutional$topology, convolutional$span, convolutional$step))
     # store the number of time-varying variables
     # both in the local env for convenience, and in the convolutional object for passing to other functions
     N_TV_layers <- convolutional$N_TV_layers <- sum(colnames(convMask) %in% convolutional$topology)
