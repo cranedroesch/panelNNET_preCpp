@@ -26,8 +26,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 # OLStrick = FALSE
 # initialization = 'HZRS'
 # convolutional = list(Nconv = 5,
-#                     topology = dateframe$topo, 
-#                     span = 14, 
+#                     topology = dateframe$topo,
+#                     span = 14,
 #                     step = 7)
 # start.LR <- .01
 # maxit = 100
@@ -144,12 +144,12 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     TV <- foreach(i = 1:convolutional$Nconv, .combine = cbind) %do% {
       apply(convMask[,1:N_TV_layers], 2, function(x){
         x[x!=0] <- convParms[[i]]
+        x <- c(convBias[i], x)
         return(x)
       })
     }
-    NTV <- convMask[,(N_TV_layers+1):ncol(convMask)]
-    bias <- c(unlist(convBias), rep(0, ncol(NTV)))
-    return(Matrix(rbind(bias,cbind(TV, NTV))))
+    NTV <- rbind(0, convMask[,(N_TV_layers+1):ncol(convMask)])
+    return(Matrix(cbind(TV, NTV)))
   }
   
   ###########################
@@ -179,7 +179,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   nlayers <- length(hidden_units)
   # initialize the convolutional layer, if present
   if (!is.null(convolutional)){
-    warning("Conv nets are buggy -- there is certainly a problem with how the gradients are computed, and likely other problems.  Needs attention.")
     #make the convolutional masking matrix if using conv nets
     # Suppressing warnings about coercing to NAs
     convMask <- convolutional$convmask <- (makeMask(X, convolutional$topology, convolutional$span, convolutional$step))
@@ -192,12 +191,17 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         rnorm(sum(convMask[,1]), sd = 2/sqrt(sum(convMask[,1])))
       }
     }
-    # Initialize convolutional layer biases, if not present
+    # Initialize convolutional layer bias, if not present
+    # new version: bias terms are not individual to each span, but shared by each span
     if (is.null(convolutional$convBias)){
-      convBias <- convolutional$convBias <- foreach(i = 1:convolutional$Nconv) %do% {
-        rnorm(N_TV_layers, sd = 2/sqrt(sum(convMask[,1])))
-      }
+      convBias <- rnorm(convolutional$Nconv, sd = 2/sqrt(sum(convMask[,1])))
     }
+    # OLD VERSION:
+    # if (is.null(convolutional$convBias)){
+    #   convBias <- convolutional$convBias <- foreach(i = 1:convolutional$Nconv) %do% {
+    #     rnorm(N_TV_layers, sd = 2/sqrt(sum(convMask[,1])))
+    #   }
+    # }
     # initialize the convolutional parlist, if not present
     if (is.null(convolutional$convParMat)){
       convParMat <- convolutional$convParMat <- makeConvLayer(convParms, convBias)
