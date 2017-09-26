@@ -180,7 +180,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   if (!is.null(convolutional)){
     # make the convolutional masking matrix if using conv nets
     # ensure the span is even
-    if (convolutional$span %%2 != 1){
+    if (convolutional$span %%2 != 0){
       convolutional$span <- floor(convolutional$span)
       print(paste0("span supplied wasn't an even number.  coercing it to ", convolutional$span))
       warning(paste0("span supplied wasn't an even number.  coercing it to ", convolutional$span))
