@@ -5,34 +5,34 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
          , batchsize, maxstopcounter, OLStrick, initialization, dropout_hidden
          , dropout_input, convolutional, ...){
 
-
-y = dat$yield[tr]
-X = Xb[tr,]
-hidden_units = arch
-parapen = parapen
-fe_var = dat$reap[tr]
-maxit = 100
-lam = .1
-time_var = dat$year[tr]
-param = Xp[tr,]
-verbose = T
-report_interval = 10
-gravity = 1.01
-convtol = 1e-5
-activation = 'lrelu'
-dropout_hidden <- dropout_input <- 1
-start_LR = .01
-parlist = NULL
-OLStrick = FALSE
-initialization = 'HZRS'
-convolutional = list(Nconv = 3,
-                    topology = dateframe$topo,
-                    span = 10,
-                    step = 5)
-start.LR <- .01
-maxit = 100
-convtol = 1e-6
-RMSprop <- TRUE
+# 
+# y = dat$yield[tr]
+# X = Xb[tr,]
+# hidden_units = arch
+# parapen = parapen
+# fe_var = dat$reap[tr]
+# maxit = 100
+# lam = .1
+# time_var = dat$year[tr]
+# param = Xp[tr,]
+# verbose = T
+# report_interval = 10
+# gravity = 1.01
+# convtol = 1e-5
+# activation = 'lrelu'
+# dropout_hidden <- dropout_input <- 1
+# start_LR = .01
+# parlist = NULL
+# OLStrick = FALSE
+# initialization = 'HZRS'
+# convolutional = list(Nconv = 3,
+#                     topology = dateframe$topo,
+#                     span = 10,
+#                     step = 5)
+# start.LR <- .01
+# maxit = 100
+# convtol = 1e-6
+# RMSprop <- TRUE
   ##########
   #Define internal functions
   getYhat <- function(pl, hlay = NULL){ 
