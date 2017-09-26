@@ -4,7 +4,11 @@
 #topology argument should be an integer vector indicating positions in a 1-dimensional topology, with NA's for variables that aren't time-varying
 
 
-makeMask <- function(X, topology, span, step){
+makeMask <- function(X, topology, span, step, Nconv){
+# topology <- convolutional$topology
+# span <- convolutional$span
+# step <- convolutional$step
+# Nconv <- convolutional$Nconv
   stops <- seq(round(span/2), (max(topology, na.rm = T)), by = step)
   # make a matrix of zeros, of dimension equal to the number of inputs by the number of outputs (which is a function of the span)
   TVmask <- foreach(i = 1:length(topology), .combine = rbind) %do% {
@@ -31,6 +35,8 @@ makeMask <- function(X, topology, span, step){
   # make a diagonal matrix for the non-TV terms
   NTVmask <- diag(rep(1, length(topology[is.na(topology)])))
   colnames(NTVmask) <- colnames(X)[is.na(topology)]
+  # replicate the TVmask Nconv times
+  TVmask <- t(do.call(rbind, replicate(Nconv, t(TVmask), simplify=FALSE)))
   # combine them.  first add on a zero matrix to the left of the TV matrix
   mask <- cbind(TVmask, 
                 matrix(rep(0, ncol(NTVmask)*nrow(TVmask)), ncol = ncol(NTVmask))
@@ -39,6 +45,7 @@ makeMask <- function(X, topology, span, step){
   mask[NArows,(ncol(TVmask)+1):ncol(mask)] <- NTVmask
   colnames(mask)[(ncol(TVmask)+1):ncol(mask)] <- colnames(NTVmask)
   rownames(mask) <- colnames(X)
+  mask <- rbind(c(rep(1, ncol(TVmask)), rep(0, ncol(NTVmask))), mask)
   return(mask)
 }
 

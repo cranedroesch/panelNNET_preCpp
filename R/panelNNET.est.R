@@ -5,7 +5,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
          , batchsize, maxstopcounter, OLStrick, initialization, dropout_hidden
          , dropout_input, convolutional, ...){
 
-# 
+
 # y = dat$yield[tr]
 # X = Xb[tr,]
 # hidden_units = arch
@@ -25,14 +25,14 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 # parlist = NULL
 # OLStrick = FALSE
 # initialization = 'HZRS'
-# convolutional = list(Nconv = 5,
+# convolutional = list(Nconv = 3,
 #                     topology = dateframe$topo,
 #                     span = 14,
 #                     step = 7)
 # start.LR <- .01
 # maxit = 100
 # convtol = 1e-6
-
+# RMSprop <- TRUE
   ##########
   #Define internal functions
   getYhat <- function(pl, hlay = NULL){ 
@@ -56,6 +56,10 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   }
 
   calc_grads<- function(plist, hlay = NULL, yhat = NULL, curBat = NULL, droplist = NULL, dropinp = NULL){
+# plist <- parlist
+# hlay <- hlayers
+# droplist <- NULL
+# curBat <- NULL
     #subset the parameters and hidden layers based on the droplist
     if (!is.null(droplist)){
       Xd <- X[,dropinp, drop = FALSE]
@@ -113,23 +117,22 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       # all done
       grads <- emptygrads
     }
-    
     #process the gradients for the convolutional layers
     if (!is.null(convolutional)){
       if (!is.null(droplist)){
         warning("dropout not yet made to work with conv nets")
       }
       #mask out the areas not in use
-      mask <- t(do.call(rbind, replicate(convolutional$Nconv, t(convMask[,1:N_TV_layers]), simplify=FALSE)))
-      mask <- cbind(mask, matrix(rep(0, nrow(mask)*(ncol(convMask)-N_TV_layers)), nrow = nrow(mask)))
-      mask <- rbind(1, mask)
-      gg <- grads[[1]] * mask
+      gg <- grads[[1]] * convMask
       #loop over Nconv
       new_convParms <- foreach(i = 1:convolutional$Nconv) %do% {
         idx <- (1+N_TV_layers*(i-1)):(N_TV_layers*i)
-        rowSums(foreach(j = idx, .combine = cbind) %do% {x <- gg[,j]; x[x!=0][-1]})
+        rowMeans(foreach(j = idx, .combine = cbind) %do% {x <- gg[,j]; x[x!=0][-1]})
       }
-      new_convBias <- gg[1,1:(N_TV_layers * convolutional$Nconv)]
+      new_convBias <- foreach(i = 1:convolutional$Nconv, .combine = c) %do% {
+        idx <- (1+N_TV_layers*(i-1)):(N_TV_layers*i)
+        mean(gg[1,idx])
+      }
       # make the layer
       convGrad <- makeConvLayer(new_convParms, new_convBias)
       #set the gradients on the time-invariant terms to zero
@@ -142,13 +145,13 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   makeConvLayer <- function(convParms, convBias){
     # time-varying portion
     TV <- foreach(i = 1:convolutional$Nconv, .combine = cbind) %do% {
-      apply(convMask[,1:N_TV_layers], 2, function(x){
-        x[x!=0] <- convParms[[i]]
-        x <- c(convBias[i], x)
+      apply(convMask[,1:N_TV_layers], 2, function(x){# this assumes that the feature detectors have identical shapes
+        x[x!=0][-1] <- convParms[[i]]
+        x[1] <- convBias[i]
         return(x)
       })
     }
-    NTV <- rbind(0, convMask[,(N_TV_layers+1):ncol(convMask)])
+    NTV <- convMask[,colnames(convMask) %ni% convolutional$topology]
     return(Matrix(cbind(TV, NTV)))
   }
   
@@ -181,14 +184,14 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   if (!is.null(convolutional)){
     #make the convolutional masking matrix if using conv nets
     # Suppressing warnings about coercing to NAs
-    convMask <- convolutional$convmask <- (makeMask(X, convolutional$topology, convolutional$span, convolutional$step))
+    convMask <- convolutional$convmask <- makeMask(X, convolutional$topology, convolutional$span, convolutional$step, convolutional$Nconv)
     # store the number of time-varying variables
     # both in the local env for convenience, and in the convolutional object for passing to other functions
-    N_TV_layers <- convolutional$N_TV_layers <- sum(colnames(convMask) %in% convolutional$topology)
+    N_TV_layers <- convolutional$N_TV_layers <- sum(unique(colnames(convMask)) %in% convolutional$topology)
     # For each convolutional "column", initialize the single parameter vector that will be shared among columns
     if (is.null(convolutional$convParms)){
       convParms <- convolutional$convParms <- foreach(i = 1:convolutional$Nconv) %do% {
-        rnorm(sum(convMask[,1]), sd = 2/sqrt(sum(convMask[,1])))
+        rnorm(sum(convMask[-1,1]), sd = 2/sqrt(sum(convMask[-1,1])))
       }
     }
     # Initialize convolutional layer bias, if not present
@@ -354,6 +357,10 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       if (lam != 0) {
         wd <- lapply(parlist, function(x){x*lam*LR})
         updates <- mapply("+", updates, wd)
+        # don't update the pass-through weights for the non-time-varying variables when using conv 
+        if (!is.null(convolutional)){
+          updates[[1]][,colnames(updates[[1]]) %ni% convolutional$topology] <- 0
+        }
       }
       # Update parameters from update list
       parlist <- mapply('-', parlist, updates)
