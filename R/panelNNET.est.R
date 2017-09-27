@@ -5,7 +5,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
          , batchsize, maxstopcounter, OLStrick, initialization, dropout_hidden
          , dropout_input, convolutional, ...){
 
-# 
+
 # y = dat$yield[tr]
 # X = Xb[tr,]
 # hidden_units = arch
@@ -56,6 +56,10 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   }
 
   calc_grads<- function(plist, hlay = NULL, yhat = NULL, curBat = NULL, droplist = NULL, dropinp = NULL){
+plist <- parlist
+droplist <- NULL
+curBat <- NULL
+hlay <- hlayers
     #subset the parameters and hidden layers based on the droplist
     if (!is.null(droplist)){
       Xd <- X[,dropinp, drop = FALSE]

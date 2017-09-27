@@ -31,6 +31,5 @@ TBD:
 
 14.  Create infrastructure to bag (bootstrap aggregate) neural nets, including creating objects that can predict from bagged NNs ensembles.  
 
-15.  Attention to convolutional nets -- probable bug in their gradient computation
 
 
