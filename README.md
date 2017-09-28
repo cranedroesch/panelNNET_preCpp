@@ -31,5 +31,6 @@ TBD:
 
 14.  Create infrastructure to bag (bootstrap aggregate) neural nets, including creating objects that can predict from bagged NNs ensembles.  
 
+15.  Loss function applied to conv nets shouldn't double-count shared weights.
 
 
