@@ -5,29 +5,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
          , batchsize, maxstopcounter, OLStrick, initialization, dropout_hidden
          , dropout_input, convolutional, ...){
 
-
-  # y = dat$yield[tr]
-  # X = Xb
-  # hidden_units = archlist[[g]]
-  # parapen = parapen
-  # fe_var = dat$reap[tr]
-  # maxit = 10
-  # lam = lam
-  # time_var = dat$year[tr]
-  # param = Xbp[tr,]
-  # verbose = T
-  # report_interval = 10
-  # gravity = 1.01
-  # convtol = 1e-5
-  # activation = 'lrelu'
-  # start_LR = .0001
-  # parlist = pl
-  # OLStrick = TRUE
-  # initialization = 'HZRS'
-  # dropout_hidden = dropout
-  # dropout_input = dropout^.321
-  # start.LR = .01
-  # convolutional = NULL
   ##########
   #Define internal functions
   getYhat <- function(pl, hlay = NULL){ 
@@ -51,9 +28,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   }
 
   calc_grads<- function(plist, hlay = NULL, yhat = NULL, curBat = NULL, droplist = NULL, dropinp = NULL){
-# plist <- parlist
-# curBat <- NULL
-# hlay <- hlay
     #subset the parameters and hidden layers based on the droplist
     if (!is.null(droplist)){
       Xd <- X[,dropinp, drop = FALSE]
