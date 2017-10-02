@@ -6,33 +6,28 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
          , dropout_input, convolutional, ...){
 
 
-# y = dat$yield[tr]
-# X = Xb[tr,]
-# hidden_units = arch
-# parapen = parapen
-# fe_var = dat$reap[tr]
-# maxit = 100
-# lam = .1
-# time_var = dat$year[tr]
-# param = Xp[tr,]
-# verbose = T
-# report_interval = 10
-# gravity = 1.01
-# convtol = 1e-5
-# activation = 'lrelu'
-# dropout_hidden <- dropout_input <- 1
-# start_LR = .01
-# parlist = NULL
-# OLStrick = FALSE
-# initialization = 'HZRS'
-# convolutional = list(Nconv = 3,
-#                     topology = dateframe$topo,
-#                     span = 10,
-#                     step = 5)
-# start.LR <- .01
-# maxit = 100
-# convtol = 1e-6
-# RMSprop <- TRUE
+  # y = dat$yield[tr]
+  # X = Xb
+  # hidden_units = archlist[[g]]
+  # parapen = parapen
+  # fe_var = dat$reap[tr]
+  # maxit = 10
+  # lam = lam
+  # time_var = dat$year[tr]
+  # param = Xbp[tr,]
+  # verbose = T
+  # report_interval = 10
+  # gravity = 1.01
+  # convtol = 1e-5
+  # activation = 'lrelu'
+  # start_LR = .0001
+  # parlist = pl
+  # OLStrick = TRUE
+  # initialization = 'HZRS'
+  # dropout_hidden = dropout
+  # dropout_input = dropout^.321
+  # start.LR = .01
+  # convolutional = NULL
   ##########
   #Define internal functions
   getYhat <- function(pl, hlay = NULL){ 
@@ -57,25 +52,32 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 
   calc_grads<- function(plist, hlay = NULL, yhat = NULL, curBat = NULL, droplist = NULL, dropinp = NULL){
 # plist <- parlist
-# droplist <- NULL
 # curBat <- NULL
-# hlay <- hlayers
+# hlay <- hlay
     #subset the parameters and hidden layers based on the droplist
     if (!is.null(droplist)){
       Xd <- X[,dropinp, drop = FALSE]
-      #drop from parameter list emanating from input
-      plist[[1]] <- plist[[1]][c(TRUE,dropinp),droplist[[1]]]
-      # drop from subsequent parameter matrices
-      if (nlayers>2){
-        for (i in 2:(nlayers-1)){
-          plist[[i]] <- plist[[i]][c(TRUE, droplist[[i-1]]), droplist[[i]], drop = FALSE]
+      if (nlayers > 1){
+        #drop from parameter list emanating from input
+        plist[[1]] <- plist[[1]][c(TRUE,dropinp),droplist[[1]]]
+        # drop from subsequent parameter matrices
+        if (nlayers>2){
+          for (i in 2:(nlayers-1)){
+            plist[[i]] <- plist[[i]][c(TRUE, droplist[[i-1]]), droplist[[i]], drop = FALSE]
+          }
         }
+        plist[[nlayers]] <- plist[[nlayers]][c(TRUE, droplist[[nlayers-1]]), 
+                                             droplist[[nlayers]][(ncol(param)+1):length(droplist[[nlayers]])], 
+                                             drop = FALSE]
+      } else { #for one-layer networks
+        #drop from parameter list emanating from input
+        plist[[1]] <- plist[[1]][c(TRUE,dropinp),
+                                 droplist[[nlayers]][(ncol(param)+1):length(droplist[[nlayers]])], 
+                                 drop = FALSE]
       }
       # manage parametric/nonparametric distinction in the top layer
-      plist[[nlayers]] <- plist[[nlayers]][c(TRUE, droplist[[nlayers-1]]), 
-                                     droplist[[nlayers]][(ncol(param)+1):length(droplist[[nlayers]])], 
-                                     drop = FALSE]
       plist$beta <- plist$beta[droplist[[nlayers]][(ncol(param)+1):length(droplist[[nlayers]])]]
+      
     } else {Xd <- X}#for use below...  X should be safe given scope, but extra assignment is cheap here
     if (!is.null(curBat)){CB <- function(x){x[curBat,,drop = FALSE]}} else {CB <- function(x){x}}
     if (is.null(yhat)){yhat <- getYhat(plist, hlay = hlay)}
@@ -102,14 +104,19 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     if (!is.null(droplist)){
       emptygrads <- lapply(parlist, function(x){x*0})
       # bottom weights
-      emptygrads[[1]][c(TRUE,dropinp),droplist[[1]]] <- grads[[1]]
-      if (nlayers>2){
-        for (i in 2:(nlayers-1)){
-          emptygrads[[i]][c(TRUE, droplist[[i-1]]), droplist[[i]]] <- grads[[i]]
+      if (nlayers > 1){
+        emptygrads[[1]][c(TRUE,dropinp),droplist[[1]]] <- grads[[1]]
+        if (nlayers>2){
+          for (i in 2:(nlayers-1)){
+            emptygrads[[i]][c(TRUE, droplist[[i-1]]), droplist[[i]]] <- grads[[i]]
+          }
         }
+        emptygrads[[nlayers]][c(TRUE, droplist[[nlayers-1]]), 
+                               droplist[[nlayers]][(ncol(param)+1):length(droplist[[nlayers]])]] <- grads[[nlayers]]
+      } else { #for one-layer networks
+        emptygrads[[1]][c(TRUE,dropinp),
+                        droplist[[1]][(ncol(param)+1):length(droplist[[1]])]] <- grads[[1]]
       }
-      emptygrads[[nlayers]][c(TRUE, droplist[[nlayers-1]]), 
-                             droplist[[nlayers]][(ncol(param)+1):length(droplist[[nlayers]])]] <- grads[[nlayers]]
       #top-level
       emptygrads$beta <- emptygrads$beta_param <- NULL
       emptygrads[[nlayers + 1]] <- matrix(rep(0, length(parlist$beta)+length(parlist$beta_param))) #empty
