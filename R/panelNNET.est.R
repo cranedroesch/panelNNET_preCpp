@@ -415,6 +415,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
           , "loss is ",loss, "\n"
           , "last loss was ", oldpar$loss, "\n"
           , "difference is ", oldpar$loss - loss, "\n"
+          , "input layer dropout probability: ", dropout_input, "\n"
+          , "hidden layer dropout probability: ", dropout_hidden, "\n"
           , "*******************************************\n"  
         ))
         par(mfrow = c(3,2))
@@ -465,7 +467,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     , X = X, y = y, param = param, fe_var = fe_var, hidden_units = hidden_units, maxit = maxit
     , final_improvement = D, msevec = msevec, RMSprop = RMSprop, convtol = convtol
     , grads = grads, activation = activation, parapen = parapen
-    , batchsize = batchsize, initialization = initialization, convolutional = convolutional)
+    , batchsize = batchsize, initialization = initialization, convolutional = convolutional
+    , dropout_hidden = dropout_hidden, dropout_input = dropout_input)
   return(output) # list 
 }
 
