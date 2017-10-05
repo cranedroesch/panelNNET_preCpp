@@ -35,4 +35,7 @@ TBD:
 
 16.  Convolutional throws an error when there are no fixed variables.  This is because of the way the convmask building function binds the time-varying and non-time-varying portions of the mask together -- it assumes that there is a non-time-varying portion.
 
+17.  Speed up the calc_grads function
+
+18.  Speed up the OLStrick.
 

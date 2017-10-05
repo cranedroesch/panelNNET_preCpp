@@ -5,6 +5,35 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
          , batchsize, maxstopcounter, OLStrick, initialization, dropout_hidden
          , dropout_input, convolutional, ...){
 
+# y = dat$yield
+# X = dat[,grepl('tmax|tmin|wspd|relh|radiation|lat|lon|prc|prop_irr|rotation|tillage|friability',colnames(dat))]
+# param = Xp
+# hidden_units = 10
+# parapen = rep(0, ncol(param))
+# fe_var = dat$reap
+# maxit = 10
+# lam = 0
+# time_var = dat$year
+# verbose = T
+# gravity = 1.01
+# convtol = 1e-5 
+# activation = 'lrelu'
+# start_LR = .001
+# parlist = NULL
+# OLStrick = TRUE
+# initialization = 'HZRS'
+# maxit = 100
+# report_interval = 10
+# RMSprop = T
+# start.LR <- .01
+# maxstopcounter <- 10
+# batchsize = 100
+# dropout_hidden <- dropout_input <- 1
+# datestring <- substr(colnames(X), nchar(colnames(X))-4, nchar(colnames(X)))
+# topology <- as.POSIXlt(datestring, format = "%m_%d")$yday
+# convolutional <- list(Nconv = 5, span = 4, step = 2, topology = topology)
+
+  
   ##########
   #Define internal functions
   getYhat <- function(pl, hlay = NULL){ 
@@ -163,13 +192,13 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   nlayers <- length(hidden_units)
   # initialize the convolutional layer, if present
   if (!is.null(convolutional)){
-    # make the convolutional masking matrix if using conv nets
-    # ensure the span is even
-    if (convolutional$span %%2 != 0){
-      convolutional$span <- floor(convolutional$span)
-      print(paste0("span supplied wasn't an even number.  coercing it to ", convolutional$span))
-      warning(paste0("span supplied wasn't an even number.  coercing it to ", convolutional$span))
+    # set set the topology to start at 1, if it isn't already there.  give a warning if it isn't.
+    if (min(convolutional$topology, na.rm =T)>1){
+      convolutional$topology <- convolutional$topology - min(convolutional$topology, na.rm =T) +1 
+      print("minimum value in supplied topology greater than 1.  subtracting to get it to start at 1.")
+      warning("minimum value in supplied topology greater than 1.  subtracting to get it to start at 1.")
     }
+    # make the convolutional masking matrix if using conv nets
     convMask <- convolutional$convmask <- makeMask(X, convolutional$topology, convolutional$span, convolutional$step, convolutional$Nconv)
     # store the number of time-varying variables
     # both in the local env for convenience, and in the convolutional object for passing to other functions
@@ -185,12 +214,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     if (is.null(convolutional$convBias)){
       convBias <- rnorm(convolutional$Nconv, sd = 2/sqrt(sum(convMask[,1])))
     }
-    # OLD VERSION:
-    # if (is.null(convolutional$convBias)){
-    #   convBias <- convolutional$convBias <- foreach(i = 1:convolutional$Nconv) %do% {
-    #     rnorm(N_TV_layers, sd = 2/sqrt(sum(convMask[,1])))
-    #   }
-    # }
     # initialize the convolutional parlist, if not present
     if (is.null(convolutional$convParMat)){
       convParMat <- convolutional$convParMat <- makeConvLayer(convParms, convBias)
@@ -353,6 +376,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       # Update hidden layers
       hlayers <- calc_hlayers(parlist, X = X, param = param, fe_var = fe_var, 
                               nlayers = nlayers, convolutional = convolutional, activ = activation)
+
       # OLS trick!
       if (OLStrick == TRUE){
         parlist <- OLStrick_function(parlist = parlist, hidden_layers = hlayers, y = y
