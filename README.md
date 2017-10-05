@@ -33,4 +33,6 @@ TBD:
 
 15.  Loss function applied to conv nets shouldn't double-count shared weights.
 
+16.  Convolutional throws an error when there are no fixed variables.  This is because of the way the convmask building function binds the time-varying and non-time-varying portions of the mask together -- it assumes that there is a non-time-varying portion.
+
 
