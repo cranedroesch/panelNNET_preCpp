@@ -30,5 +30,3 @@ TBD:
 13.  Speed up the OLStrick.
 
 14.  Get dropout to work with full gradients
-
-15.  Write a function to generate "hinton diagrams" from conv output.
