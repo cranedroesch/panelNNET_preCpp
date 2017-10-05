@@ -21,12 +21,10 @@ TBD:
 
 9.  Reduce number of things in the output, perhaps subject to an argument.  Goal is to reduce storage footprint and loading time.  This will involve not storing the input data, but storing the scaling factors from the input data.
 
-10.  Loss function applied to conv nets shouldn't double-count shared weights.
+10.  Convolutional throws an error when there are no fixed variables.  This is because of the way the convmask building function binds the time-varying and non-time-varying portions of the mask together -- it assumes that there is a non-time-varying portion.
 
-11.  Convolutional throws an error when there are no fixed variables.  This is because of the way the convmask building function binds the time-varying and non-time-varying portions of the mask together -- it assumes that there is a non-time-varying portion.
+11.  Speed up the calc_grads function
 
-12.  Speed up the calc_grads function
+12.  Speed up the OLStrick.
 
-13.  Speed up the OLStrick.
-
-14.  Get dropout to work with convolutional nets
+13.  Get dropout to work with convolutional nets

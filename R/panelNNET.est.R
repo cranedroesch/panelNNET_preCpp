@@ -12,26 +12,26 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 # parapen = rep(0, ncol(param))
 # fe_var = dat$reap
 # maxit = 10
-# lam = 0
+# lam = .1
 # time_var = dat$year
 # verbose = T
 # gravity = 1.01
-# convtol = 1e-5 
+# convtol = 1e-5
 # activation = 'lrelu'
 # start_LR = .001
 # parlist = NULL
 # OLStrick = TRUE
 # initialization = 'HZRS'
 # maxit = 100
-# report_interval = 10
+# report_interval = 5
 # RMSprop = T
 # start.LR <- .01
 # maxstopcounter <- 10
-# batchsize = 100
+# batchsize = nrow(X)
 # dropout_hidden <- dropout_input <- 1
 # datestring <- substr(colnames(X), nchar(colnames(X))-4, nchar(colnames(X)))
 # topology <- as.POSIXlt(datestring, format = "%m_%d")$yday
-# convolutional <- list(Nconv = 5, span = 4, step = 2, topology = topology)
+# convolutional <- list(Nconv = 5, span = 5, step = 5, topology = topology)
 
   
   ##########
@@ -134,17 +134,17 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       }
       #mask out the areas not in use
       gg <- grads[[1]] * convMask
-      #loop over Nconv
-      new_convParms <- foreach(i = 1:convolutional$Nconv) %do% {
+      #gradients for conv layer.  pooling via rowMeans
+      grads_convParms <- foreach(i = 1:convolutional$Nconv) %do% {
         idx <- (1+N_TV_layers*(i-1)):(N_TV_layers*i)
         rowMeans(foreach(j = idx, .combine = cbind) %do% {x <- gg[,j]; x[x!=0][-1]})
       }
-      new_convBias <- foreach(i = 1:convolutional$Nconv, .combine = c) %do% {
+      grads_convBias <- foreach(i = 1:convolutional$Nconv, .combine = c) %do% {
         idx <- (1+N_TV_layers*(i-1)):(N_TV_layers*i)
         mean(gg[1,idx])
       }
       # make the layer
-      convGrad <- makeConvLayer(new_convParms, new_convBias)
+      convGrad <- makeConvLayer(grads_convParms, grads_convBias)
       #set the gradients on the time-invariant terms to zero
       convGrad[,(N_TV_layers * convolutional$Nconv+1):ncol(convGrad)] <- 0
       grads[[1]] <- convGrad
@@ -276,9 +276,13 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   #get starting mse
   yhat <- as.numeric(getYhat(parlist, hlay = hlayers))
   mse <- mseold <- mean((y-yhat)^2)
-  loss <- mse + lam*sum(c(parlist$beta_param*parapen
+  pl_for_lossfun <- parlist[!grepl('beta', names(parlist))]
+  if (!is.null(convolutional)){
+    pl_for_lossfun[[1]] <- unlist(c(convolutional$convParms, convolutional$convBias))
+  }
+  loss <- mse + lam*sum(c(parlist$beta_param*parapen 
     , parlist$beta
-    , unlist(sapply(parlist[!grepl('beta', names(parlist))], as.numeric)))^2
+    , unlist(sapply(pl_for_lossfun, as.numeric)))^2
   )
   LRvec <- LR <- start.LR# starting step size
   #Calculate gradients
@@ -376,7 +380,6 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       # Update hidden layers
       hlayers <- calc_hlayers(parlist, X = X, param = param, fe_var = fe_var, 
                               nlayers = nlayers, convolutional = convolutional, activ = activation)
-
       # OLS trick!
       if (OLStrick == TRUE){
         parlist <- OLStrick_function(parlist = parlist, hidden_layers = hlayers, y = y
@@ -386,9 +389,21 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       yhat <- getYhat(parlist, hlay = hlayers)
       mse <- mean((y-yhat)^2)
       msevec <- append(msevec, mse)
+      pl_for_lossfun <- parlist[!grepl('beta', names(parlist))]
+      if (!is.null(convolutional)){ # coerce the convolutional parameters to a couple of vectors to avoid double-counting in the loss
+        convolutional$convParms <- foreach(i = 1:convolutional$Nconv) %do% {
+          idx <- (1+N_TV_layers*(i-1)):(N_TV_layers*i)
+          rowMeans(foreach(j = idx, .combine = cbind) %do% {x <- pl_for_lossfun[[1]][,j]; x[x!=0][-1]})
+        }
+        convolutional$convBias <- foreach(i = 1:convolutional$Nconv, .combine = c) %do% {
+          idx <- (1+N_TV_layers*(i-1)):(N_TV_layers*i)
+          mean(pl_for_lossfun[[1]][1,idx])
+        }
+        pl_for_lossfun[[1]] <- c(unlist(convolutional$convParms, convolutional$convBias))
+      }
       loss <- mse + lam*sum(c(parlist$beta_param*parapen
                               , parlist$beta
-                              , unlist(sapply(parlist[!grepl('beta', names(parlist))], as.numeric)))^2
+                              , unlist(sapply(pl_for_lossfun, as.numeric)))^2
       )
       lossvec <- append(lossvec, loss)
     } #finishes epoch
@@ -397,7 +412,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     mse <- mean((y-yhat)^2)
     loss <- mse + lam*sum(c(parlist$beta_param*parapen
                             , parlist$beta
-                            , unlist(sapply(parlist[!grepl('beta', names(parlist))], as.numeric)))^2
+                            , unlist(sapply(pl_for_lossfun, as.numeric)))^2
     )
     #If loss increases...
     if (oldpar$loss <= loss){
