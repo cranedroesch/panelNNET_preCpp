@@ -29,4 +29,4 @@ TBD:
 
 13.  Speed up the OLStrick.
 
-14.  Get dropout to work with full gradients
+14.  Get dropout to work with convolutional nets
