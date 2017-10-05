@@ -7,35 +7,28 @@ TBD:
 
 2.  Need a method for including groups that aren't necessarily represented by fixed effects in estimating cluster vcv
 
-3.  Optimization/rewriting in low-level languages
+3.  GPU integration
 
-4.  Look into GPU libraries
+4.  Add effective degrees of freedom to summary output
 
-5.  Add sanity checks:  that FE input is defined and is a factor, that the parametric penalty multiplier is the same length as the parametric term vector, etc.
+5.  Build interactive mode, using the keypress package
 
-6.  Add effective degrees of freedom to summary output
+6.  Write a vignette
 
-7.  Build interactive mode, using the keypress package
+7.  Save activations as functions, rather than strings/pointers, then remove all of the redundant headers in the various files
 
-8.  Write a function to predict from a new dataset that has missing observations.  As arguments it should take distributions from which to draw the missing values.
+8.  Remove storage of hidden layers to degree possible, to reduce memory footprint.
 
-9.  Code up permutation importance function
+9.  Reduce number of things in the output, perhaps subject to an argument.  Goal is to reduce storage footprint and loading time.  This will involve not storing the input data, but storing the scaling factors from the input data.
 
-10.  Write a vignette
+10.  Loss function applied to conv nets shouldn't double-count shared weights.
 
-11.  Save activations as functions, rather than strings/pointers, then remove all of the redundant headers in the various files
+11.  Convolutional throws an error when there are no fixed variables.  This is because of the way the convmask building function binds the time-varying and non-time-varying portions of the mask together -- it assumes that there is a non-time-varying portion.
 
-12.  Remove storage of hidden layers to degree possible, to reduce memory footprint.
+12.  Speed up the calc_grads function
 
-13.  Reduce number of things in the output, perhaps subject to an argument.  Goal is to reduce storage footprint and loading time.  This will involve not storing the input data, but storing the scaling factors from the input data.
+13.  Speed up the OLStrick.
 
-14.  Create infrastructure to bag (bootstrap aggregate) neural nets, including creating objects that can predict from bagged NNs ensembles.  
+14.  Get dropout to work with full gradients
 
-15.  Loss function applied to conv nets shouldn't double-count shared weights.
-
-16.  Convolutional throws an error when there are no fixed variables.  This is because of the way the convmask building function binds the time-varying and non-time-varying portions of the mask together -- it assumes that there is a non-time-varying portion.
-
-17.  Speed up the calc_grads function
-
-18.  Speed up the OLStrick.
-
+15.  Write a function to generate "hinton diagrams" from conv output.
