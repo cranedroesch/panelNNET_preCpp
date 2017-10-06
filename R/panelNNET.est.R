@@ -8,7 +8,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 # y = dat$yield
 # X = dat[,grepl('tmax|tmin|wspd|relh|radiation|lat|lon|prc|prop_irr|rotation|tillage|friability',colnames(dat))]
 # param = Xp
-# hidden_units = 10
+# hidden_units = c(10, 30, 5)
 # parapen = rep(0, ncol(param))
 # fe_var = dat$reap
 # maxit = 10
@@ -17,7 +17,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 # verbose = T
 # gravity = 1.01
 # convtol = 1e-5
-# activation = 'lrelu'
+# activation = 'relu'
 # start_LR = .001
 # parlist = NULL
 # OLStrick = TRUE
@@ -31,7 +31,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 # dropout_hidden <- dropout_input <- 1
 # datestring <- substr(colnames(X), nchar(colnames(X))-4, nchar(colnames(X)))
 # topology <- as.POSIXlt(datestring, format = "%m_%d")$yday
-# convolutional <- list(Nconv = 5, span = 5, step = 5, topology = topology)
+# convolutional <- list(Nconv = 10, span = 2, step = 2, topology = topology)
 
   
   ##########
@@ -57,6 +57,10 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   }
 
   calc_grads<- function(plist, hlay = NULL, yhat = NULL, curBat = NULL, droplist = NULL, dropinp = NULL){
+# plist <- parlist
+# hlay <- hlayers
+# droplist <- NULL
+# curBat <- NULL
     #subset the parameters and hidden layers based on the droplist
     if (!is.null(droplist)){
       Xd <- X[,dropinp, drop = FALSE]
@@ -86,20 +90,38 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     if (is.null(yhat)){yhat <- getYhat(plist, hlay = hlay)}
     NL <- nlayers + as.numeric(!is.null(convolutional))
     grads <- grad_stubs <- vector('list', NL + 1)
-    grad_stubs[[length(grad_stubs)]] <- getDelta(CB(as.matrix(y)), yhat)
-    for (i in NL:1){
-      if (i == NL){outer_param = as.matrix(c(plist$beta))} else {outer_param = plist[[i+1]]}
-      if (i == 1){lay = CB(Xd)} else {lay= CB(hlay[[i-1]])}
-      #add the bias
-      lay <- cbind(1, lay) #add bias to the hidden layer
-      if (i != NL){outer_param <- outer_param[-1,, drop = FALSE]}      #remove parameter on upper-layer bias term
-      grad_stubs[[i]] <- activ_prime(lay %*% plist[[i]]) * grad_stubs[[i+1]] %*% Matrix::t(outer_param)
+    for (i in (NL+1):1){
+      if (i == (NL+1)){
+        grad_stubs[[i]] <- -2*(y - yhat) * activ_prime(as.matrix(CB(hlay[[i-1]]) %*% c(plist$beta_param, plist$beta)))
+      } else {
+        if (i == 1){lay <- Xd} else {lay <- CB(hlay[[i-1]])}
+        if (i == NL){upper_par <- t(parlist$beta)} else {upper_par <- t(plist[[i+1]][-1,])}
+        grad_stubs[[i]] <- grad_stubs[[i+1]] %*% upper_par * activ_prime(lay %*% plist[[i]][-1,])
+      }
     }
+# 
+#     newgs <- grad_stubs
+#     grads <- grad_stubs <- vector('list', NL + 1)
+#     all.equal(newgs, grad_stubs)
+#     
+    # grad_stubs[[length(grad_stubs)]] <- getDelta(CB(as.matrix(y)), yhat)
+    # for (i in NL:1){
+    #   if (i == NL){outer_param = as.matrix(c(plist$beta))} else {outer_param = plist[[i+1]]}
+    #   if (i == 1){lay = CB(Xd)} else {lay= CB(hlay[[i-1]])}
+    #   #add the bias
+    #   lay <- cbind(1, lay) #add bias to the hidden layer
+    #   if (i != NL){outer_param <- outer_param[-1,, drop = FALSE]}      #remove parameter on upper-layer bias term
+    #   grad_stubs[[i]] <- activ_prime(lay %*% plist[[i]]) * grad_stubs[[i+1]] %*% Matrix::t(outer_param)
+    # }
+    
+    
+    
+    
     #multiply the gradient stubs by their respective layers to get the actual gradients
     for (i in 1:length(grad_stubs)){
       if (i == 1){lay = CB(Xd)} else {lay= CB(hlay[[i-1]])}
       if (i != length(grad_stubs) | is.null(fe_var)){# don't add bias term to top layer when there are fixed effects present
-        lay <- cbind(1, lay) #add bias to the hidden layer
+        lay <- Matrix(cbind(1, lay)) #add bias to the hidden layer
       }
       grads[[i]] <- Matrix::t(lay) %*% grad_stubs[[i]]
     }
