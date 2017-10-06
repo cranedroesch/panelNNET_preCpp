@@ -95,7 +95,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
         grad_stubs[[i]] <- -2*(y - yhat) * activ_prime(as.matrix(CB(hlay[[i-1]]) %*% c(plist$beta_param, plist$beta)))
       } else {
         if (i == 1){lay <- Xd} else {lay <- CB(hlay[[i-1]])}
-        if (i == NL){upper_par <- t(parlist$beta)} else {upper_par <- t(plist[[i+1]][-1,])}
+        if (i == NL){upper_par <- t(plist$beta)} else {upper_par <- Matrix::t(plist[[i+1]][-1,])}
         grad_stubs[[i]] <- grad_stubs[[i+1]] %*% upper_par * activ_prime(lay %*% plist[[i]][-1,])
       }
     }
