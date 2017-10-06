@@ -90,29 +90,29 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     if (is.null(yhat)){yhat <- getYhat(plist, hlay = hlay)}
     NL <- nlayers + as.numeric(!is.null(convolutional))
     grads <- grad_stubs <- vector('list', NL + 1)
-    for (i in (NL+1):1){
-      if (i == (NL+1)){
-        grad_stubs[[i]] <- -2*(y - yhat) * activ_prime(as.matrix(CB(hlay[[i-1]]) %*% c(plist$beta_param, plist$beta)))
-      } else {
-        if (i == 1){lay <- Xd} else {lay <- CB(hlay[[i-1]])}
-        if (i == NL){upper_par <- t(plist$beta)} else {upper_par <- Matrix::t(plist[[i+1]][-1,])}
-        grad_stubs[[i]] <- grad_stubs[[i+1]] %*% upper_par * activ_prime(lay %*% plist[[i]][-1,])
-      }
-    }
+    # for (i in (NL+1):1){
+    #   if (i == (NL+1)){
+    #     grad_stubs[[i]] <- -2*(y - yhat) * activ_prime(as.matrix(CB(hlay[[i-1]]) %*% c(plist$beta_param, plist$beta)))
+    #   } else {
+    #     if (i == 1){lay <- Xd} else {lay <- CB(hlay[[i-1]])}
+    #     if (i == NL){upper_par <- t(plist$beta)} else {upper_par <- Matrix::t(plist[[i+1]][-1,])}
+    #     grad_stubs[[i]] <- grad_stubs[[i+1]] %*% upper_par * activ_prime(lay %*% plist[[i]][-1,])
+    #   }
+    # }
 # 
 #     newgs <- grad_stubs
 #     grads <- grad_stubs <- vector('list', NL + 1)
 #     all.equal(newgs, grad_stubs)
 #     
-    # grad_stubs[[length(grad_stubs)]] <- getDelta(CB(as.matrix(y)), yhat)
-    # for (i in NL:1){
-    #   if (i == NL){outer_param = as.matrix(c(plist$beta))} else {outer_param = plist[[i+1]]}
-    #   if (i == 1){lay = CB(Xd)} else {lay= CB(hlay[[i-1]])}
-    #   #add the bias
-    #   lay <- cbind(1, lay) #add bias to the hidden layer
-    #   if (i != NL){outer_param <- outer_param[-1,, drop = FALSE]}      #remove parameter on upper-layer bias term
-    #   grad_stubs[[i]] <- activ_prime(lay %*% plist[[i]]) * grad_stubs[[i+1]] %*% Matrix::t(outer_param)
-    # }
+    grad_stubs[[length(grad_stubs)]] <- getDelta(CB(as.matrix(y)), yhat)
+    for (i in NL:1){
+      if (i == NL){outer_param = as.matrix(c(plist$beta))} else {outer_param = plist[[i+1]]}
+      if (i == 1){lay = CB(Xd)} else {lay= CB(hlay[[i-1]])}
+      #add the bias
+      lay <- cbind(1, lay) #add bias to the hidden layer
+      if (i != NL){outer_param <- outer_param[-1,, drop = FALSE]}      #remove parameter on upper-layer bias term
+      grad_stubs[[i]] <- activ_prime(lay %*% plist[[i]]) * grad_stubs[[i+1]] %*% Matrix::t(outer_param)
+    }
     
     
     
